@@ -3,10 +3,6 @@
 #include"mysql/mysql.h"
 #include <string.h>
 
-
-//void show(int , int ,MYSQL *,MYSQL_ROW ,MYSQL_RES *);
-
-
 int main(int argc, const char *argv[])
 {
 
@@ -17,7 +13,6 @@ int main(int argc, const char *argv[])
     MYSQL_ROW row;
 
     query = (char *)malloc(50);
-   
     //init a  SQL struct 
     conn_ptr = mysql_init(&init);
     
@@ -44,7 +39,6 @@ int main(int argc, const char *argv[])
     while(1)
     {
         fgets(query,50,stdin); //鍵入字串給query
-     
         
         //執行query 字串中的SQL 語句
         t = mysql_real_query(conn_ptr,query,(unsigned int)strlen(query));
@@ -58,16 +52,13 @@ int main(int argc, const char *argv[])
             printf("query made...\n"); 
     
         }
-   
     
         //將query 執行後的結果檢索給res 
         res = mysql_use_result(conn_ptr);
  
         //show the return is result
-   
         for(r = 0;r<= mysql_field_count(conn_ptr);r++) //mysql_field_count 會將query 執行後有幾列回傳
         {
-    
             row = mysql_fetch_row(res);// 回傳query 執行後一行的結果 , 此row 透過迴圈得到結果的下一行 
     
             if(row == 0) 
