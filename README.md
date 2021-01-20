@@ -3,7 +3,8 @@
 ## Install Tool
 ```
 $ sudo apt-get -y update
-$ sudo apt-get -y git build-essential vim
+$ sudo apt-get -y install make gcc build-essential
+$ sudo apt-get -y install git vim
 ```
 
 ## Reference
