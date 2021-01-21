@@ -1,5 +1,5 @@
-#Homework 
-作業進度用C控制mariaDB完成
+#Homework 作業進度用C控制mariaDB完成
+
 本次作業個人認為語法上與使用PHP連接mariaDB時語法差不多
 但是不懂的地方是為什麼要先init 再者 init時網路資料有使用NULL 可是在實際操作時 mysql_init(NULL)會無法使用 不清楚原因為何
 所以不解為何要使用另一個MYSQL 型態的變數呼叫mysql_init 才能進行連線;
