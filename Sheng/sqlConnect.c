@@ -15,7 +15,7 @@ int main(int argc, char *argv[]) {
 
 	sql = command;			//將指標指向儲存用空間
 	mysql_init(&init);		//初始化
-	conn = mysql_real_connect(&init, "localhost", "root", "qaz7613163", "project", 0, NULL, 0); //建立連線
+	conn = mysql_real_connect(&init, "localhost", "root", "password", "project", 0, NULL, 0); //建立連線
 
 	if(conn) {									//判斷是否連線
 		printf("connection success!\n");
