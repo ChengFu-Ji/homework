@@ -10,7 +10,7 @@ void seekres(MYSQL *conn);	/*搜尋結果並顯示於CLI的 function*/
 int main(int argc, char *argv[]) {
 	char *sql;			
 	char cmd[100];		/*指令的儲存空間*/	
-	int res;			/*指令輸出結果*/		
+	int res;		/*指令輸出結果*/		
 	MYSQL *conn, init;		
 
 	sql = cmd;		
@@ -67,7 +67,7 @@ void seekres(MYSQL *conn) {
 		}
 		puts("\n");
 
-		for(i=1; i<=row; i++) {									/*列印搜尋結果資料*/	
+		for(i=1; i<=row; i++) {					/*列印搜尋結果資料*/	
 			result_row = mysql_fetch_row(res_ptr); 		
 			for(j=0; j<column; j++) {					
 				printf("%10s", result_row[j]);
