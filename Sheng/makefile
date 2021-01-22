@@ -1,6 +1,6 @@
 config:= `mysql_config --libs --include`
 
-edit: sqlConnect.o 
+edit: sqlConnect.o
 	gcc -o $@ $< $(config)
 sqlConnect.o: sqlConnect.c
 	gcc -c $< 
