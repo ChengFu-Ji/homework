@@ -13,7 +13,6 @@
 
 註:執行時需要 加上 -lmysqlclient 以使用函式庫
 
-#最後修改日期 2021/1/22
 ******************************************************************************************************************/
 #include<stdio.h>
 #include<stdlib.h>
@@ -22,101 +21,29 @@
 int main()
 {
 	MYSQL *conn_ptr;
-	
 	conn_ptr = mysql_init(NULL);
 
 	if(!conn_ptr)
 	{
-		printf("init failed\n");
-		
+		printf("init failed\n");		
 		return 1;
 	}
 
 	if(mysql_real_connect(conn_ptr,"localhost","root","raspberry","ex",0,NULL,0)!=NULL)
 	{
 		printf("success\n");
-
 		mysql_close(conn_ptr);
-
 		printf("connection closed\n");
 	}
 	else
 	{
 		printf("failed\n");
-
 		if(mysql_errno(conn_ptr))
 		{
 			printf("connect erro:%d %s\n",mysql_errno(conn_ptr),mysql_error(conn_ptr));
 		}
-
 		return 2;
 	}
-
 	return 0;
-}				
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+}
 
