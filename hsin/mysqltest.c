@@ -29,7 +29,7 @@ int main()
 		return 1;
 	}
 
-	if(mysql_real_connect(conn_ptr,"localhost","root","raspberry","ex",0,NULL,0)!=NULL)
+	if(mysql_real_connect(conn_ptr,"localhost","yee","raspberry","ex",0,NULL,0)!=NULL)
 	{
 		printf("success\n");
 		mysql_close(conn_ptr);
