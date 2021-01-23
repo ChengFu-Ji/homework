@@ -14,9 +14,11 @@ int main (int argc, char *argv[]) {
 	int ans2=strncmp(s1, s2, 3);
 
 	printf("return : strcmp %d, strncmp %d \n", ans, ans2);
+	
 	ans=mystrcmp(s1, s2);
 	ans2=mystrncmp(s1, s2, 3);
 	printf("return : mystrcmp %d, mystrncmp %d \n", ans, ans2);
+	
 	return 0;
 }	
 
