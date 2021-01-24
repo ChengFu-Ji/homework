@@ -1,10 +1,10 @@
 config:= `mysql_config --libs --include`
+obj:= sqlConnect.o
 
-edit: sqlConnect.o
+edit: $(obj)
 	gcc -o $@ $< $(config)
-sqlConnect.o: sqlConnect.c
-	gcc -c $< 
+$(obj):
 
 .PHONY: clean
 clean:
-	-rm edit sqlConnect.o
+	-rm edit $(obj)
