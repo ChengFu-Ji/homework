@@ -1,8 +1,9 @@
-#Homework 作業進度 : 用C控制mariaDB完成
+<h3>#Homework 作業進度 : C控制Mysql進階題 </h3>
 
-1/21 C語言控制mariaDB
+<p>2020年完成</p>
 
-本次作業個人認為語法上與使用PHP連接mariaDB時語法差不多
-在實作時, 本人實做了連接資料庫 並且可下sql指令 
+<pre><code>1/21 C語言控制Mysql
+完成功能:連線,下基本指令,顯示搜尋結果</code></pre>
 
-如有新發現會再更新 
+<pre><code>1/24 C語言控制Mysql的進階題完成</code></pre>
+
