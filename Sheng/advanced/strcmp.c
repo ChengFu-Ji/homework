@@ -3,13 +3,12 @@
 
 int mystrcmp (char *s1, char *s2);	/*實作 strcmp function*/
 int mystrncmp (char *s1, char *s2, int n);/*實作 strncmp function*/
-int lenof(char *s);			/*計算長度的 function*/
 
 /*實作時發現 strncmp 及 strcmp 是
  * s1>s2回傳大於0 s2>s1則回傳小於0*/
 int main (int argc, char *argv[]) {
-	char *s1="whaa";
-	char *s2="what";
+	char *s1="test for advance";
+	char *s2="test for advanced";
 	int ans=strcmp(s1, s2);
 	int ans2=strncmp(s1, s2, 3);
 
@@ -23,14 +22,14 @@ int main (int argc, char *argv[]) {
 }	
 
 int mystrcmp (char *s1, char *s2) {
-	int i, len=lenof(s1), cmp=0;
+	int i=0, cmp=0;
 
-	if (lenof(s2)>lenof(s1)) {
-		len=lenof(s2);
-	}
+	while (cmp==0) {
+		cmp=*(s1+i)-*(s2+i);
 
-	for (i=0; i<len && cmp==0; i++) {
-		cmp=*(s1+i)-*(s2+i);	
+		if (*(s1+i)=='\0' || *(s2+i)=='\0') break;
+
+		i++;
 	}
 	return cmp;
 }
@@ -44,11 +43,4 @@ int mystrncmp (char *s1, char *s2, int n) {
 	return cmp;
 }
 
-int lenof(char *s) {
-	int i;
-
-	for (i=0; *(s+i)!='\0'; i++);
-
-	return i;
-}
 
