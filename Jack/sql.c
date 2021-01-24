@@ -28,7 +28,7 @@ int main()
         printf("init ... failed\n");
         return 0;
     }
-    mysql = mysql_real_connect(mysql,"localhost","root","ji3g4go6","exercise_mysql",0,NULL,0);
+    mysql = mysql_real_connect(mysql,"localhost","root","","exercise_mysql",0,NULL,0);
     if(mysql)
     {
         printf("connect ... ok\n");
