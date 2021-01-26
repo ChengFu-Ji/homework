@@ -10,5 +10,5 @@ mysqltest: mysqltest.c
 	gcc $^ -o $(test) -lmysqlclient
 
 clean:				
-	rm mysqltest
+	@rm mysqltest
  
