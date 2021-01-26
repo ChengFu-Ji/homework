@@ -1,93 +1,120 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
 #include <mysql/mysql.h>
+/*
+ *	 void seekres function接收資料並顯示結果
+ *	 int cmddet function判斷是否需要顯示結果 
+ *	 int strncmp function實作能包容大小寫不相同的 strcmp
+ */
+void seekres (MYSQL *conn);			
+int cmddet (char *str);		
+int strncmp (char *s1, char *s2, int n);	
+/*	
+ *	char cmdspace 儲存指令的空間
+ *	int rsp 用於接收指令執行是否成功
+ *	MYSQL *conn 用於連接及初始化
+ */	
+int main (int argc, char *argv[]) {
+	char *sqlcmd;		
+	char cmdspace[50];		
+	char host[] = "localhost";
+	char user[] = "account";
+	char psw[] = "password";
+	int rsp;
+	MYSQL *conn;
 
-int cmddet(char *sqlcmd);	/*確認指令是show 或者 select 用的 function*/
-void seekres(MYSQL *conn);	/*搜尋結果並顯示於CLI的 function*/
+	sqlcmd = cmdspace;
 
-int main(int argc, char *argv[]) {
-	char *sql;			
-	char cmd[100];		/*指令的儲存空間*/	
-	int res;		/*指令輸出結果*/		
-	MYSQL *conn, init;		
-
-	sql = cmd;		
-	mysql_init(&init);		
-	conn = mysql_real_connect(&init, "localhost", "pi", "qaz7613163", "project", 0, NULL, 0); 
-
-	if(conn!=NULL) {									
-		printf("connection success!\n");
-	}else{
-		printf("connection failed...\n");
+	conn = mysql_init(NULL);
+	if (conn!=NULL) {
+		printf("initialize success!\n");
+	} else {
+		fprintf(stderr,"initialize failed...\n");
 		return 1;
 	}
 
-	while(1) {									
-		fgets(sql, 100, stdin); 			
+	conn = mysql_real_connect(conn, host, user, psw, NULL, 0, NULL, 0);
+	if (conn!=NULL) {
+		printf("connetion success!\n");
+	} else {
+		fprintf(stderr, "connetion failed...\n");
+		return 1;
+	}
+	puts("Welcome!");
 
-		if(strncmp(sql, "exit", 4)==0) {		/*離開輸入指令*/	
-			printf("bye~\n");
+	while (1) {
+		fgets(sqlcmd, 50, stdin);
+		
+		if (!strncmp(sqlcmd, "exit", 4)) {
+			printf("Bye~\n");
 			break;
 		}
 
-		res = mysql_query(conn, sql);			/*接收sql指令回傳值*/
-	
-		if(res) {								
-			perror("my_query");				
-			continue;						
+		rsp = mysql_query(conn, sqlcmd);
+		if(rsp) {
+			fprintf(stderr, "ERROR %d : %s\n", mysql_errno(conn), mysql_error(conn));
 		}else {
-			if(cmddet(sql)) {			
+			if (cmddet(sqlcmd)) {
 				seekres(conn);
-			}else {							
-				printf("done!\n");
+			} else {
+				printf("done! Affected %d rows\n", (int)mysql_affected_rows(conn));
 			}
 		}
 	}
-	mysql_close(conn);						
+	mysql_close(conn);
 	return 0;
 }
-void seekres(MYSQL *conn) {
-	MYSQL_RES *res_ptr;					
-	MYSQL_FIELD *field;					
-	MYSQL_ROW result_row;			
-	int row, column;			
-	int i, j;						
 
-	res_ptr = mysql_store_result(conn);		
+/*
+ *	MYSQL_RES *res 儲存需要顯示的sq指令資訊
+ *	MYSQL_FIELD *field_now 儲存該欄位資料
+ *	MYSQL_ROW row_now 儲存該行資料
+ */
+void seekres (MYSQL *conn) {
+	MYSQL_RES *res;
+	MYSQL_FIELD *field_now;
+	MYSQL_ROW row_now;
+	int row, col;
+	int i, j;
 
-	if(res_ptr!=NULL) {							
-		column = mysql_num_fields(res_ptr);	
-		row = mysql_num_rows(res_ptr);		
-		printf("%d rows in set.\n", row);	
+	res = mysql_store_result(conn);
+	if (res!=NULL) {
+		row = mysql_num_rows(res);
+		col = mysql_num_fields(res);
 
-		for(i=0; (field = mysql_fetch_field(res_ptr)); i++) { 	/*列印搜尋結果欄位名*/
-			printf("%10s", field->name);	
+		for (i=0; (field_now = mysql_fetch_field(res)); i++) {
+			printf("%15s", field_now->name);
 		}
 		puts("\n");
-
-		for(i=1; i<=row; i++) {					/*列印搜尋結果資料*/	
-			result_row = mysql_fetch_row(res_ptr); 		
-			for(j=0; j<column; j++) {					
-				printf("%10s", result_row[j]);
+		for (i=1; i<=row; i++) {
+			row_now = mysql_fetch_row(res);
+			for (j=0; j<col; j++) {
+				printf("%15s", row_now[j]);
 			}
 			puts("\n");
 		}
 	}
-	mysql_free_result(res_ptr);
+	mysql_free_result(res);
 }
 
-int cmddet(char *sqlcmd) {						
+int cmddet (char *str) {
 	char select[] = "select";
-	char SELECT[] = "SELECT";
 	char show[] = "show";
-	char SHOW[] = "SHOW";
+	char describe[] = "describe";
 
-	if(!(strncmp(select, sqlcmd, 6)) || !(strncmp(show, sqlcmd, 4)) || 
-	!(strncmp(SELECT, sqlcmd, 6)) || !(strncmp(SHOW, sqlcmd, 4))) {  
+	if (!strncmp(select, str, 6) || !strncmp(show, str, 4) || !strncmp(describe, str, 8)) {
 		return 1;
-	} 
+	}
 	return 0;
 }
 
+int strncmp (char *s1, char *s2, int n) {
+	int cmp = 0;
+
+	while (n--) {
+		cmp = *(s1++)-*(s2++);
+		if (cmp!=32 && cmp!=-32 && cmp!=0) {
+			return cmp;
+		}
+	}
+	return cmp;
+}
