@@ -33,6 +33,7 @@ ssh		22/tcp				# SSH Remote Login Protocol
 ssh2    2202/tcp
 my_telnet  1234/tcp
 test    4321/tcp
+transla 4444/tcp
 #******************#
 telnet		23/tcp
 smtp		25/tcp		mail
