@@ -1,11 +1,10 @@
-#README
-##2021/1/21
+## 2021/1/21
     我利用mysql.h 向SQL連線，且可以根據使用的輸入去執行指令，然後會show出執行結果。
-##2021/2/1
-1. 可透過**inetd** 管理網路服務
-2. 新增一個**port**，透過**telnet**使用新增的port去執行服務程式
+## 2021/2/1
+1. 可透過 ** inetd ** 管理網路服務
+2. 新增一個 ** port **，透過 ** telnet ** 使用新增的port去執行服務程式
 
-##program_show
+## program_show
 
 Indented code
 
