@@ -1,13 +1,32 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <mysql/mysql.h>
-
-int strlens(char *s);
+/*
+ *	mystrlen 用於計算字串長度的 function
+ *	strcp 用於複製字串的 function
+ *	seekres 用於接收sql指令回傳值並顯示的 function
+ *	straddc 用於增加字元在字串尾部 function
+ *	strncmp 實做能兼容大小差異的strncmp
+ */
+int mystrlen(char *s);
 void strcp(char *s1, char *s2);
 void seekres(MYSQL *conn);
 void straddc (char *s1, char c);
 int strncmp (char *s1, char *s2, int n);
 
+/*	*sqlcmd 用於傳送完整指令 
+ *	srchsp 儲存要查單字的空間
+ *	select 用於搜尋單字的指令
+ *	comma 字元 `'` 用於搜尋指令字尾
+ *	*conn 用於連接sql
+ *
+ *	setvbuf() 為了將標準輸出(stdout)的輸出模式改回line buffered (IOLBF) (猜測
+ *	因為compiler後 直接執行該檔案 在預設的情況下標準輸出(stdout)的BUFFER模式通常為line buffered
+ *	而掛上inetd後 經由telnet 連線 標準輸出(stdout)的BUFFER模式會變為fully buffered (猜測
+ *	因為在本人將標準輸出(stdout)的BUFFER模式改為fully buffered 並compiler後 
+ *	執行結果和在使用telnet連線後 輸出的結果一致 所以猜測 
+ *	在經由telnet 連線後會將標準輸出(stdout)的BUFFER模式改為fully buffered
+ */
 int main (int argc, char argv[]) {
 	char *srchptr, *sqlcmd;
 	char srchsp[15];
@@ -62,7 +81,7 @@ int main (int argc, char argv[]) {
 			break;
 		}
 
-		len = strlens(select) + strlens(srchptr) + 2;
+		len = mystrlen(select) + mystrlen(srchptr) + 2;
 		sqlcmd = (char *)malloc(len);
 		*sqlcmd = '\0';
 
@@ -81,7 +100,10 @@ int main (int argc, char argv[]) {
 	mysql_close(conn);
 	return 0;
 }
-
+/*	*res 儲存執行sql指令回傳結果
+ *	row_seek 儲存該行資訊(中文 及 英文)
+ *	表格欄位設定 id, en(英文), ch(中文)
+ */
 void seekres (MYSQL *conn) {
 	MYSQL_RES *res;
 	MYSQL_ROW row_seek;
@@ -103,20 +125,20 @@ void seekres (MYSQL *conn) {
 	mysql_free_result(res);
 }
 
-int strlens (char *s) {
+int mystrlen (char *s) {
 	int i = 0;
 	while (1) {
-		if (*(s+i) != '\0') {
-			i++;
-		}else {
+		if (*(s+i) == '\0') {
 			break;
+		}else {
+			i++;
 		}
 	}
 	return i;
 }
 
 void strcp (char *s1, char *s2) {
-	int len = strlens(s1);
+	int len = mystrlen(s1);
 	int i;
 	for (i = 0; *(s2+i) != '\0'; i++) {
 		*(s1+(len++)) = *(s2+i); 
@@ -125,7 +147,7 @@ void strcp (char *s1, char *s2) {
 }
 
 void straddc (char *s1, char c) {
-	int len = strlens(s1);
+	int len = mystrlen(s1);
 	*(s1+(len++)) = c;
 	*(s1+(len)) = '\0';
 }

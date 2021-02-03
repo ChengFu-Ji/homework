@@ -1,5 +1,5 @@
 <h3>inetd</h3>
 
-這次只有上傳檔案 
+更新註解
 
-下次更新 註解 , README.md
+下次更新 README.md
