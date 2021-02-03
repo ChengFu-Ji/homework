@@ -1,10 +1,10 @@
 #include <stdio.h>
-#include <mysql.h>
+#include <mariadb/mysql.h>
 
 #define SERVER "localhost"
-#define USER "chengfu"
-#define PASSWD "chengfu"
-#define DATABASE "raw"
+#define USER "pi"
+#define PASSWD "1234"
+#define DATABASE "testsql2"
 
 int main()
 {
