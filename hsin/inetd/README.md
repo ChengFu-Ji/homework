@@ -66,3 +66,45 @@ Escape character is '^]'.
 Helloworld
 Connection closed by foreign host.
 ```
+
+&emsp;
+
+---------
+### 測試scanf
+
+測試程式為簡易 scanf 程式
+
+>==testscanf.c==
+
+---------
+
+### 測試結果
+
+```
+Trying ::1...
+Trying 127.0.0.1...
+Connected to localhost.
+Escape character is '^]'.
+you
+me
+ate
+_exit
+what the you
+what the me
+what the ate
+Connection closed by foreign host.
+```
+
+---------
+
+### 發現問題
+
+### `文字並不會直接印出，而是在離開之後才會印出。`
+
+---------
+
+### 目前尚未解決問題 
+
+
+
+
