@@ -20,8 +20,8 @@ int main(){
 ```
 `編譯`
 
-```gcc -o testinetd testinetd.c
-```
+`gcc -o testinetd testinetd.c`
+
 ---
 
 ##設定/etc/services、/etc/inetd.conf
@@ -30,9 +30,7 @@ int main(){
 
 `在最底下加上`
 
-```
-testinetd 3333/tcp
-```
+`testinetd 3333/tcp`
 
 `儲存完並退出`
 
