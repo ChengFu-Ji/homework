@@ -67,8 +67,6 @@ Helloworld
 Connection closed by foreign host.
 ```
 
-&emsp;
-
 ---------
 ## 測試scanf
 
