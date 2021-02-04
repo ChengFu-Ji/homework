@@ -51,5 +51,10 @@ tip : fully buffered & line buffered
 	fully buffered 在 setvbuf() 中提到 表現為當程式結束或者buffer空間滿了才會進行傳輸
 	line buffered 在 setvbuf() 中提到 表現為當遇到換行符號'\n'時便進行傳輸
 
+以上為猜想 目前沒有辦法 佐證我的想法 但有些參考資料 如有錯誤 還請指教 謝謝
+
+<a href="https://www.gnu.org/software/libc/manual/html_node/Buffering-Concepts.html"> 參考資料 buffering-concept </a>
+
+參考資料尚未補齊
 
 
