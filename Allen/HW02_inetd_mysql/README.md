@@ -3,11 +3,14 @@
 2. apt install telnet
 
 ## 操作流程
-1. 啟動inetd監聽
-2. Telnet連線，觸發inetd
-3. 觸發起動MySQL字典程式
-4. 輸入要查詢的國家編號
-5. 輸出查詢國家名稱
+1. etc/servies文件內 加入自己的服務名稱及Port號
+2. etc/inetd.conf文件內 設定監聽服務
+3. inetutils-inetd restart 重啟服務
+4. telnet localhost 8787 啟動inetd監聽
+5. Telnet連線，觸發inetd
+6. 觸發起動MySQL字典程式
+7. 輸入要查詢的國家編號
+8. 輸出查詢國家名稱
 
 
 ## BUG
