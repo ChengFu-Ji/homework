@@ -38,6 +38,7 @@ int main(){
 `設定需inetd引導到的服務`
 
 `testinetd stream tcp nowait root /home/pi/testinetd testinetd`
+
 ---
 ##重新開啟inetd服務
 
@@ -49,6 +50,7 @@ sudo /etc/init.d/inetutils-inetd start
 ##測試
 
 `telnet localhost 3333`
+
 ---
 
 ##測試結果
