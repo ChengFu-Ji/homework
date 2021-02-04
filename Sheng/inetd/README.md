@@ -17,7 +17,7 @@ xinetd 與 inetd 的差別 自己使用上感覺是差不多 只是xinted 有較
 
 設定好後重啟 inetd 服務 便可使用你所寫的服務了!
 
-連線方式
+<h4>連線方式</h4>
 
 <pre><code>telnet localhost 1234</code></pre>
 
@@ -26,6 +26,10 @@ xinetd 與 inetd 的差別 自己使用上感覺是差不多 只是xinted 有較
 目的是做到能夠透過mysql將英文單字翻譯成中文
 
 目前的進度已經與預期的結果相符
+
+<h4>程式執行截圖</h4>
+	
+<img src="https://github.com/ChengFu-Ji/homework/blob/master/Sheng/inetd/picOfservice.png">
 
 <h4>fflush 的使用</h4>
 
