@@ -27,11 +27,9 @@ xinetd 與 inetd 的差別 自己使用上感覺是差不多 只是xinted 有較
 
 目前的進度已經與預期的結果相符
 
-fflush 的使用
+<h4>fflush 的使用<\h4>
 
-會使用 fflush 的原因 
-
-為了將在buffer中儲存的值全部清空並輸出
+為了將在buffer中儲存的值全部清空並輸出 而使用fflush
 
 至於為何stdout的buffer會變為程式執行完後才全部輸出
 
@@ -40,17 +38,21 @@ fflush 的使用
 inetd 的stdout則會導向到我們執行檔的stdin, 執行檔的stdout 則維持不變為模擬終端介面
 
 在預設情況下 stdout 的 buffered mode 採用 fully buffered, 
+
 例外 (也就是 I/O 為 鍵盤/模擬終端介面) 時, stdout 的 buffered mode採用 line buffered
 
-當我們用telnet 連線到我們的程式的時候, input則為inetd output則為模擬終端界面 不符合例外狀況
-所以會採用 fully buffered 
+當我們用telnet 連線到我們的程式的時候, input則為inetd output則為模擬終端界面 
 
-所以我們使用fflush(stdout) 是為了將buffer中儲存的值全部列印出
+不符合例外狀況 所以會採用 fully buffered 
 
-tip : fully buffered & line buffered 
-	fully buffered 在 setvbuf() 中提到 表現為當程式結束或者buffer空間滿了才會進行傳輸
-	line buffered 在 setvbuf() 中提到 表現為當遇到換行符號'\n'時便進行傳輸
+所以我使用fflush(stdout) 是為了將buffer中儲存的值全部列印出
 
+tip : fully buffered & line buffered
+<ul>
+  <li>fully buffered 在 setvbuf() 中提到 表現為當程式結束或者buffer空間滿了才會進行傳輸</li>
+  <li>line buffered 在 setvbuf() 中提到 表現為當遇到換行符號'\n'時便進行傳輸</li>
+</ul> 
+	
 以上為猜想 目前沒有辦法 佐證我的想法 但有些參考資料 如有錯誤 還請指教 謝謝
 
 <a href="https://www.gnu.org/software/libc/manual/html_node/Buffering-Concepts.html"> 參考資料 buffering-concept </a>
