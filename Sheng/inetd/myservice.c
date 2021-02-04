@@ -1,48 +1,33 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <mysql/mysql.h>
 /*
- *	mystrlen 用於計算字串長度的 function
- *	strcp 用於複製字串的 function
  *	seekres 用於接收sql指令回傳值並顯示的 function
- *	straddc 用於增加字元在字串尾部 function
- *	strncmp 實做能兼容大小差異的strncmp
+ *	wordck 用於檢察輸入的每個字是否為英文字的 function
  */
-int mystrlen(char *s);
-void strcp(char *s1, char *s2);
 void seekres(MYSQL *conn);
-void straddc (char *s1, char c);
-int strncmp (char *s1, char *s2, int n);
+int wordck(char *word);
 
 /*	*sqlcmd 用於傳送完整指令 
  *	srchsp 儲存要查單字的空間
  *	select 用於搜尋單字的指令
- *	comma 字元 `'` 用於搜尋指令字尾
  *	*conn 用於連接sql
- *
- *	setvbuf() 為了將標準輸出(stdout)的輸出模式改回line buffered (IOLBF) (猜測
- *	因為compiler後 直接執行該檔案 在預設的情況下標準輸出(stdout)的BUFFER模式通常為line buffered
- *	而掛上inetd後 經由telnet 連線 標準輸出(stdout)的BUFFER模式會變為fully buffered (猜測
- *	因為在本人將標準輸出(stdout)的BUFFER模式改為fully buffered 並compiler後 
- *	執行結果和在使用telnet連線後 輸出的結果一致 所以猜測 
- *	在經由telnet 連線後會將標準輸出(stdout)的BUFFER模式改為fully buffered
  */
 int main (int argc, char argv[]) {
 	char *srchptr, *sqlcmd;
-	char srchsp[15];
-	char buffer[BUFSIZ];
+	char srchsp[50];
+	/*char buffer[BUFSIZ];*/
 	char host[] = "localhost";
 	char user[] = "pi";
 	char psw[] = "qaz7613163";
 	char database[] = "project";
-	char select[] = "SELECT * FROM vocab WHERE en = '";
-	char comma = 39;
 	int rsp, len;
 	MYSQL *conn;
 	
 	srchptr = srchsp;
 	
-	setvbuf(stdout, buffer, _IOLBF, BUFSIZ);
+	/*setvbuf(stdout, buffer, _IOLBF, BUFSIZ);*/
 
 	fprintf(stdout,"\nWelcome to Sheng's dirctionary!!!\n");
 
@@ -73,22 +58,26 @@ int main (int argc, char argv[]) {
 	printf("\ntype in '--exit' to exit the service\n");
 	printf("start to search!\n");
 
+
 	while (1) {
+		printf(">> ");
+
+		fflush(stdout);
 		scanf("%s", srchptr);
 
 		if(!strncmp(srchptr, "--exit", 6)) {
 			printf("exit the service. BYE~\n");
 			break;
 		}
-
-		len = mystrlen(select) + mystrlen(srchptr) + 2;
-		sqlcmd = (char *)malloc(len);
-		*sqlcmd = '\0';
-
-		strcp(sqlcmd, select);
-		strcp(sqlcmd, srchptr);
-		straddc(sqlcmd, comma);
 		
+		if(!wordck(srchptr)) {
+			printf("Wrong input! Try again!\n");
+			continue;
+		}
+		sqlcmd = (char *)malloc(50);
+
+		sprintf(sqlcmd, "select * from vocab where en = '%s'", srchptr);
+
 		rsp = mysql_query(conn, sqlcmd);
 		if (rsp) {
 			printf("err: %s\n",mysql_error(conn));
@@ -111,6 +100,7 @@ void seekres (MYSQL *conn) {
 
 	res = mysql_store_result(conn);
 	row_seek = mysql_fetch_row(res);
+	
 
 	if (mysql_num_rows(res) == 0) {
 		printf("Dictionary does not included this word\n");
@@ -125,42 +115,12 @@ void seekres (MYSQL *conn) {
 	mysql_free_result(res);
 }
 
-int mystrlen (char *s) {
+int wordck (char *word) {
 	int i = 0;
-	while (1) {
-		if (*(s+i) == '\0') {
-			break;
-		}else {
-			i++;
+	for (; *(word+i) != '\0'; i++) {
+		if (((int) *(word+i) <= 64) || ((int) *(word+i) >= 91 && (int) *(word+i) <= 96) || ((int) *(word+i) >= 123)) {
+			return 0;
 		}
 	}
 	return i;
-}
-
-void strcp (char *s1, char *s2) {
-	int len = mystrlen(s1);
-	int i;
-	for (i = 0; *(s2+i) != '\0'; i++) {
-		*(s1+(len++)) = *(s2+i); 
-	}
-	*(s1+len) = '\0'; 
-}
-
-void straddc (char *s1, char c) {
-	int len = mystrlen(s1);
-	*(s1+(len++)) = c;
-	*(s1+(len)) = '\0';
-}
-
-int strncmp (char *s1, char *s2, int n) {
-	int cmp = 0, i=0;
-
-	while (n--) {
-		cmp = *(s1+i) - *(s2+i);
-		i++;
-		if (cmp!=32 && cmp!=-32 && cmp!=0) {
-			return cmp;
-		}
-	}
-	return cmp;
 }
