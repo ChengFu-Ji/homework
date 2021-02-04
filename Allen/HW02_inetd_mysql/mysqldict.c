@@ -15,9 +15,10 @@
 *   @param  #define     mysql_Port         	    Mysql Port號
 *	@param  MYSQL       *mysql         	        Mysql 變數
 *   @param  char        MYSQL_Inquire           Mysql 查詢字串
-*   @param  MYSQL_RES   *MYSQL_Result            Mysql 查詢結果 
+*   @param  MYSQL_RES   *MYSQL_Result           Mysql 查詢結果 
 *   @param  MYSQL_ROW   Data_Row         	    Mysql 查詢結果內容
 *   @param  char        input                   使用者輸入之國家編號
+*   @param  int         dataflag                檢查Mysql查詢結果是否為空
 */
 
 #include <stdio.h>
@@ -38,6 +39,7 @@ int main()
     MYSQL_RES *MYSQL_Result;
     MYSQL_ROW Data_Row;
     char input[] = "";
+    int dataflag = 0;
 
     printf("請輸入國家編號：");
     scanf("%s", &input);
@@ -46,7 +48,7 @@ int main()
     if (!mysql)
     {
         printf("Mysql Initialization Failed\n");
-        return 0;
+        return 1;
     }
 
     if (mysql_real_connect(mysql, mysql_IP, mysql_Account, mysql_Password, mysql_Database, mysql_Port, NULL, 0) != NULL)
@@ -60,7 +62,7 @@ int main()
         {
             printf("Connect Error Message:%d %s\n", mysql_errno(mysql), mysql_error(mysql));
         }
-        return 2;
+        return 1;
     }
 
     if (mysql_query(mysql, MYSQL_Inquire) == 0)
@@ -70,26 +72,28 @@ int main()
             while ((Data_Row = mysql_fetch_row(MYSQL_Result)) != NULL)
             {
                 printf("查詢結果：%s\t\n", Data_Row[1]);
+                dataflag = 1;
             }
-            if ((Data_Row = mysql_fetch_row(MYSQL_Result)) == NULL)
+            if (dataflag == 0)
             {
                 printf("查詢結果：查無國家\n");
             }
+            dataflag = 0;
             mysql_free_result(MYSQL_Result);
         }
         else
         {
             printf("Mysql Failed To Store Result!\n");
-            return 4;
+            return 1;
         }
     }
     else
     {
         printf("Mysql Failed To Query!\n");
-        return 3;
+        return 1;
     }
 
     mysql_close(mysql);
     printf("Mysql Connection Closed\n");
-    return 1;
+    return 0;
 }
