@@ -10,7 +10,7 @@ int main()
     char txt[20];
 
     while(1)
-	{
+    {
         scanf("%19s",txt);
         if(strcmp(exit,txt)==0)break;
         printf("what the %s\n",txt);
