@@ -27,7 +27,7 @@ xinetd 與 inetd 的差別 自己使用上感覺是差不多 只是xinted 有較
 
 目前的進度已經與預期的結果相符
 
-<h4>fflush 的使用<\h4>
+<h4>fflush 的使用</h4>
 
 為了將在buffer中儲存的值全部清空並輸出 而使用fflush
 
@@ -47,7 +47,7 @@ inetd 的stdout則會導向到我們執行檔的stdin, 執行檔的stdout 則維
 
 所以我使用fflush(stdout) 是為了將buffer中儲存的值全部列印出
 
-tip : fully buffered & line buffered
+<h5>tip : fully buffered & line buffered</h5>
 <ul>
   <li>fully buffered 在 setvbuf() 中提到 表現為當程式結束或者buffer空間滿了才會進行傳輸</li>
   <li>line buffered 在 setvbuf() 中提到 表現為當遇到換行符號'\n'時便進行傳輸</li>
