@@ -1,4 +1,4 @@
-This is about inetd.
+# This is about inetd.
 --------
 ### 此為 inetd Helloworld 測試
 
@@ -70,7 +70,7 @@ Connection closed by foreign host.
 &emsp;
 
 ---------
-### 測試scanf
+## 測試scanf
 
 測試程式為簡易 scanf 程式
 
