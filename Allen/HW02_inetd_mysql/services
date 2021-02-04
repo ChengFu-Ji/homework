@@ -28,13 +28,6 @@ ftp-data	20/tcp
 ftp		21/tcp
 fsp		21/udp		fspd
 ssh		22/tcp				# SSH Remote Login Protocol
-
-#*****new_port*****#
-ssh2    2202/tcp
-my_telnet  1234/tcp
-test    4321/tcp
-transla 4444/tcp
-#******************#
 telnet		23/tcp
 smtp		25/tcp		mail
 time		37/tcp		timserver
@@ -581,5 +574,6 @@ csync2		30865/tcp			# cluster synchronization tool
 dircproxy	57000/tcp			# Detachable IRC Proxy
 tfido		60177/tcp			# fidonet EMSI over telnet
 fido		60179/tcp			# fidonet EMSI over TCP
+testinetd	8787/tcp	
 
 # Local services

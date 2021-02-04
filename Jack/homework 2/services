@@ -9,6 +9,10 @@
 # New ports will be added on request if they have been officially assigned
 # by IANA and used in the real-world or are needed by a debian package.
 # If you need a huge list of used numbers please install the nmap package.
+#
+# add
+test 8888/tcp
+# ----
 
 tcpmux		1/tcp				# TCP port service multiplexer
 echo		7/tcp
@@ -28,13 +32,6 @@ ftp-data	20/tcp
 ftp		21/tcp
 fsp		21/udp		fspd
 ssh		22/tcp				# SSH Remote Login Protocol
-
-#*****new_port*****#
-ssh2    2202/tcp
-my_telnet  1234/tcp
-test    4321/tcp
-transla 4444/tcp
-#******************#
 telnet		23/tcp
 smtp		25/tcp		mail
 time		37/tcp		timserver

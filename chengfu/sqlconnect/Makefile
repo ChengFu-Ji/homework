@@ -1,12 +1,12 @@
 CC=gcc
-#LIB=-I/usr/include/mysql -lmariadb
-CFLAG=-I mariadb/mysql.h  -lmariadb
+LIB=-I/usr/include/mysql -lmariadb
+CFLAG=-O3
 
 all: main.c
-	$(CC) $^ $(CFLAG)  -o connect 
+		$(CC) $^ $(CFLAG) $(LIB) -o connect 
 
 debug: main.c
-	$(CC) $^ $(CFLAG)  -DDEBUG -o connect 
+		$(CC) $^ $(CFLAG) $(LIB) -DDEBUG -o connect 
 
 clean:
-	@rm connect
+		@rm connect

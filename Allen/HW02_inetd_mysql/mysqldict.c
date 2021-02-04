@@ -14,13 +14,15 @@
 *   @param  #define     mysql_Database          Mysql 資料庫名稱
 *   @param  #define     mysql_Port         	    Mysql Port號
 *	@param  MYSQL       *mysql         	        Mysql 變數
-*   @param  const       char *MYSQL_Inquire     Mysql 查詢字串
+*   @param  char        MYSQL_Inquire           Mysql 查詢字串
 *   @param  MYSQL_RES   *MYSQL_Result            Mysql 查詢結果 
 *   @param  MYSQL_ROW   Data_Row         	    Mysql 查詢結果內容
+*   @param  char        input                   使用者輸入之國家編號
 */
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "mysql/mysql.h"
 #define mysql_IP "localhost"
 #define mysql_Account "root"
@@ -32,9 +34,14 @@ int main()
 {
     MYSQL *mysql;
     mysql = mysql_init(NULL);
-    const char *MYSQL_Inquire = "select * from country";
+    char MYSQL_Inquire[] = "select * from country where country_id =";
     MYSQL_RES *MYSQL_Result;
     MYSQL_ROW Data_Row;
+    char input[] = "";
+
+    printf("請輸入國家編號：");
+    scanf("%s", &input);
+    strcat(MYSQL_Inquire, input);
 
     if (!mysql)
     {
@@ -62,8 +69,11 @@ int main()
         {
             while ((Data_Row = mysql_fetch_row(MYSQL_Result)) != NULL)
             {
-                printf("Country_ID：%s\t", Data_Row[0]);
-                printf("Country_Name：%s\t\n", Data_Row[1]);
+                printf("查詢結果：%s\t\n", Data_Row[1]);
+            }
+            if ((Data_Row = mysql_fetch_row(MYSQL_Result)) == NULL)
+            {
+                printf("查詢結果：查無國家\n");
             }
             mysql_free_result(MYSQL_Result);
         }
