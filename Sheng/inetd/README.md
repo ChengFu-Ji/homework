@@ -9,9 +9,8 @@
 
 設定好後便可到/etc/inetd.conf 設定一個自己所需要的服務 例如:
 
-<pre><code>
-"service name" "sock type" "proto" "flags" "user" "server path" "args"
-mytest	stream	tcp nowait root /home/pi/Doc/inetd/myinetdtest </code></pre> 
+<pre><code>"service name" "sock type" "proto" "flags" "user" "server path" "args"
+  mytest&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;stream  &emsp;&emsp;  tcp     nowait  root  /home/pi/Doc/inetd/myinetdtest </code></pre> 
 
 
 設定好後重啟 inetd 服務 便可使用你所寫的服務了!
