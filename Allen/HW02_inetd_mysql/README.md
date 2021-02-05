@@ -39,7 +39,7 @@ Bye~<br />
 Connection closed by foreign host.<br />
 
 ## 製作靜態Library
-1. gcc -c mysqllib.c (產生 mysqllib.a)
+1. gcc -c mysqllib.c (產生 mysqllib.o)
 2. ar rcs mysqllib.a mysqllib.o (使用 ar 命令創建靜態 Library)
 3. gcc mysqldict.c mysqllib.a -l mysqlclient (連結 mysqllib.a)
 
