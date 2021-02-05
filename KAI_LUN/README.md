@@ -13,3 +13,7 @@
 5. 用自己寫的function 去做字串連接。
 
 [This is code link](https://github.com/ChengFu-Ji/homework/blob/master/KAI_LUN/inetd/trnasla.c)
+
+## 2021/2/5
+1. 修改了[transla.c](https://github.com/ChengFu-Ji/homework/blob/master/KAI_LUN/inetd/trnasla.c)
+

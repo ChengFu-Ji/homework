@@ -1,98 +1,36 @@
-## 2021/2/1
-  1. 可透過 inetd 管理網路服務
-  2. 新增一個 port，透過 telnet 使用新增的port去執行服務程式
+## inetd
 
-## Program_Show
+inetd 是個super deamon，它可以幫助我們去管理網路服務。
 
-Indented code
+本次作業，讓我知道inetd它可以透過在inetd.conf的設定，使某些網路服務(ssh 、 telnet......)會先經過inetd後再去執行各個網路服務的deamon檔。
 
-  pi@larry:/etc $ telnet localhost 4321
-  Trying ::1...
+### services
 
-  Trying 127.0.0.1...
+```
 
-  Connected to localhost.
+transla   4444/tcp
 
-  Escape character is '^]'.
 
-  This is KAI_sv
+```
 
-  Hello_world
+### my_inetd
 
-  See you
+```
 
-  Connection closed by foreign host.i
+transla   stream  tcp nowait root /home/pi/C_sql/trnasla.o trnasla.o
 
-## 2021/2/3
-  1. 透過inetd 去執行SQL程式。
-  2. SQL程式是做根據輸入英文 輸出中文。
-  3. 目前SQL 的程式有的問題是 我輸入英文會需要 額外輸入' '。
-  4. 還有用inetd 連線後程式跟連線資訊輸出順序有問題。
-  5. 用自己寫的function 去做字串連接。
 
-## Program_Success_Show
+```
 
-  Indented code
+## service 
 
-  pi@larry:/etc $ telnet localhost  4444
-  Trying ::1...jnetd 管理網路服務
-  2. 新增一個 port，透過 telnet 使用新增的port去執行服務程式
-  
-## Program_Show
-  
-Indented code
-  
-  pi@larry:/etc $ telnet localhost 4321
-  Trying ::1...
-  
-  Trying 127.0.0.1...
-  
-  Connected to localhost.
-  
-  Escape character is '^]'.
-  
-  This is KAI_sv
-  
-  Hello_world
-  
-  See you
-  
-  Connection closed by foreign host.i
-  
-## 2021/2/3
-  1. 透過inetd 去執行SQL程式。
-  2. SQL程式是做根據輸入英文 輸出中文。
-  3. 目前SQL 的程式有的問題是 我輸入英文會需要 額外輸入' '。
-  4. 還有用inetd 連線後程式跟連線資訊輸出順序有問題。
-  5. 用自己寫的function 去做字串連接。
-  
-## Program_Success_Show
- 
-Indented code
-  
-pi@larry:/etc $ telnet localhost  4444
-Trying ::1...
-Trying 127.0.0.1...
-Connected to localhost.
-Escape character is '^]'.
-'apple'
-Connection success
-input:
-query made...
-     蘋果
-Connection closed by foreign host.
+    就我個人理解 service 是一個正在執行的 deamon 。
 
-## Program_Fail_Show
+## deamon
+   
+   deamon 可以說是每個 service 的執行檔。
+   
+##result
 
-Indented code
+![Minion](https://github.com/ChengFu-Ji/homework/blob/master/KAI_LUN/inetd/Transla.png)
 
-pi@larry:/etc $ telnet localhost  4444
-Trying ::1...
-Trying 127.0.0.1...
-Connected to localhost.
-Escape character is '^]'.
-apple
-Connection success
-input:
-ERROR MAKING QUERY: Unknown column 'apple' in 'where clause'
-Connection closed by foreign host.s

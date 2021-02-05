@@ -3,10 +3,8 @@
 #include"mysql/mysql.h"
 #include <string.h>
 
-
 int main()
 {
-
     int t, r = 0,encode,count=0;
     char query[100] = "SELECT ch FROM translation WHERE en='"; 
     char quotation[] = "'";
@@ -19,10 +17,8 @@ int main()
     conn_ptr = mysql_init(&init);
     
     if(!conn_ptr){
-    
         fprintf(stderr,"mysql_init failed\n"); 
         return 1; 
-    
     }
 
     //connect to SQL
@@ -72,7 +68,6 @@ int main()
         else
         {
             printf("query made...\n"); 
-    
         }
     
         //將query 執行後的結果檢索給res 
