@@ -45,7 +45,6 @@ int main()
        
         printf("input:\n"); 
         
-        //因為printf() 其實是呼叫fprintf(stdout.....) 來做輸出的，所以我把stdout的buffer給清除，不然在用telnet執行時會有輸出順序問題。
         fflush(stdout);
         scanf(" %s",words);
 
