@@ -15,26 +15,31 @@
 
 ## BUG
 1. inetd觸發啟動程式，如果未先輸入數值，printf將會無法顯示後續結果
+20210205已解決 - 預設不使用緩衝區 
+* setvbuf(stdout, NULL, _IONBF, 0);
 
 
 ## Log(正常直接執行)
-root@raspberrypi:/home/pi/HW# ./mysqldict.out<br />
-請輸入國家編號：1<br />
-Mysql Connection Success<br />
-查詢結果：Taiwan<br />	
-Mysql Connection Closed<br />
-root@raspberrypi:/home/pi/HW#<br /> 
-
-
-## Log(異常inetd)
 root@raspberrypi:/home/pi/HW# telnet localhost 8787<br />
 Trying ::1...<br />
 Trying 127.0.0.1...<br />
 Connected to localhost.<br />
 Escape character is '^]'.<br />
-1<br />
-請輸入國家編號：Mysql Connection Success<br />
+<br />
+Welcome Dict! Enter 0 Exit!<br />
+<br />
+Mysql 連線成功<br />
+請輸入國家編號：1<br />
 查詢結果：Taiwan<br />
-Mysql Connection Closed<br />
+<br />
+請輸入國家編號：0<br />
+Mysql 連線關閉<br />
+Bye~<br />
+<br />
 Connection closed by foreign host.<br />
-root@raspberrypi:/home/pi/HW#<br />
+
+## 製作靜態Library
+1. gcc -c mysqllib.c (產生 mysqllib.a)
+2. ar rcs mysqllib.a mysqllib.o (使用 ar 命令創建靜態 Library)
+3. gcc mysqldict.c mysqllib.a -l mysqlclient (連結 mysqllib.a)
+
