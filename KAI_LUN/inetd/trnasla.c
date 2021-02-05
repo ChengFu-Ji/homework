@@ -3,20 +3,18 @@
 #include"mysql/mysql.h"
 #include <string.h>
 
-void my_strcat(char *,char *);
 
-int main(int argc, const char *argv[])
+int main()
 {
 
-    int t, r = 0,encode;
-    char query[100] = "SELECT ch FROM translation WHERE en="; 
-    char *setencode,*words;
+    int t, r = 0,encode,count=0;
+    char query[100] = "SELECT ch FROM translation WHERE en='"; 
+    char quotation[] = "'";
+    char *words;
     MYSQL *conn_ptr,init; //用於連線而宣告的變數
     MYSQL_RES *res;
     MYSQL_ROW row;
 
-    words = (char *)malloc(50); 
-    setencode = (char *)malloc(50);
     //init a  SQL struct 
     conn_ptr = mysql_init(&init);
     
@@ -40,18 +38,33 @@ int main(int argc, const char *argv[])
         printf("Connection failed\n"); 
     }
   
-    //while(1)
-   // {
+    while(1)
+    {
+         
+        words = (char *)malloc(50); 
+       
         printf("input:\n"); 
+        
+        //因為printf() 其實是呼叫fprintf(stdout.....) 來做輸出的，所以我把stdout的buffer給清除，不然在用telnet執行時會有輸出順序問題。
+        fflush(stdout);
+        scanf(" %s",words);
 
-        fgets(words,20,stdin); //鍵入字串給query
-
-        my_strcat(query,words);
-
+        strcat(query,words);
+     
+        //離開程式
+        if(strcmp(words,"exit") == 0)
+        {
+            break; 
+        }
+        
+        if(count == 0)
+        {
+            strcat(query,quotation);
+        }
+        //更改sql的編碼，不然會造成接收的東西為亂碼
         encode = mysql_query(conn_ptr,"SET NAMES UTF8");
         //執行query 字串中的SQL 語句
         t = mysql_real_query(conn_ptr,query,(unsigned int)strlen(query));
-    
 
         if(t)
         {
@@ -62,59 +75,42 @@ int main(int argc, const char *argv[])
             printf("query made...\n"); 
     
         }
-   
     
         //將query 執行後的結果檢索給res 
         res = mysql_use_result(conn_ptr);
 
-        
-
         //show the return is result
-   
-        for(r = 0;r<= mysql_field_count(conn_ptr);r++) //mysql_field_count 會將query 執行後有幾列回傳
+        //mysql_field_count 會將query 執行後有幾列回傳
+        for(r = 0;r<= mysql_field_count(conn_ptr);r++)
         {
-    
-            row = mysql_fetch_row(res);// 回傳query 執行後一行的結果 , 此row 透過迴圈得到結果的下一行 
+            // 回傳query 執行後一行的結果 , 此row 透過迴圈得到結果的下一行 
+            row = mysql_fetch_row(res); 
     
             if(row == 0) 
             {
                 break; 
             }    
-        
-            for(t = 0; t < mysql_num_fields(res);t++)//mysql_num_fields(res) 會回傳該行有幾列
+            
+            //mysql_num_fields(res) 會回傳該行有幾列
+            for(t = 0; t < mysql_num_fields(res);t++)
             {
                 printf(" %10s ",row[t]); 
             }
             printf("\n");
         }
 
-        mysql_free_result(res);//釋放res中所查詢過的sql資料 
-
-    //}
-   
-    mysql_close(conn_ptr); // 斷開與SQL的連線
+        //釋放res中所查詢過的sql資料
+        mysql_free_result(res); 
+        free(words); 
+        count++; 
+        for(int i = 36; i <= strlen(query);i++) 
+        {
+              *(query + i) = (char)NULL; 
+        } 
+    }
+    //斷開與SQL的連線 
+    mysql_close(conn_ptr); 
     
     return 0;
 }
 
-void my_strcat(char *str1,char *str2)
-{
-    int step = 0;
-    while(1)
-    {
-        if(str1[step] == NULL)
-        {
-            for(int count = 0;count < strlen(str2);count++) 
-            {
-                if(*(str2+count) == NULL)
-                {
-                    str1[step+count] = '\0'; 
-                    break; 
-                }
-                str1[step+count] = *(str2+count);
-            }
-            break; 
-        }
-        step++; 
-    }
-}
