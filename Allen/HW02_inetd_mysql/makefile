@@ -1,5 +1,5 @@
 all: 
-	gcc mysqldict.c mysqllib.a -l mysqlclient
+	gcc mysqldict.c -o mysqldict.out mysqllib.a -l mysqlclient
 
 edit:
 	ar rcs mysqllib.a mysqllib.o
