@@ -66,13 +66,12 @@ Escape character is '^]'.
 Helloworld
 Connection closed by foreign host.
 ```
-
----------
+----------
 ## 測試scanf
 
 測試程式為簡易 scanf 程式
 
->==testscanf.c==
+><mark>testscanf.c</mark>
 
 ---------
 
@@ -101,8 +100,41 @@ Connection closed by foreign host.
 
 ---------
 
-### 目前尚未解決問題 
+## 測試scanf with fflush
 
+><mark>test2scanf.c</mark>
 
+---------
+
+### 測試結果
+
+```
+pi@hsin:~/code $ telnet localhost 20001
+Trying ::1...
+Trying 127.0.0.1...
+Connected to localhost.
+Escape character is '^]'.
+What's wrong with you ?
+If you don't have any question. keyin _exit to left.
+>>e
+What is the e ?
+>>yeee
+What is the yeee ?
+>>w
+What is the w ?
+>>weeee
+What is the weeee ?
+>>LOLOLOLOLOL
+What is the LOLOLOLOLOL ?
+>>_exit
+Connection closed by foreign host.
+```
+--------
+
+### 階段性結論
+
+__*已知是buffer問題造成*__
+
+使用 `fflush` 這個函數清空 buffer 後即可解決
 
 
