@@ -1,7 +1,9 @@
-#Linked list#
+# Linked list #
 
-###本次更新###
+### 本次更新 ###
 
->> add功能
+>> 新增 add功能
+
+>> 註解 del功能
 
 
