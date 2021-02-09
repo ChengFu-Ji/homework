@@ -2,64 +2,58 @@
 #include <stdlib.h>
 #include <string.h>
 
-void add(int *len, char *data); 
+typedef struct node {
+    char data[100];
+    struct node *next;
+} Node;
+
+Node *add(Node *node, char *data); 
 void del (int *len, char *data);
 
-struct list {
-    char data[100];
-    struct list *next;
-};
-
-typedef struct list List;
-List *first, *current, *prev;
+/*     目前暫不實作資料輸入功能( CMD,data )，
+ *     以主要功能為主。
+ *     del 功能暫時關閉。
+ *     本次更新--add功能 (如有錯誤還請糾正...)。
+ */
 
 int main (void) {
-    int len = 0;
-    int *lptr = &len;
-    char data[100];
-    char *dataptr = data;
-
-    add(lptr, "123");
-    fgets(dataptr, 100, stdin);
-    add(lptr, dataptr);
-    fgets(dataptr, 100, stdin);
-    add(lptr, dataptr);
-    del(lptr, "123");
+    Node *first = NULL;
+    Node *current, *next;
+    
+    first = add(first, "asdf");
+    first = add(first, "aadd");
 
     current = first;
     while (current != NULL) {
-        printf("current %p  data %s next %p\n", current, current->data, current->next);
-        prev = current->next;
+        printf("current %p data %s next %p\n", current, current->data, current->next);
+        next = current->next;
         free(current);
-        current = prev;
+        current = next;
     }
+    
     return 0;
 }
 
-void add (int *len, char *data) {
-    current = (List *)malloc(sizeof(List));
+Node *add (Node *node, char *data) {
+    Node *current, *new;
+
+    new = (Node *)malloc(sizeof(Node));
+    strcpy(new->data, data);
+    new->next = NULL;
     
-    if (*len == 0) {
-        first = current;
-    } else {
-        prev->next = current;
+    if (node == NULL) {
+        return new;
     }
-    strcpy(current->data, data);
-    current->next = NULL;
-    prev = current;
 
-    *len = *len + 1;
+    current = node;
+    while (node->next != NULL) {
+        current = current->next;
+    }
+
+    current->next = new;
+    return current;
 }
 
-void del (int *len, char *data) {
-    int i = *len;
-
-    current = first;
-    for (; i > 0; i--) {
-        if (strcmp(current->data, data)) {
-            current = current->next;
-        } else {
-            memset(current->data, '\0', 1);
-        }
-    }
-}
+/* void del (char *data) {
+ * }
+ */
