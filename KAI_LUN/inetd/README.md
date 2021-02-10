@@ -30,7 +30,7 @@ transla   stream  tcp nowait root /home/pi/C_sql/trnasla.o trnasla.o
    
    deamon 可以說是每個 service 的執行檔。
    
-##result
+## result
 
 ![Minion](https://github.com/ChengFu-Ji/homework/blob/master/KAI_LUN/inetd/Transla.png)
 
