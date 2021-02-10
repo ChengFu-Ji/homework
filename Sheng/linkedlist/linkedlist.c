@@ -7,13 +7,12 @@ typedef struct node {
     struct node *next;
 } Node;
 
-Node *add(Node *node, char *data); 
-void del (int *len, char *data);
+Node *add (Node *node, char *data); 
+Node *del (Node *node, char *data);
 
 /*     目前暫不實作資料輸入功能( CMD,data )，
  *     以主要功能為主。
- *     del 功能暫時關閉。
- *     本次更新--add功能修正 (如有錯誤還請糾正...)。
+ *     本次更新--del功能 (如有錯誤還請糾正...)。
  */
 
 int main (void) {
@@ -23,6 +22,11 @@ int main (void) {
     first = add(first, "asdf");
     first = add(first, "aadd");
     first = add(first, "test");
+    first = add(first, "aasdf");
+
+    first = del(first, "aadd");
+    first = del(first, "aasdf");
+    first = del(first, "wws");
 
     current = first;
     while (current != NULL) {
@@ -45,6 +49,29 @@ Node *add (Node *node, char *data) {
     return new;
 }
 
-/* void del (char *data) {
- * }
- */
+Node *del (Node *node, char *data) {
+    Node *previous = NULL;
+    Node *current, *next;
+
+    current = node;
+    while (current != NULL && strcmp(current->data, data)) {
+        previous = current;
+        current = current->next;
+    }
+
+    if (current != NULL) {
+        next = current->next;
+        free(current);
+        
+        if ( previous != NULL) {
+            previous->next = next;
+        } else {
+            node = next;
+        }
+    } else {
+        printf("didn't find the data '%s'\n", data);
+    }
+
+    return node;
+}
+
