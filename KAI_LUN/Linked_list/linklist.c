@@ -22,7 +22,7 @@ int main()
 
     scanf("%d",&input);
     current = create_node(input,node1); 
- 
+  
     for(int i = 0 ; i < 3 ; i++)
     {
         current = create_node(i,current); 
