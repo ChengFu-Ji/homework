@@ -39,3 +39,8 @@ $ sudo apt-get -y install git vim
 4. [UDP package spec](https://tools.ietf.org/html/rfc768)
 5. [What is Socket](https://beej-zhtw-gitbook.netdpi.net/)
 6. [VI](http://www2.nsysu.edu.tw/csmlab/unix/vi_command.htm)
+7. [Linked list 和非連續記憶體操作](https://hackmd.io/@sysprog/c-prog/%2Fs%2FSkE33UTHf)
+8. [C 語言指標探討](https://hackmd.io/@sysprog/c-prog/%2Fs%2FHyBPr9WGl)
+9. [程式可讀性提升(1)](https://blog.niclin.tw/2020/02/29/readable-code-1/)
+10. [程式可讀性提升(2)](https://blog.niclin.tw/2020/02/29/readable-code-2/)
+11. [程式可讀性提升(3)](https://blog.niclin.tw/2020/02/29/readable-code-3/)
