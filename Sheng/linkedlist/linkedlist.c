@@ -13,7 +13,7 @@ void del (int *len, char *data);
 /*     目前暫不實作資料輸入功能( CMD,data )，
  *     以主要功能為主。
  *     del 功能暫時關閉。
- *     本次更新--add功能 (如有錯誤還請糾正...)。
+ *     本次更新--add功能修正 (如有錯誤還請糾正...)。
  */
 
 int main (void) {
@@ -22,6 +22,7 @@ int main (void) {
     
     first = add(first, "asdf");
     first = add(first, "aadd");
+    first = add(first, "test");
 
     current = first;
     while (current != NULL) {
@@ -35,23 +36,13 @@ int main (void) {
 }
 
 Node *add (Node *node, char *data) {
-    Node *current, *new;
+    Node *new;
 
     new = (Node *)malloc(sizeof(Node));
     strcpy(new->data, data);
-    new->next = NULL;
+    new->next = node;
     
-    if (node == NULL) {
-        return new;
-    }
-
-    current = node;
-    while (node->next != NULL) {
-        current = current->next;
-    }
-
-    current->next = new;
-    return current;
+    return new;
 }
 
 /* void del (char *data) {
