@@ -9,24 +9,29 @@ typedef struct node {
 
 Node *add (Node *node, char *data); 
 Node *del (Node *node, char *data);
+void save (Node *node, char *fname);
+Node *load (Node *node, char *fname);
 
 /*     目前暫不實作資料輸入功能( CMD,data )，
  *     以主要功能為主。
- *     本次更新--del功能 (如有錯誤還請糾正...)。
+ *     本次更新-- save and load 功能 (如有錯誤還請糾正...)。
+ *     save 功能在實作時還好沒什麼大礙，
+ *     但是，load 功能實作時因為自己 linked list 的建立是加在最前面，
+ *     所以，在使用 save 功能後，使用 load 功能資料會是倒過來的情況
+ *     最後，使用了不怎麼好的方法解決...
  */
 
 int main (void) {
     Node *first = NULL;
     Node *current, *next;
     
-    first = add(first, "asdf");
-    first = add(first, "aadd");
+    first = add(first, "asdf ls is ok");
+    first = add(first, "aadd\n");
     first = add(first, "test");
-    first = add(first, "aasdf");
 
-    first = del(first, "aadd");
-    first = del(first, "aasdf");
-    first = del(first, "wws");
+    save(first, "test.txt");
+
+    first = load(first, "test.txt");
 
     current = first;
     while (current != NULL) {
@@ -75,3 +80,44 @@ Node *del (Node *node, char *data) {
     return node;
 }
 
+void save (Node *node, char *fname) {
+    FILE *save;
+    Node *current;
+
+    save = fopen(fname, "w");
+    current = node;
+
+    while (current != NULL) {
+        fprintf(save, "%s\n", current->data);
+        current = current->next;
+    }
+
+    fclose(save);
+}
+
+Node *load (Node *node, char *fname) {
+    FILE *load;
+    char *data[100];
+    int i;
+
+    load = fopen(fname, "r");
+    i = 0;
+
+    while (!feof(load)) {
+        data[i] = (char *)malloc(100);
+        fgets(data[i], 100, load);
+        
+        if (!strcmp(data[i], "\n") || !strcmp(data[i], "")) {
+            continue;
+        }
+        i++;
+    }
+
+    while (i--) {
+        node = add(node, data[i]);
+        free(data[i]);
+    }
+
+    fclose(load);
+    return node;
+}
