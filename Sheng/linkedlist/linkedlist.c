@@ -18,7 +18,7 @@ Node *load (Node *node, char *fname);
  *     save 功能在實作時還好沒什麼大礙，
  *     但是，load 功能實作時因為自己 linked list 的建立是加在最前面，
  *     所以，在使用 save 功能後，使用 load 功能資料會是倒過來的情況
- *     最後，使用了不怎麼好的方法解決...
+ *     最後，可能使用了不怎麼好的方法解決...
  */
 
 int main (void) {
