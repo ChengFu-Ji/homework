@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+/*  建立新的形態Node
+ */
+
 typedef struct node {
     char data[100];
     struct node *next;
@@ -9,33 +12,64 @@ typedef struct node {
 
 Node *add (Node *node, char *data); 
 Node *del (Node *node, char *data);
-void save (Node *node, char *fname);
 Node *load (Node *node, char *fname);
-
-/*     目前暫不實作資料輸入功能( CMD,data )，
- *     以主要功能為主。
- *     本次更新-- save and load 功能 (如有錯誤還請糾正...)。
- *     save 功能在實作時還好沒什麼大礙，
- *     但是，load 功能實作時因為自己 linked list 的建立是加在最前面，
- *     所以，在使用 save 功能後，使用 load 功能資料會是倒過來的情況
- *     最後，可能使用了不怎麼好的方法解決...
- */
+void save (Node *node, char *fname);
+void showList (Node *list);
 
 int main (void) {
     Node *first = NULL;
     Node *current, *next;
+    char *cmd;
+    char cmdspac[103];
+
+    cmd = cmdspac;
     
-    first = add(first, "asdf ls is ok");
-    first = add(first, "aadd\n");
-    first = add(first, "test");
+    printf("Welcome to linked list service!\n");
+    printf("\nThe command format is <CMD,data>.\n"); 
+    printf("commands have <add> ,<del>, <save>, <load>, <showlist>!\n");
+    printf("ex. 'add,data' , 'save,filename' , 'showlist'.\n");
+    printf("\nEnter '--exit' to Exit!\n");
+    
+    while (1) {
+        printf(">> ");
+        fgets(cmd, 103, stdin);
 
-    save(first, "test.txt");
+         if(!strncmp(cmd, "--exit", 6)) {
+             printf("bye!\n");
+             break;
+         }
 
-    first = load(first, "test.txt");
+
+        if (!strncmp(cmd, "save", 4) 
+         || !strncmp(cmd, "load", 4)
+         || !strncmp(cmd, "del", 3)
+         || !strncmp(cmd, "add", 3)) {
+            switch (*cmd) {
+                case 'a':
+                    first = add(first, cmd+4);
+                    break;
+                case 'd':
+                    first = del(first, cmd+4);
+                    break;
+                case 'l':
+                    first = load(first, cmd+5);
+                    break;
+                case 's':
+                    save(first, cmd+5);
+                    break;
+            }
+            printf("Command done!\n");
+        } else {
+            if (!strncmp(cmd, "showlist", 7)) {
+                showList(first);
+                continue;
+            }
+            printf("error input!!Try again!~\n");
+        }
+    }
 
     current = first;
     while (current != NULL) {
-        printf("current %p data %s next %p\n", current, current->data, current->next);
         next = current->next;
         free(current);
         current = next;
@@ -43,6 +77,10 @@ int main (void) {
     
     return 0;
 }
+
+/*  用於將新的資料加入 linked list 的 function
+ *  作法:將新的資料加於最前面
+ */
 
 Node *add (Node *node, char *data) {
     Node *new;
@@ -53,6 +91,9 @@ Node *add (Node *node, char *data) {
     
     return new;
 }
+
+/*  用於將指定資料從目前的 linked list 刪除的 function
+ */
 
 Node *del (Node *node, char *data) {
     Node *previous = NULL;
@@ -80,6 +121,9 @@ Node *del (Node *node, char *data) {
     return node;
 }
 
+/*  將目前 linked list 的資料存入檔案的 function
+ */
+
 void save (Node *node, char *fname) {
     FILE *save;
     Node *current;
@@ -95,29 +139,44 @@ void save (Node *node, char *fname) {
     fclose(save);
 }
 
+/*  用於讀取目標檔案並將資料存入 linked list 的 function
+ */
+
 Node *load (Node *node, char *fname) {
     FILE *load;
-    char *data[100];
-    int i;
+    Node *templist, *next;
+    char data[100];
 
     load = fopen(fname, "r");
-    i = 0;
+    templist = NULL;
 
-    while (!feof(load)) {
-        data[i] = (char *)malloc(100);
-        fgets(data[i], 100, load);
-        
-        if (!strcmp(data[i], "\n") || !strcmp(data[i], "")) {
+    while (fgets(data, 100, load) != NULL) {
+        if (!strcmp(data, "\n") || !strcmp(data, "")) {
             continue;
         }
-        i++;
-    }
+        templist = add(templist, data);
+    } 
 
-    while (i--) {
-        node = add(node, data[i]);
-        free(data[i]);
+    while (templist != NULL) {
+        node = add(node, templist->data);
+        next = templist->next; 
+        free(templist);
+        templist = next;
     }
 
     fclose(load);
     return node;
+}
+
+/*  用於顯示目前 linked list 的所有資料的 function
+ */
+
+void showList (Node *list) {
+    Node *current;
+
+    current = list;
+    while (current != NULL) {
+        printf("data %s\n", current->data);
+        current = current->next;
+    }
 }
