@@ -15,6 +15,7 @@ Node *del (Node *node, char *data);
 Node *load (Node *node, char *fname);
 void save (Node *node, char *fname);
 void showList (Node *list);
+char *NewLineDel (char *file);
 
 int main (void) {
     Node *first = NULL;
@@ -128,6 +129,7 @@ void save (Node *node, char *fname) {
     FILE *save;
     Node *current;
 
+    fname = NewLineDel(fname);
     save = fopen(fname, "w");
     current = node;
 
@@ -147,6 +149,7 @@ Node *load (Node *node, char *fname) {
     Node *templist, *next;
     char data[100];
 
+    fname = NewLineDel(fname);
     load = fopen(fname, "r");
     templist = NULL;
 
@@ -179,4 +182,24 @@ void showList (Node *list) {
         printf("data %s\n", current->data);
         current = current->next;
     }
+}
+
+/*  用於刪除 fgets 接收時所多出的 \n 字符的 function
+ */
+
+char *NewLineDel (char *file) {
+    char NewLine = '\n';
+    char *current;
+
+    current = file;
+    while (1) {
+        if (*current != NewLine) {
+            current++;
+        } else {
+            *current = '\0';
+            break;
+        }
+    }
+
+    return file;
 }
