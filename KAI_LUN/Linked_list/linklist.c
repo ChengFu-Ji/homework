@@ -19,6 +19,7 @@ int main()
 	list *current;
 	char *cmd,*input;
 	int count = 0;
+
 	cmd = (char *)malloc(100);
 	input = (char *)malloc(100);
 
@@ -38,14 +39,29 @@ int main()
 	}
 */
 
-/*新增刪除data測試
-	current = my_command("ADD","test01",current);	
-	current = my_command("ADD","test02",current);	
-
-	del("test01",init_node);
+//新增刪除data測試
 	
-	show(init_node);	
-*/	
+	while(1)
+	{	
+		fgets(input,100,stdin);	
+	
+		if(current->data == NULL)	
+		{
+			current->data = input;	
+		}
+		else
+		{
+			current = my_command("ADD",input,current);	
+		}
+
+		show(init_node);	
+	
+		if(count == 3)	
+		{
+			break;	
+		}
+		count++;	
+	}	
 	
 	return 0;
 }
@@ -65,7 +81,7 @@ list * add(char *input,list * current_node)
 
 	current_node->next = new_node;
 	current_node->data = (char *)malloc(strlen(input));
-	current_node->data = input;
+	current_node->next->data = input;	
 	current_node->next->next = NULL;
 
 	return current_node->next;
