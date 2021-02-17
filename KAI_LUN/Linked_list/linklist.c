@@ -9,7 +9,7 @@ struct link
 }typedef list;
 
 list * add(char *input, list * current_address);
-list * my_command(char * cmd , char * data , list * current_node);
+list * my_command(char * cmd , char * data , list * current_node,list * hand_node);
 void show(list * hand_node);
 void del(char * data,list * node);
 
@@ -54,7 +54,7 @@ int main()
 		}
 		else		
 		{
-			current = my_command(cmd,input,current);
+			current = my_command(cmd,input,current,init_node);
 		}	
 		show(init_node);
 	}
@@ -66,7 +66,7 @@ int main()
 }
 
 //指令判斷的function
-list * my_command(char * cmd , char * data , list * current_node)
+list * my_command(char * cmd , char * data , list * current_node,list * hand_node)
 {
 	if(strncmp(cmd,"ADD",3) == 0)
 	{
@@ -74,7 +74,7 @@ list * my_command(char * cmd , char * data , list * current_node)
 	}
 	else if(strncmp(cmd,"DEL",3) == 0)
 	{
-		del(data,current_node);	
+		del(data,hand_node);	
 		return current_node;	
 	}
 	else
@@ -111,7 +111,7 @@ void del(char * data, list * node)
 		}	
 		else
 		{
-			node_temp->data = "";
+			node_temp->data = NULL;
 			break;
 		}
 	}
