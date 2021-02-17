@@ -19,8 +19,6 @@ int main()
 	list *current;
 	char *cmd,*input;
 	int  count = 0;
-
-	cmd   			= (char *)malloc(100);
 	init_node->data = (char *)malloc(100);
 
 	init_node->data = NULL;
@@ -29,20 +27,28 @@ int main()
 	
 	while(1)	
 	{
+		cmd   = (char *)malloc(100);
 		input = (char *)malloc(100);
+		
 		printf("input cmd : ");	
 		scanf("%s",cmd);
-		printf("input data : ");
-		scanf(" %s",input);
-	
+		
 		//離開迴圈
-		if(strncmp(input,"exit",4) == 0)
+		if(strncmp(cmd,"exit",4) == 0)
 		{
 			printf("bye~~\n");
 			break;	
 		}
 
-		if(current->data == NULL && (strncmp(cmd,"ADD",3) == 0))	
+		printf("input data : ");
+		scanf(" %s",input);
+
+		if(strcmp(cmd,"ADD") != 0 && strcmp(cmd,"DEL") != 0)
+		{
+			continue;	
+		}
+
+		if(current->data == NULL )	
 		{
 			current->data = input;	
 		}
@@ -52,6 +58,10 @@ int main()
 		}	
 		show(init_node);
 	}
+	
+	free(cmd);	
+	free(input);	
+
 	return 0;
 }
 
@@ -65,6 +75,10 @@ list * my_command(char * cmd , char * data , list * current_node)
 	else if(strncmp(cmd,"DEL",3) == 0)
 	{
 		del(data,current_node);	
+		return current_node;	
+	}
+	else
+	{
 		return current_node;	
 	}
 }
