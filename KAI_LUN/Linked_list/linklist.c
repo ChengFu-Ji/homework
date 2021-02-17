@@ -18,59 +18,54 @@ int main()
 	list *init_node = (list *)malloc(sizeof(list));			
 	list *current;
 	char *cmd,*input;
-	int count = 0;
+	int  count = 0;
 
-	cmd = (char *)malloc(100);
-	input = (char *)malloc(100);
+	cmd   			= (char *)malloc(100);
+	init_node->data = (char *)malloc(100);
 
-	init_node->data = NULL;	
+	init_node->data = NULL;
 	init_node->next = NULL;
-	current = init_node;
-
-/*鍵入資料測試    
- *Note:要測試時要記得把分配給 input 空間那行給 mark 掉
-	for(int i = 0 ; i < 2; i++)
+	current		 	= init_node;
+	
+	while(1)	
 	{
-		input = (char *)malloc(100);	
-		scanf("%s",input);	
-		current = my_command("ADD",input,current);	
-		show(init_node);	
-		free(input);
-	}
-*/
+		input = (char *)malloc(100);
+		printf("input cmd : ");	
+		scanf("%s",cmd);
+		printf("input data : ");
+		scanf(" %s",input);
+	
+		//離開迴圈
+		if(strncmp(input,"exit",4) == 0)
+		{
+			printf("bye~~\n");
+			break;	
+		}
 
-//新增刪除data測試
-	
-	while(1)
-	{	
-		fgets(input,100,stdin);	
-	
-		if(current->data == NULL)	
+		if(current->data == NULL && (strncmp(cmd,"ADD",3) == 0))	
 		{
 			current->data = input;	
 		}
-		else
+		else		
 		{
-			current = my_command("ADD",input,current);	
-		}
-
-		show(init_node);	
-	
-		if(count == 3)	
-		{
-			break;	
-		}
-		count++;	
-	}	
-	
+			current = my_command(cmd,input,current);
+		}	
+		show(init_node);
+	}
 	return 0;
 }
 
+//指令判斷的function
 list * my_command(char * cmd , char * data , list * current_node)
 {
 	if(strncmp(cmd,"ADD",3) == 0)
 	{
 		return add(data,current_node);	
+	}
+	else if(strncmp(cmd,"DEL",3) == 0)
+	{
+		del(data,current_node);	
+		return current_node;	
 	}
 }
 
@@ -79,9 +74,9 @@ list * add(char *input,list * current_node)
 {
 	list *new_node = (list *)malloc(sizeof(list));
 
-	current_node->next = new_node;
-	current_node->data = (char *)malloc(strlen(input));
-	current_node->next->data = input;	
+	current_node->next		 = new_node;
+	current_node->next->data = (char *)malloc(strlen(input));
+	current_node->next->data = input;
 	current_node->next->next = NULL;
 
 	return current_node->next;
@@ -106,7 +101,6 @@ void del(char * data, list * node)
 			break;
 		}
 	}
-
 }
 
 //顯示 list 
@@ -123,14 +117,11 @@ void show(list * hand_node)
 		if(node_temp->next == NULL)	
 		{
 			break;	
-		}	
+		}
 		node_temp = node_temp->next;	
 	}
 	printf("\n");
 }
-
-
-
 
 
 
