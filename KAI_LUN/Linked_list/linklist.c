@@ -10,7 +10,7 @@ struct link
 
 list * add(char *input, list * current_address);
 list * my_command(char * cmd , char * data , list * current_node,list * hand_node);
-void show(list * hand_node);
+void show(list * hand_node,FILE * file);
 void del(char * data,list * node);
 
 int main()
@@ -18,17 +18,18 @@ int main()
 	list *init_node = (list *)malloc(sizeof(list));			
 	list *current;
 	char *cmd,*input;
-	int  count = 0;
-	init_node->data = (char *)malloc(100);
+	FILE * file  = fopen("test.txt","r+");
+	FILE * file2 = fopen("test.txt","r");
 
+	init_node->data = (char *)malloc(128);
 	init_node->data = NULL;
 	init_node->next = NULL;
 	current		 	= init_node;
 	
 	while(1)	
 	{
-		cmd   = (char *)malloc(100);
-		input = (char *)malloc(100);
+		cmd   = (char *)malloc(128);
+		input = (char *)malloc(128);
 		
 		printf("input cmd : ");	
 		scanf("%s",cmd);
@@ -56,11 +57,43 @@ int main()
 		{
 			current = my_command(cmd,input,current,init_node);
 		}	
-		show(init_node);
+		show(init_node,file);
 	}
+
 	
+	fclose(file);
+	
+	char ch[128] = {'\0'};
+	
+	int count = 0;
+	fgets(ch,127,file2);
+
+	
+	while(1)
+	{
+		
+		printf("%c",ch[count]);		
+			
+		if(count == 128)
+		{
+			break;
+		}
+		count++;	
+	}	
+
 	free(cmd);	
 	free(input);	
+	fclose(file2);
+
+
+	my_command("ADD",ch,current,init_node);
+	show(init_node,file2);
+
+
+
+
+
+
 
 	return 0;
 }
@@ -118,7 +151,7 @@ void del(char * data, list * node)
 }
 
 //顯示 list 
-void show(list * hand_node)
+void show(list * hand_node,FILE * file)
 {
 	list * node_temp;
 	
@@ -127,7 +160,8 @@ void show(list * hand_node)
 	while(1)
 	{
 		printf("current = %p current->data = %s current->next = %p\n",node_temp,node_temp->data,node_temp->next);	
-	
+		fprintf(file,"current = %p current->data = %s current->next = %p\n",node_temp,node_temp->data,node_temp->next);	
+		
 		if(node_temp->next == NULL)	
 		{
 			break;	
