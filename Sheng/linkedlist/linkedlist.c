@@ -35,36 +35,24 @@ int main (void) {
         printf(">> ");
         fgets(cmd, 103, stdin);
 
-         if(!strncmp(cmd, "--exit", 6)) {
-             printf("bye!\n");
-             break;
-         }
-
-
-        if (!strncmp(cmd, "save", 4) 
-         || !strncmp(cmd, "load", 4)
-         || !strncmp(cmd, "del", 3)
-         || !strncmp(cmd, "add", 3)) {
-            switch (*cmd) {
-                case 'a':
-                    first = add(first, cmd+4);
-                    break;
-                case 'd':
-                    first = del(first, cmd+4);
-                    break;
-                case 'l':
-                    first = load(first, cmd+5);
-                    break;
-                case 's':
-                    save(first, cmd+5);
-                    break;
-            }
+        if(!strncmp(cmd, "--exit", 6)) {
+            printf("bye!\n");
+            break;
+        } else if (!strncmp(cmd, "save", 4)) {
+            save(first, cmd+5);
             printf("Command done!\n");
+        } else if (!strncmp(cmd, "load", 4)) {
+            first = load(first, cmd+5);
+            printf("Command done!\n");
+        } else if (!strncmp(cmd, "del", 3)) {
+            first = del(first, cmd+4);
+            printf("Command done!\n");
+        } else if (!strncmp(cmd, "add", 3)) {
+            first = add(first, cmd+4);
+            printf("Command done!\n");
+        } else if (!strncmp(cmd, "showlist", 7)) {
+            showList(first);
         } else {
-            if (!strncmp(cmd, "showlist", 7)) {
-                showList(first);
-                continue;
-            }
             printf("error input!!Try again!~\n");
         }
     }
@@ -99,6 +87,7 @@ Node *add (Node *node, char *data) {
 Node *del (Node *node, char *data) {
     Node *previous = NULL;
     Node *current, *next;
+    
 
     current = node;
     while (current != NULL && strcmp(current->data, data)) {
@@ -129,12 +118,12 @@ void save (Node *node, char *fname) {
     FILE *save;
     Node *current;
 
-    fname = NewLineDel(fname);
+    *(fname + strlen(fname)-1) = '\0';
     save = fopen(fname, "w");
     current = node;
 
     while (current != NULL) {
-        fprintf(save, "%s\n", current->data);
+        fprintf(save, "%s", current->data);
         current = current->next;
     }
 
@@ -147,18 +136,42 @@ void save (Node *node, char *fname) {
 Node *load (Node *node, char *fname) {
     FILE *load;
     Node *templist, *next;
-    char data[100];
+    char *data, *current, *temp;
+    int len, i, lenstr;
 
-    fname = NewLineDel(fname);
+    *(fname + strlen(fname)-1) = '\0';
     load = fopen(fname, "r");
-    templist = NULL;
 
-    while (fgets(data, 100, load) != NULL) {
-        if (!strcmp(data, "\n") || !strcmp(data, "")) {
-            continue;
+    if (load == NULL) {
+        printf("file does not find!\n");
+        return node;
+    }
+
+    temp = (char *)malloc(100);
+    templist = NULL;
+    lenstr = 0;
+    i = 0;
+    
+    fseek(load, 0, SEEK_END);
+    len = ftell(load);
+    data = (char *)malloc(len+1);
+
+    fseek(load, 0, SEEK_SET);
+    fread(data, len, 1, load);
+
+    current = data;
+    while (len-i) {
+        if (*(current+i) == '\n') {
+            *(current+i) = '\0';
+
+            strcpy(temp, current+lenstr);
+            strcat(temp, "\n");
+            
+            templist = add(templist, temp);
+            lenstr = i+1;
         }
-        templist = add(templist, data);
-    } 
+        i++;
+    }
 
     while (templist != NULL) {
         node = add(node, templist->data);
@@ -168,6 +181,9 @@ Node *load (Node *node, char *fname) {
     }
 
     fclose(load);
+    free(data);
+    free(temp);
+
     return node;
 }
 
@@ -182,24 +198,4 @@ void showList (Node *list) {
         printf("data %s\n", current->data);
         current = current->next;
     }
-}
-
-/*  用於刪除 fgets 接收時所多出的 \n 字符的 function
- */
-
-char *NewLineDel (char *file) {
-    char NewLine = '\n';
-    char *current;
-
-    current = file;
-    while (1) {
-        if (*current != NewLine) {
-            current++;
-        } else {
-            *current = '\0';
-            break;
-        }
-    }
-
-    return file;
 }
