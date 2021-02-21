@@ -23,8 +23,6 @@ void createoradd(const char* data)
 {	
 	struct node *cur = (void *)data;
 	
-	printf("pre:%s\n",pre);
-		
 	if( fst == NULL )
 	{
 		fst = cur;
@@ -141,7 +139,6 @@ int main(){
 			tmp=fst;	
 			while(tmp != NULL)
 			{	
-					printf("free:%d\n",tmp -> data-4 );
 					free(tmp -> data-4);
 					tmp = tmp -> next;
 			}
