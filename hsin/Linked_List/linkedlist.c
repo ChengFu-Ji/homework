@@ -11,14 +11,10 @@
 
 struct node{
 	char data[104];
-	char* pdata;
 	struct node *next;
 };
 
-	struct node *fst = NULL;
-	struct node *pre = NULL;
-	struct node *cur = NULL;
-
+/*
 void createoradd(const char* data)
 {	
 	struct node *cur = (void *)data;
@@ -90,7 +86,7 @@ void showlist()
 	}
 }
 
-
+*//*
 int whatkind(const char* type ,const char* data)
 {
 	int a=0;
@@ -113,58 +109,124 @@ int whatkind(const char* type ,const char* data)
 return a;
 }
 
-
+*/
 int main(){
 	
 	struct node *tmp  = NULL;
+	struct node *tmp2 = NULL;
 	const char flr[2]=",";
-	char *b;	
-	int No,lenoftype;
+	char data[105];
+	char * dd;
 
+	struct node *fst = NULL;
+	struct node *pre = NULL;
+	struct node *cur = NULL;
+	
 	while(1)
 	{
 		printf(">>");	
-		tmp =(struct node *)malloc(sizeof(struct node )); 
-		if(tmp == NULL )
-		{
-			return 1;
-		}
 			
-		scanf("%103s",&(tmp -> data )); //嘗試過[^\n]處理空白 但沒有成功 原因目前未知
-		
-		if(strcmp( tmp -> data, "__exit" ) == 0 )
+		//scanf("%103s",&data); //嘗試過[^\n]處理空白 但沒有成功 原因目前未知
+		fgets(data,104,stdin);	
+		if(strcmp( data, "__exit\n" ) == 0 )
 		{	
-			printf( "out\n" );
-			free(tmp);	
+			printf( "out\n" );	
 			tmp=fst;	
 			while(tmp != NULL)
 			{	
-					free(tmp -> data-4);
+					free(tmp);
 					tmp = tmp -> next;
 			}
 			return 0;
-		}
-	
-		if(strcmp( tmp -> data, "showlist" ) == 0 )
+		}	
+		else if(strcmp( data, "showlist\n" ) == 0 )
 		{
-			showlist();
-			free(tmp);
+			if( fst == NULL)
+			{
+				printf("nothing\n");
+			}
+			else
+			{	
+				printf("showlist\n");
+				tmp = fst;
+				while( tmp != NULL)
+				{
+					printf("%s",tmp -> data);
+					tmp = tmp -> next;
+				}
+			}	
+		}
+		else if(strncmp( data,"add,",4)==0)
+		{	
+			cur =(struct node *)malloc(sizeof(struct node )); 
+			if(cur == NULL )
+			{
+				return 1;
+			}
+			
+			if(fst == NULL )
+			{
+				fst = cur;
+				strcpy( fst->data , strstr(data,flr)+1);
+				fst -> next = NULL;
+			}
+			else
+			{
+				strcpy( cur->data , strstr(data,flr)+1);
+				if( fst -> next == NULL)
+				{
+					fst -> next = cur;
+				}
+				else if( pre != NULL)
+				{
+					pre -> next = cur;
+					cur -> next = NULL;		
+				}	
+				pre = cur;
+			}
+		}
+		else if(strncmp( data,"del," ,4) == 0 )
+		{	
+			dd=strstr(data,flr)+1;
+			tmp = fst;
+			tmp2 = fst;	
+
+			while( tmp != NULL)
+			{
+				if(strcmp( tmp-> data , dd) == 0 )
+				{
+					break;		
+				}
+				tmp = tmp -> next;
+			}
+
+			if( tmp == fst )
+			{
+				fst = fst ->next;					 
+			}
+			else
+			{
+				while( tmp2 -> data != tmp -> data )
+				{
+					if( tmp2 ->next == NULL )
+					{
+						printf("nofind\n");
+						break;
+					}
+
+					if( tmp2 -> next == tmp)	
+					{
+						tmp2 -> next = tmp -> next;	
+						free(tmp);
+						break;
+					}
+					tmp2 = tmp2 -> next;
+				}	
+			}
 		}
 		else
-		{	
-			b=strtok(tmp -> data,flr);	
-			if(	b!=NULL)
-			{
-				lenoftype = strlen(b)+1;
-			}
-	
-			cur = tmp;
-			tmp -> pdata = &(tmp ->data[lenoftype]); 	
-			No=whatkind(tmp->data,tmp->pdata);
-			if( No == 4 )
-			{
-				free(tmp);
-			}
+		{
+			printf("something wrong\n");
 		}	
 	}
 
