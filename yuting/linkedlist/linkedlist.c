@@ -16,41 +16,40 @@ void show(Node *one);
 
 int main(){
 
-	Node *one , *current ,*next;
+	Node *one , *current , *next;
 		
 	one = (Node *)malloc(sizeof(Node));
 
 	one -> next = NULL;
 
 	char *cmd;
-	char spac[103];
-
-	cmd = spac;
+	char spc[103];
+	cmd = spc;
 
 	printf("Welcome\n");
-	printf("<CMD , data>\n");
+	printf("<CMD , DATA>\n");
 
 	while(1){
-	
+
 		printf(">>");
-
-		fgets(cmd,103,stdin);	
-
-		if(!strncmp(cmd , "exit" , 4)){
+		
+		fgets(cmd,103,stdin);
+		if(!strncmp(cmd , "exit" ,4)){
 			break;
 		}
-		else if(!strncmp(cmd , "add" , 3)){
+		else if(!strncmp(cmd,"add",3)){
 			one = add(one , cmd+4);
 			printf("Command done!\n");
 		}
-		else if(!strncmp(cmd , "show" ,4 )){
+		else if(!strncmp(cmd , "show" ,4)){
+		
 			show(one);
 		}
-
-		else {
+		else{
 			printf("error");
 		}
 	}
+ 	
 	
 	return 0;
 	
@@ -63,9 +62,6 @@ void show(Node *one){
 	
 	
 	while(current != NULL){
-	/*	printf("current address = %p\n" , current);
-		printf("data = %s\n" , current -> data);
-		printf("next address  = %p\n" , current -> next);*/
 		printf("current: [%p], data: [%s], next: [%p]\n", current, current->data, current->next);
 		current = current -> next;
 	}
@@ -91,9 +87,7 @@ Node  *add(Node *first , char *data){
 	strcpy(new -> data , data);
 	new -> next = NULL;
 	current ->next = new;
-
 	
-
 	return first;
 }	
 
