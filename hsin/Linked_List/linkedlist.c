@@ -113,7 +113,6 @@ return a;
 int main(){
     
     struct node *tmp  = NULL;
-    struct node *tmp2 = NULL;
     const char flr[2]=",";
     char data[105];
     char * dd;
@@ -151,7 +150,7 @@ int main(){
                 tmp = fst;
                 while( tmp != NULL)
                 {
-                    printf("%s",tmp -> data);
+                    printf("%s", tmp -> data);
                     tmp = tmp -> next;
                 }
             }   
@@ -187,41 +186,49 @@ int main(){
         }
         else if(strncmp( data, "del," , 4) == 0 )
         {   
-            dd = strstr(data, flr)+1;
-            tmp = fst;
-            tmp2 = fst; 
+           if( fst == NULL)
+           {
+                printf("not thing to del\n");
+           }
+           else
+           {
 
-            while( tmp != NULL)
-            {
-                if(strcmp( tmp-> data , dd) == 0 )
+                dd = strstr(data, flr)+1;
+                cur = fst;
+                pre = fst; 
+
+                while( cur != NULL)
                 {
-                    break;      
+                    if(strcmp( cur-> data , dd) == 0 )
+                    {
+                        break;      
+                    }
+                    cur = cur -> next;
                 }
-                tmp = tmp -> next;
-            }
 
-            if( tmp == fst )
-            {
-                fst = fst -> next;                    
-            }
-            else
-            {
-                while( tmp2 -> data != tmp -> data )
+                if( cur == fst )
                 {
-                    if( tmp2 -> next == NULL )
+                    fst = fst -> next;                    
+                }
+                else
+                {
+                    while( pre -> data != cur -> data )
                     {
-                        printf("nofind\n");
-                        break;
-                    }
+                        if( pre -> next == NULL )
+                        {
+                            printf("nofind\n");
+                            break;
+                        }
 
-                    if( tmp2 -> next == tmp)    
-                    {
-                        tmp2 -> next = tmp -> next; 
-                        free(tmp);
-                        break;
-                    }
-                    tmp2 = tmp2 -> next;
-                }   
+                        if( pre -> next == cur)    
+                        {
+                            pre -> next = cur -> next; 
+                            free(cur);
+                            break;
+                        }
+                        cur = pre -> next;
+                    }   
+                }
             }
         }
         else
@@ -230,5 +237,5 @@ int main(){
         }   
     }
 
-return 0;
+    return 0;
 }
