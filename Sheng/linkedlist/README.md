@@ -8,11 +8,5 @@
 5. showlist 功能
 6. commandinput 功能
 
-### 上次更新 ###
-1. save 功能
-2. load 功能
-
 ### 本次更新 ###
-1. showlist 功能
-2. commandinput 功能
-
+1. 各功能寫法微調

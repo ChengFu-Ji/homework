@@ -10,19 +10,19 @@ typedef struct node {
     struct node *next;
 } Node;
 
-Node *add (Node *node, char *data); 
-Node *del (Node *node, char *data);
-Node *load (Node *node, char *fname);
-void save (Node *node, char *fname);
-void showList (Node *list);
-char *NewLineDel (char *file);
+void add (Node **node, char *data); 
+int del (Node **node, char *data);
+int load (Node **node, char *fname);
+void save (Node **node, char *fname);
+void showList (Node **list);
 
 int main (void) {
-    Node *first = NULL;
+    Node **first;
     Node *current, *next;
     char *cmd;
-    char cmdspac[103];
+    char cmdspac[105];
 
+    first = (Node **)malloc(sizeof(Node *));
     cmd = cmdspac;
     
     printf("Welcome to linked list service!\n");
@@ -33,22 +33,24 @@ int main (void) {
     
     while (1) {
         printf(">> ");
-        fgets(cmd, 103, stdin);
+        fgets(cmd, 105, stdin);
 
         if(!strncmp(cmd, "--exit", 6)) {
             printf("bye!\n");
             break;
-        } else if (!strncmp(cmd, "save", 4)) {
+        } else if (!strncmp(cmd, "save,", 5)) {
             save(first, cmd+5);
             printf("Command done!\n");
-        } else if (!strncmp(cmd, "load", 4)) {
-            first = load(first, cmd+5);
-            printf("Command done!\n");
-        } else if (!strncmp(cmd, "del", 3)) {
-            first = del(first, cmd+4);
-            printf("Command done!\n");
-        } else if (!strncmp(cmd, "add", 3)) {
-            first = add(first, cmd+4);
+        } else if (!strncmp(cmd, "load,", 5)) {
+            if (!load(first, cmd+5)) {
+                printf("Command done!\n");
+            }
+        } else if (!strncmp(cmd, "del,", 4)) {
+            if (!del(first, cmd+4)) {
+                printf("Command done!\n");
+            }
+        } else if (!strncmp(cmd, "add,", 4)) {
+            add(first, cmd+4);
             printf("Command done!\n");
         } else if (!strncmp(cmd, "showlist", 7)) {
             showList(first);
@@ -57,13 +59,14 @@ int main (void) {
         }
     }
 
-    current = first;
+    current = *first;
     while (current != NULL) {
         next = current->next;
         free(current);
         current = next;
     }
     
+    free(first);
     return 0;
 }
 
@@ -71,25 +74,25 @@ int main (void) {
  *  作法:將新的資料加於最前面
  */
 
-Node *add (Node *node, char *data) {
+void add (Node **node, char *data) {
     Node *new;
 
     new = (Node *)malloc(sizeof(Node));
     strcpy(new->data, data);
-    new->next = node;
+    new->next = *node;
     
-    return new;
+    *node = new;
 }
 
 /*  用於將指定資料從目前的 linked list 刪除的 function
  */
 
-Node *del (Node *node, char *data) {
+int del (Node **node, char *data) {
     Node *previous = NULL;
     Node *current, *next;
     
 
-    current = node;
+    current = *node;
     while (current != NULL && strcmp(current->data, data)) {
         previous = current;
         current = current->next;
@@ -102,25 +105,26 @@ Node *del (Node *node, char *data) {
         if ( previous != NULL) {
             previous->next = next;
         } else {
-            node = next;
+            *node = next;
         }
     } else {
         printf("didn't find the data '%s'\n", data);
+        return 1;
     }
 
-    return node;
+    return 0;
 }
 
 /*  將目前 linked list 的資料存入檔案的 function
  */
 
-void save (Node *node, char *fname) {
+void save (Node **node, char *fname) {
     FILE *save;
     Node *current;
 
     *(fname + strlen(fname)-1) = '\0';
     save = fopen(fname, "w");
-    current = node;
+    current = *node;
 
     while (current != NULL) {
         fprintf(save, "%s", current->data);
@@ -133,7 +137,7 @@ void save (Node *node, char *fname) {
 /*  用於讀取目標檔案並將資料存入 linked list 的 function
  */
 
-Node *load (Node *node, char *fname) {
+int load (Node **node, char *fname) {
     FILE *load;
     Node *templist, *next;
     char *data, *current, *temp;
@@ -144,7 +148,7 @@ Node *load (Node *node, char *fname) {
 
     if (load == NULL) {
         printf("file does not find!\n");
-        return node;
+        return 1;
     }
 
     temp = (char *)malloc(100);
@@ -167,14 +171,14 @@ Node *load (Node *node, char *fname) {
             strcpy(temp, current+lenstr);
             strcat(temp, "\n");
             
-            templist = add(templist, temp);
+            add(&templist, temp);
             lenstr = i+1;
         }
         i++;
     }
 
     while (templist != NULL) {
-        node = add(node, templist->data);
+        add(node, templist->data);
         next = templist->next; 
         free(templist);
         templist = next;
@@ -184,16 +188,16 @@ Node *load (Node *node, char *fname) {
     free(data);
     free(temp);
 
-    return node;
+    return 0;
 }
 
 /*  用於顯示目前 linked list 的所有資料的 function
  */
 
-void showList (Node *list) {
+void showList (Node **list) {
     Node *current;
 
-    current = list;
+    current = *list;
     while (current != NULL) {
         printf("data %s\n", current->data);
         current = current->next;
