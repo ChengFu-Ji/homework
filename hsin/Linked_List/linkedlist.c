@@ -1,9 +1,7 @@
 /**********************************
 目前是沒有使用file寫入linkedlist的，
 有 add 、 del 、 showlist 功能，
-但 del和 輸入部分還有一些bug，
-輸入範例:add,1 del,1 showlist
-
+輸入範例:add,1 、del,1 、showlist。
 ***********************************/
 #include<stdio.h>
 #include<string.h>
@@ -14,112 +12,131 @@ struct node{
     struct node *next;
 };
 
-/*
-void createoradd(const char* data)
-{   
-    struct node *cur = (void *)data;
-    
-    if( fst == NULL )
-    {
-        fst = cur;
-    }   
-    else
-    {
-        pre -> next = cur;
-    }
-    cur -> next = NULL; 
-    pre = cur;
-        
-    
-}
-void del(const char* no)
+struct node * add(char * data, struct node * fst)
 {
-    struct node *n=(void *)no;
-    struct node *dot=NULL;
-    struct node *d=fst;
-    
-    if( fst == NULL)
-    {
-        printf("ERROR NOT THING CAN DELETE\n");     
-    }
+    struct node * fstinadd = fst;
+    struct node * preinadd = NULL;
+    struct node * curinadd = NULL;
+   
+    preinadd = fstinadd;
 
-    if( strcmp(no,(void *)d) == 0)
-    {       
-        fst = fst -> next;
-        free(d->data-4);            
-    }
-    else
+    if(preinadd != NULL)
     {
-        while(strcmp(no,(void *)d -> next) != 0)
+        while(preinadd -> next != NULL)
         {
-            d = d -> next;
+            preinadd = preinadd -> next;
         }
-
-        dot = d -> next;
-
-        if( strcmp( no, pre -> data ) == 0 )
-        {       
-            dot-> next=NULL;
-            pre = d ;
-        }
-
-        d-> next = dot -> next;
-                
-        free(dot-> data-4); 
     }
-    
-    free(cur);
+   
+    curinadd =(struct node *)malloc(sizeof(struct node )); 
+            
+    if(curinadd == NULL )
+    {
+        return NULL;
+    }
+
+    if(fstinadd == NULL )
+    {
+        fstinadd = curinadd;
+        strcpy( fstinadd -> data , data);
+        fstinadd -> next = NULL;
+    }
+    else
+    {
+        strcpy( curinadd -> data , data);
+        
+        if( fstinadd -> next == NULL)
+        {
+            fstinadd -> next = curinadd;
+        }
+        else if( preinadd != NULL)
+        {
+            preinadd -> next = curinadd;
+            curinadd -> next = NULL;     
+        }   
+        preinadd = curinadd;
+    }
+    return fstinadd;    
 }
 
-void showlist()
+struct node * del(struct node * fst , char *data)
+{ 
+    struct node * fstindel = fst;
+    struct node * curindel = NULL; 
+    struct node * preindel = NULL;
+
+    if( fstindel == NULL)
+    {
+        printf("not thing to del\n");
+    }
+    else
+    {
+        curindel = fstindel;
+        preindel = fstindel; 
+
+        while( curindel != NULL)
+        {
+            if(strcmp( curindel -> data, data) == 0 )break;
+
+                    curindel = curindel -> next;
+        }
+
+        if( curindel == fstindel && curindel !=NULL )
+        {
+            fstindel = fstindel -> next;                    
+            free(curindel);
+        }
+        else
+        {
+            while( preindel -> data != curindel -> data )
+            {  
+                if( preindel -> next == NULL )
+                {
+                    printf("nofind\n");
+                    break;
+                }
+                    
+                if( preindel -> next == curindel )    
+                {
+                    preindel -> next = curindel -> next; 
+                    free(curindel);
+                    break;
+                }
+                preindel = preindel -> next;
+
+             }   
+         }
+    }
+    return fstindel;
+}
+
+void showlist(struct node * cur)
 {
-    cur = fst;  
+    struct node * curinshow;
+    curinshow = cur;  
     
-    if(cur == NULL)
+    if(curinshow == NULL)
     {
         printf("WITHOUT DATA\n");
     }
-    while(cur != NULL)
-    {
-        printf("listshow:%s\n",cur);
-        cur = cur->next;    
-    }
-}
-
-*//*
-int whatkind(const char* type ,const char* data)
-{
-    int a=0;
-    if(strcmp("add",type) == 0 )
-    {
-        a=1;
-        createoradd(data);
-    }
-    else if(strcmp("del",type)==0 )
-    {
-        a=2;
-        del(data);
-    }
     else
     {
-        printf("Warning worng input!\n"); 
-        a=4;
-    }   
-
-return a;
+        printf("showlist:\n");
+        while(curinshow != NULL)
+        {
+            printf("%s",curinshow -> data);
+            curinshow = curinshow -> next;    
+        }
+    }
 }
 
-*/
 int main(){
     
-    struct node *tmp  = NULL;
     const char flr[2]=",";
     char data[105];
-    char * dd;
+    char * inputdata;
 
     struct node *fst = NULL;
-    struct node *pre = NULL;
-    struct node *cur = NULL;
     
     while(1)
     {
@@ -127,109 +144,30 @@ int main(){
             
         //scanf("%103s",&data); //嘗試過[^\n]處理空白 但沒有成功 原因目前未知
         fgets(data,104,stdin);  
+        inputdata = (strstr(data, flr)+1);
+
         if(strcmp( data, "__exit\n" ) == 0 )
         {   
             printf( "out\n" );  
-            tmp=fst;    
-            while(tmp != NULL)
+            
+            while(fst != NULL)
             {   
-                    free(tmp);
-                    tmp = tmp -> next;
+                free(fst);
+                fst = fst -> next;
             }
             return 0;
         }   
         else if(strcmp( data, "showlist\n" ) == 0 )
         {
-            if( fst == NULL)
-            {
-                printf("nothing\n");
-            }
-            else
-            {   
-                printf("showlist\n");
-                tmp = fst;
-                while( tmp != NULL)
-                {
-                    printf("%s", tmp -> data);
-                    tmp = tmp -> next;
-                }
-            }   
+            showlist(fst);
         }
-        else if(strncmp( data,"add,",4)==0)
+        else if(strncmp( data,"add,", 4) == 0)
         {   
-            cur =(struct node *)malloc(sizeof(struct node )); 
-            if(cur == NULL )
-            {
-                return 1;
-            }
-            
-            if(fst == NULL )
-            {
-                fst = cur;
-                strcpy( fst->data , strstr(data,flr)+1 );
-                fst -> next = NULL;
-            }
-            else
-            {
-                strcpy( cur->data , strstr(data,flr)+1);
-                if( fst -> next == NULL)
-                {
-                    fst -> next = cur;
-                }
-                else if( pre != NULL)
-                {
-                    pre -> next = cur;
-                    cur -> next = NULL;     
-                }   
-                pre = cur;
-            }
+            fst = add( inputdata, fst);    
         }
         else if(strncmp( data, "del," , 4) == 0 )
-        {   
-           if( fst == NULL)
-           {
-                printf("not thing to del\n");
-           }
-           else
-           {
-
-                dd = strstr(data, flr)+1;
-                cur = fst;
-                pre = fst; 
-
-                while( cur != NULL)
-                {
-                    if(strcmp( cur-> data , dd) == 0 )
-                    {
-                        break;      
-                    }
-                    cur = cur -> next;
-                }
-
-                if( cur == fst )
-                {
-                    fst = fst -> next;                    
-                }
-                else
-                {
-                    while( pre -> data != cur -> data )
-                    {
-                        if( pre -> next == NULL )
-                        {
-                            printf("nofind\n");
-                            break;
-                        }
-
-                        if( pre -> next == cur)    
-                        {
-                            pre -> next = cur -> next; 
-                            free(cur);
-                            break;
-                        }
-                        cur = pre -> next;
-                    }   
-                }
-            }
+        {  
+           fst = del(fst, inputdata);
         }
         else
         {
