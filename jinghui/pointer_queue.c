@@ -1,67 +1,74 @@
-/**佇列加入和刪除**/ 
+/**單向LinkList**/ 
 #include<stdio.h> 
 #include<stdlib.h> 
 
-struct node //建立節點 
+struct node 
 {
-	int data;
-	struct node *next;
+  int data;
+  struct node *next;
 };
 
-struct node *ptr,*head,*current,*prev;
+struct node *ptr,*head,*current,*prev,*tmp;
  
-
 void add()
 {
-	//建立第一個 node //
-	ptr = (struct node*)malloc(sizeof(struct node));
-	gets(ptr->data);	//輸入 
-	ptr->next = NULL;	//下一節點接null 
-		
-	if(ptr == NULL)
-	{
-		ptr = head; //指針為空值時指向head 
+	char change[4];						 //因gets只接受char型態 
+	ptr = (struct node*)malloc(sizeof(struct node)); 
+	gets(change);
+	ptr->data = atoi(change);				 //atoi()是將字串轉成int型態 
+	ptr->next = NULL;
+	if(head == NULL)
+	{	
+	  head=ptr;					 	 //設第一筆資料為head
 	}
-	else 
+	else
 	{
-		current = ptr;
-		while(current->next != NULL) 
-		{
-			current = current->next; 
-		}
-		current->next = head;
-	}		
+	  current = head; 					//從頭開始 
+	  while(current->next != NULL)				//如果當前狀態為不為最後一筆 
+	  {
+		 current = current->next;			//指向下一筆
+	  }
+	  current->next = ptr; 					//等於新增資料
+	}
 }
 
 
 void list()
 {
-	int count = 0;
-
-	//if(head->data == NULL)
-	//{
-	//	printf("無資料\n\n");
-	//}
-	//else
-	//{
-		printf("-------------列表---------------------\n\n");
-		current=head;
-		while(current != NULL)
-		{
-			printf("%d\n",current->data);
-			current = current->next;
-		}
-		printf("---------------------------------\n");
-	//}
+	printf("-------------列表---------------------\n\n");
+	if(head == NULL)
+	{
+	  printf("無資料\n");
+	}
+	else
+	{
+	  current=head;
+	  while(current != NULL)
+	  {
+	    printf("%d\n",current->data);
+	    current = current->next;
+	  }
+	}
+	printf("---------------------------------\n");
 }
 
+//釋放整個鏈結空間 
+//此函式有個問題是head無法free掉 
 void free_list()
-{ 
-	current = head;
-	while(current != NULL) {
-		prev = current;
-		current = current->next;
-		free(prev);
+{
+	if(head == NULL)
+	{
+	  printf("無資料\n");	
+	}
+	else
+	{
+	  current=head;
+	  while(current != NULL) 
+	  {
+	  tmp = current;
+	  current = current->next;
+	  free(tmp);
+	  }
 	}
 } 
 
@@ -98,10 +105,11 @@ void del()
 
 int main()
 {
+
 	int option;
 	while(1)
 	{
-		printf("(1)新增資料 (2)刪除資料 (3)顯示 \n\n");
+		printf("(1)新增資料 (2)刪除資料 (3)顯示 (4)清除所有資料 \n\n");
 		option=getche();
 		printf("\n");
 		switch(option)
@@ -116,11 +124,14 @@ int main()
 			case'3':
 				list();
 				break;
+			case'4':
+				free_list();
+				break;
 			default:
 				printf("error\n");
 				break;
-		}
-		
+		}	
 	}
+
 	return 0;
 } 
