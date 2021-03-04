@@ -2,10 +2,9 @@
 #include<stdio.h> 
 #include<stdlib.h> 
 
-
 struct node //建立節點 
 {
-	int data[20];
+	int data;
 	struct node *next;
 };
 
@@ -15,14 +14,13 @@ struct node *ptr,*head,*current,*prev;
 void add()
 {
 	//建立第一個 node //
-	head = (struct node*)malloc(sizeof(struct node));
-	gets(head->data);	//輸入 
-	head->next = NULL;	//下一節點接null 
-	
+	ptr = (struct node*)malloc(sizeof(struct node));
+	gets(ptr->data);	//輸入 
+	ptr->next = NULL;	//下一節點接null 
+		
 	if(ptr == NULL)
 	{
 		ptr = head; //指針為空值時指向head 
-		return;
 	}
 	else 
 	{
@@ -32,7 +30,6 @@ void add()
 			current = current->next; 
 		}
 		current->next = head;
-		return;
 	}		
 }
 
@@ -41,22 +38,21 @@ void list()
 {
 	int count = 0;
 
-	if(head->data == NULL)
-	{
-		printf("無資料\n\n");
-	}
-	else
-	{
+	//if(head->data == NULL)
+	//{
+	//	printf("無資料\n\n");
+	//}
+	//else
+	//{
 		printf("-------------列表---------------------\n\n");
-		current = current->next;
+		current=head;
 		while(current != NULL)
 		{
 			printf("%d\n",current->data);
-			count++;
 			current = current->next;
 		}
 		printf("---------------------------------\n");
-	}
+	//}
 }
 
 void free_list()
@@ -111,6 +107,7 @@ int main()
 		switch(option)
 		{
 			case'1':
+				printf("輸入資料\n\n");
 				add();
 				break;
 			case'2':
