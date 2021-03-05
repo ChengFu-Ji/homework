@@ -76,31 +76,21 @@ void del()
 {
 	char del_data[20];
 	printf("刪除資料\n");
-	gets(del_data);
-	
-	if(del_data == current->data) 
-	{
-		prev = current->next;
-		free(current);
-		return;
-	}
+	gets(del_data);					//目標刪除的資料
 
-	while (current != NULL)
+	//1.目標資料在第一個
+	//2.目標資料在尾
+	//3.目標資料在中間
+	
+	current=head;					//重頭開始
+	printf("head資料%d",head->data);
+	if(head->data == del_data)			//目標在頭
 	{
-		if(current->next->data == del_data)
-		{
-			ptr = current->next;
-			current->next = current->next->next;
-			free(current);
-			printf("%d已被刪除\n",del_data);
-		}
-		else
-		{
-			current = current->next;
-			printf("找不到該資料\n");
-		}	
+	  ptr = head;					//要刪除之目標
+	  head = current->next;				//下一個為head
+	  free(ptr);					//刪除目標
+	  current = head->next;				//移動current
 	}
-	getch();
 } 
 
 int main()

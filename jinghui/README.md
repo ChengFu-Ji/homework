@@ -7,3 +7,5 @@
   * Add linklist
   * del無法執行
   * 修改pointer_queue的新增及印出功能
+* 3/5
+  * 修改pointer_queue的刪除功能
