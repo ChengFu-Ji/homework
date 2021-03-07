@@ -9,3 +9,5 @@
   * 修改pointer_queue的新增及印出功能
 * 3/5
   * 修改pointer_queue的刪除功能
+* 3/8
+  * 修改pointer_queue部分bug

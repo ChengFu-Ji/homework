@@ -1,6 +1,7 @@
 /**單向LinkList**/ 
 #include<stdio.h> 
-#include<stdlib.h> 
+#include<stdlib.h>
+#include<conio.h>
 
 struct node 
 {
@@ -14,7 +15,7 @@ void add()
 {
 	char change[4];						 //因gets只接受char型態 
 	ptr = (struct node*)malloc(sizeof(struct node)); 
-	gets(change);
+	fgets(change, sizeof(change),stdin);			 //stdin為標準輸入 
 	ptr->data = atoi(change);				 //atoi()是將字串轉成int型態 
 	ptr->next = NULL;
 	if(head == NULL)
@@ -76,7 +77,7 @@ void del()
 {
 	char del_data[20];
 	printf("刪除資料\n");
-	gets(del_data);					//目標刪除的資料
+	fgets(del_data,sizeof(del_data),stdin);		//目標刪除的資料
 
 	//1.目標資料在第一個
 	//2.目標資料在尾
@@ -84,7 +85,7 @@ void del()
 	
 	current=head;					//重頭開始
 	printf("head資料%d",head->data);
-	if(head->data == del_data)			//目標在頭
+	if(head == del_data)				//目標在頭
 	{
 	  ptr = head;					//要刪除之目標
 	  head = current->next;				//下一個為head
@@ -100,12 +101,12 @@ int main()
 	while(1)
 	{
 		printf("(1)新增資料 (2)刪除資料 (3)顯示 (4)清除所有資料 \n\n");
-		option=getche();
+		option=getche();			//隸屬conio.h 
 		printf("\n");
 		switch(option)
 		{
 			case'1':
-				printf("輸入資料\n\n");
+				printf("輸入資料(最多只能輸入3位元)\n\n");
 				add();
 				break;
 			case'2':
