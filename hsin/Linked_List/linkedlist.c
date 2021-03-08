@@ -1,7 +1,6 @@
 /**********************************
-目前是沒有使用file寫入linkedlist的，
-有 add 、 del 、 showlist 功能，
-輸入範例:add,1 、del,1 、showlist。
+目前有 add 、 del 、 showlist、save、load功能，
+輸入範例:add,1 、del,1 、showlist、save,filename、load,filename。
 ***********************************/
 #include<stdio.h>
 #include<string.h>
@@ -29,7 +28,7 @@ struct node * add(char * data, struct node * fst)
     }
    
     curinadd =(struct node *)malloc(sizeof(struct node )); 
-            
+          
     if(curinadd == NULL )
     {
         return NULL;
@@ -130,12 +129,53 @@ void showlist(struct node * cur)
     }
 }
 
+void save(char * file, struct node * data)
+{   
+    FILE * filesave;
+    struct node * savedata;
+    savedata = data; 
+    filesave = fopen(file, "w");
+
+    while(savedata != NULL)
+    {
+        fprintf(filesave, "%s", savedata -> data);
+        savedata = savedata -> next;
+    }
+    fclose(filesave);
+}
+
+struct node * load(char * file, struct node * data)
+{
+    FILE * fileload; 
+    struct node * loaddata;
+    char filedatapuffer[101];
+
+    fileload = fopen(file, "r");
+   
+    if( fileload == NULL)
+    {
+        printf("no search file.\n");
+    }
+    else
+    { 
+        while(fgets(filedatapuffer, 101, fileload) != NULL)
+        {
+            data=add(filedatapuffer, data);
+        }
+
+        fclose(fileload);
+        printf("load file complete.\n");
+    }
+
+    return data; 
+}
+
 int main(){
     
-    const char flr[2]=",";
+    const char comma[2]=",";
     char data[105];
     char * inputdata;
-
+    FILE * filename;
     struct node *fst = NULL;
     
     while(1)
@@ -144,7 +184,7 @@ int main(){
             
         //scanf("%103s",&data); //嘗試過[^\n]處理空白 但沒有成功 原因目前未知
         fgets(data,104,stdin);  
-        inputdata = (strstr(data, flr)+1);
+        inputdata = (strstr(data, comma)+1);
 
         if(strcmp( data, "__exit\n" ) == 0 )
         {   
@@ -155,19 +195,31 @@ int main(){
                 free(fst);
                 fst = fst -> next;
             }
+
             return 0;
         }   
-        else if(strcmp( data, "showlist\n" ) == 0 )
+        else if(strcmp( data, "showlist\n") == 0)
         {
             showlist(fst);
         }
-        else if(strncmp( data,"add,", 4) == 0)
+        else if(strncmp( data, "add,", 4) == 0)
         {   
             fst = add( inputdata, fst);    
         }
-        else if(strncmp( data, "del," , 4) == 0 )
+        else if(strncmp( data, "del,", 4) == 0)
         {  
-           fst = del(fst, inputdata);
+            fst = del(fst, inputdata);
+        }
+        else if(strncmp( data, "save,", 5) == 0)
+        {
+            *(strstr(inputdata, "\n"))='\0';
+            save(inputdata, fst); 
+            printf("save file complete.\n");
+        }    
+        else if(strncmp( data, "load,", 5) == 0)
+        {
+            *(strstr(inputdata, "\n"))='\0';
+            fst=load(inputdata, fst);
         }
         else
         {
