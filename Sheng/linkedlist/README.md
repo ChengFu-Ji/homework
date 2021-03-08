@@ -8,5 +8,6 @@
 5. showlist 功能
 6. commandinput 功能
 
-### 本次更新 ###
-1. 各功能寫法微調
+### 程式執行截圖 ###
+
+<img src="https://github.com/ChengFu-Ji/homework/blob/master/Sheng/linkedlist/linkedlist.png">
