@@ -1,6 +1,7 @@
 /**********************************
 目前有 add 、 del 、 showlist、save、load功能，
 輸入範例:add,1 、del,1 、showlist、save,filename、load,filename。
+跳離請打exit
 ***********************************/
 #include<stdio.h>
 #include<string.h>
@@ -11,159 +12,159 @@ struct node{
     struct node *next;
 };
 
-struct node * add(char * data, struct node * fst)
+struct node *add(char *data, struct node *first)
 {
-    struct node * fstinadd = fst;
-    struct node * preinadd = NULL;
-    struct node * curinadd = NULL;
-   
-    preinadd = fstinadd;
+    struct node *first_in_add = first;
+    struct node *current_in_add = NULL;
+    struct node *previous_in_add = NULL;
+    
+    previous_in_add = first_in_add;
 
-    if(preinadd != NULL)
+    if(previous_in_add != NULL)
     {
-        while(preinadd -> next != NULL)
+        while(previous_in_add -> next != NULL)
         {
-            preinadd = preinadd -> next;
+            previous_in_add = previous_in_add -> next;
         }
     }
-   
-    curinadd =(struct node *)malloc(sizeof(struct node )); 
+
+    current_in_add =(struct node *)malloc(sizeof(struct node)); 
           
-    if(curinadd == NULL )
+    if(current_in_add == NULL )
     {
         return NULL;
     }
 
-    if(fstinadd == NULL )
+    if(first_in_add == NULL )
     {
-        fstinadd = curinadd;
-        strcpy( fstinadd -> data , data);
-        fstinadd -> next = NULL;
+        first_in_add = current_in_add;
+        strcpy( first_in_add -> data , data);
+        first_in_add -> next = NULL;
     }
     else
     {
-        strcpy( curinadd -> data , data);
+        strcpy( current_in_add -> data, data);
         
-        if( fstinadd -> next == NULL)
+        if( first_in_add -> next == NULL)
         {
-            fstinadd -> next = curinadd;
+            first_in_add -> next = current_in_add;
         }
-        else if( preinadd != NULL)
+        else if(previous_in_add != NULL)
         {
-            preinadd -> next = curinadd;
-            curinadd -> next = NULL;     
-        }   
-        preinadd = curinadd;
+            previous_in_add -> next = current_in_add;
+        }
+        current_in_add -> next = NULL;
+        
     }
-    return fstinadd;    
+    return first_in_add;    
 }
 
-struct node * del(struct node * fst , char *data)
+struct node *del(struct node *first, char *data)
 { 
-    struct node * fstindel = fst;
-    struct node * curindel = NULL; 
-    struct node * preindel = NULL;
+    struct node *first_in_del = first;
+    struct node *current_in_del = NULL; 
+    struct node *previous_in_del = NULL;
 
-    if( fstindel == NULL)
+    if( first_in_del == NULL)
     {
         printf("not thing to del\n");
     }
     else
     {
-        curindel = fstindel;
-        preindel = fstindel; 
+        current_in_del = first_in_del;
+        previous_in_del = first_in_del; 
 
-        while( curindel != NULL)
+        while( current_in_del != NULL)
         {
-            if(strcmp( curindel -> data, data) == 0 )break;
+            if(strcmp( current_in_del -> data, data) == 0 )break;
 
-                    curindel = curindel -> next;
+                    current_in_del = current_in_del -> next;
         }
 
-        if( curindel == fstindel && curindel !=NULL )
+        if( current_in_del == first_in_del && current_in_del != NULL )
         {
-            fstindel = fstindel -> next;                    
-            free(curindel);
+            first_in_del = first_in_del -> next;                    
+            free(current_in_del);
         }
         else
         {
-            while( preindel -> data != curindel -> data )
+            while( previous_in_del -> data != current_in_del -> data )
             {  
-                if( preindel -> next == NULL )
+                if( previous_in_del -> next == NULL )
                 {
-                    printf("nofind\n");
+                    printf("data no find.\n");
                     break;
                 }
                     
-                if( preindel -> next == curindel )    
+                if( previous_in_del -> next == current_in_del )    
                 {
-                    preindel -> next = curindel -> next; 
-                    free(curindel);
+                    previous_in_del -> next = current_in_del -> next; 
+                    free(current_in_del);
                     break;
                 }
-                preindel = preindel -> next;
+                previous_in_del = previous_in_del -> next;
 
              }   
          }
     }
-    return fstindel;
+    return first_in_del;
 }
 
-void showlist(struct node * cur)
+void showlist(struct node *first)
 {
-    struct node * curinshow;
-    curinshow = cur;  
+    struct node * current_in_showlist;
+    current_in_showlist = first;  
     
-    if(curinshow == NULL)
+    if(current_in_showlist == NULL)
     {
         printf("WITHOUT DATA\n");
     }
     else
     {
         printf("showlist:\n");
-        while(curinshow != NULL)
+        while(current_in_showlist != NULL)
         {
-            printf("%s",curinshow -> data);
-            curinshow = curinshow -> next;    
+            printf("%s", current_in_showlist -> data);
+            current_in_showlist = current_in_showlist -> next;    
         }
     }
 }
 
-void save(char * file, struct node * data)
+void save(char *file, struct node *data)
 {   
-    FILE * filesave;
-    struct node * savedata;
-    savedata = data; 
-    filesave = fopen(file, "w");
+    FILE * file_save;
+    struct node * save_data;
+    save_data = data; 
+    file_save = fopen(file, "w");
 
-    while(savedata != NULL)
+    while(save_data != NULL)
     {
-        fprintf(filesave, "%s", savedata -> data);
-        savedata = savedata -> next;
+        fprintf(file_save, "%s", save_data -> data);
+        save_data = save_data -> next;
     }
-    fclose(filesave);
+    fclose(file_save);
 }
 
-struct node * load(char * file, struct node * data)
+struct node *load(char * file, struct node * data)
 {
-    FILE * fileload; 
-    struct node * loaddata;
-    char filedatapuffer[101];
+    FILE *file_load; 
+    struct node *load_data;
+    char file_data_puffer[101];
 
-    fileload = fopen(file, "r");
+    file_load = fopen(file, "r");
    
-    if( fileload == NULL)
+    if( file_load == NULL)
     {
         printf("no search file.\n");
     }
     else
     { 
-        while(fgets(filedatapuffer, 101, fileload) != NULL)
+        while(fgets(file_data_puffer, 101, file_load) != NULL)
         {
-            data=add(filedatapuffer, data);
+            data=add(file_data_puffer, data);
         }
 
-        fclose(fileload);
+        fclose(file_load);
         printf("load file complete.\n");
     }
 
@@ -173,53 +174,54 @@ struct node * load(char * file, struct node * data)
 int main(){
     
     const char comma[2]=",";
-    char data[105];
-    char * inputdata;
-    FILE * filename;
-    struct node *fst = NULL;
+    char input_data_buffer[105];
+    char *input_data;
+    FILE *filename;
+    struct node *first = NULL;
     
+    printf("welcome! we have file control with 'save' and 'load' ex: save,filename.filename Extension same as load.\nAnd build linkedlist we need 'add' and 'del' ex: add,data same as del.\nIf you want to show what thing in linkedlist.You can use 'showlist'.  \nAlso leave the progream please keyin 'exit'.\n");
     while(1)
     {
         printf(">>");   
             
         //scanf("%103s",&data); //嘗試過[^\n]處理空白 但沒有成功 原因目前未知
-        fgets(data,104,stdin);  
-        inputdata = (strstr(data, comma)+1);
+        fgets(input_data_buffer, 104, stdin);  
+        input_data = (strstr(input_data_buffer, comma)+1);
 
-        if(strcmp( data, "__exit\n" ) == 0 )
+        if(strcmp( input_data_buffer, "exit\n" ) == 0 )
         {   
             printf( "out\n" );  
             
-            while(fst != NULL)
+            while(first != NULL)
             {   
-                free(fst);
-                fst = fst -> next;
+                free(first);
+                first = first -> next;
             }
 
             return 0;
         }   
-        else if(strcmp( data, "showlist\n") == 0)
+        else if(strcmp( input_data_buffer, "showlist\n") == 0)
         {
-            showlist(fst);
+            showlist(first);
         }
-        else if(strncmp( data, "add,", 4) == 0)
+        else if(strncmp( input_data_buffer, "add,", 4) == 0)
         {   
-            fst = add( inputdata, fst);    
+            first = add( input_data, first);    
         }
-        else if(strncmp( data, "del,", 4) == 0)
+        else if(strncmp( input_data_buffer, "del,", 4) == 0)
         {  
-            fst = del(fst, inputdata);
+            first = del(first, input_data);
         }
-        else if(strncmp( data, "save,", 5) == 0)
+        else if(strncmp( input_data_buffer, "save,", 5) == 0)
         {
-            *(strstr(inputdata, "\n"))='\0';
-            save(inputdata, fst); 
+            *(strstr(input_data, "\n")) = '\0';
+            save(input_data, first); 
             printf("save file complete.\n");
         }    
-        else if(strncmp( data, "load,", 5) == 0)
+        else if(strncmp( input_data_buffer, "load,", 5) == 0)
         {
-            *(strstr(inputdata, "\n"))='\0';
-            fst=load(inputdata, fst);
+            *(strstr(input_data, "\n"))='\0';
+            first=load(input_data, first);
         }
         else
         {
