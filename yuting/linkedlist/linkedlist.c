@@ -12,6 +12,7 @@ typedef struct node{
 
 Node *add(Node *first , char *data);
 Node *del(Node *first , char *data);
+void save(Node *save , char *fname);
 void show(Node *one);
 
 
@@ -35,6 +36,7 @@ int main(){
 		printf(">>");
 		
 		fgets(cmd,103,stdin);
+
 		if(!strncmp(cmd , "exit" ,4)){
 			break;
 		}
@@ -48,6 +50,12 @@ int main(){
 			}
 			printf("Command done!\n");
 		}
+
+		else if(!strncmp(cmd , "save," ,5)){
+			save(one ,cmd+5);	
+			printf("Command done!\n");
+		}
+
 		else if(!strncmp(cmd , "show" ,4)){
 		
 			show(one);
@@ -121,6 +129,34 @@ Node *del(Node *first , char *data){
 
 	return first;
 }
+
+void save(Node *current , char *fname){
+
+	Node *save;
+
+	FILE *fp;
+
+	//尚未將檔名的$以及\n換成\0來結束
+
+	fp = fopen(fname , "w+");
+
+
+	save = current;
+
+	while(1){
+	
+		fwrite(save -> data , sizeof(save -> data), 1, fp);	
+		if(save -> next == NULL){
+			break;
+		}
+		save = save -> next;
+	}
+	
+
+	fclose(fp);
+ 
+}
+
 
 
 
