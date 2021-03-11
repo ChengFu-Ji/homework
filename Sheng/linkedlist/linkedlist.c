@@ -208,18 +208,20 @@ void showList (Node **list) {
 }
 
 void showN (char *data) {
-    char *n, *cur, *fdata, *dataN;
     FILE *load;
-    int count, len, i, intN;
+    int count, len, n;
+    char *charN, *cur, *fdata, *dataN;
+    char *newline = "\n";
 
-    n = strstr(data, ",");
-    *(n++) = '\0';
-    *(strstr(n, "\n")) = '\0';
+    charN = strstr(data, ",");
+    if (charN == NULL) {
+        printf("Error Type input!!\n");
+        return;
+    }
 
-    intN = *n - 48;
-    count = 0;
-    i = 0;
-
+    *(charN++) = '\0';
+    *(strstr(charN, newline)) = '\0';
+    n = atoi(charN);
     load = fopen(data, "r");
     
     fseek(load, 0, SEEK_END);
@@ -231,27 +233,24 @@ void showN (char *data) {
 
     cur = fdata;
     dataN = cur;
-    while (len-i) {
-        if (*(cur+i) == '\n') {
-            if (count == intN-1) {
-                *(cur+i) = '\0';
-                break;
-            } else {
-                dataN = cur+i+1;
-            }
-            count++;
+    count = 1;
+    while ((cur = strstr(cur, newline)) != NULL) {
+        if (count == n-1) {
+            dataN = cur+1;
+        } else if (count == n) {
+           *(cur) = '\0'; 
+           break;
         }
-        i++;
+        cur++;
+        count++;
     }
 
-    if (*dataN != 0) {
+    if (cur != NULL) {
         printf("data '%s'\n", dataN);
     } else {
         printf("data not find\n");
     }
-
     
     fclose(load);
     free(fdata);
-
 } 
