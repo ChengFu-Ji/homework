@@ -15,6 +15,7 @@ int del (Node **node, char *data);
 int load (Node **node, char *fname);
 void save (Node **node, char *fname);
 void showList (Node **list);
+void showN (char *data);
 
 int main (void) {
     Node **first;
@@ -27,15 +28,15 @@ int main (void) {
     
     printf("Welcome to linked list service!\n");
     printf("\nThe command format is <CMD,data>.\n"); 
-    printf("commands have <add> ,<del>, <save>, <load>, <showlist>!\n");
-    printf("ex. 'add,data' , 'save,filename' , 'showlist'.\n");
-    printf("\nEnter '--exit' to Exit!\n");
+    printf("commands have <add> ,<del>, <save>, <load>, <showlist>, <show>!\n");
+    printf("ex. 'add,data' , 'save,filename' , 'showlist' , 'show,filename,number'.\n");
+    printf("\nEnter 'exit' to Exit!\n");
     
     while (1) {
         printf(">> ");
         fgets(cmd, 105, stdin);
 
-        if(!strncmp(cmd, "--exit", 6)) {
+        if(!strncmp(cmd, "exit", 4)) {
             printf("bye!\n");
             break;
         } else if (!strncmp(cmd, "save,", 5)) {
@@ -54,6 +55,8 @@ int main (void) {
             printf("Command done!\n");
         } else if (!strncmp(cmd, "showlist", 7)) {
             showList(first);
+        } else if (!strncmp(cmd, "show,", 5)) {
+            showN(cmd+5);
         } else {
             printf("error input!!Try again!~\n");
         }
@@ -203,3 +206,52 @@ void showList (Node **list) {
         current = current->next;
     }
 }
+
+void showN (char *data) {
+    char *n, *cur, *fdata, *dataN;
+    FILE *load;
+    int count, len, i, intN;
+
+    n = strstr(data, ",");
+    *(n++) = '\0';
+    *(strstr(n, "\n")) = '\0';
+
+    intN = *n - 48;
+    count = 0;
+    i = 0;
+
+    load = fopen(data, "r");
+    
+    fseek(load, 0, SEEK_END);
+    len = ftell(load);
+    fdata = (char *)malloc(len+1);
+
+    fseek(load, 0, SEEK_SET);
+    fread(fdata, len, 1, load);
+
+    cur = fdata;
+    dataN = cur;
+    while (len-i) {
+        if (*(cur+i) == '\n') {
+            if (count == intN-1) {
+                *(cur+i) = '\0';
+                break;
+            } else {
+                dataN = cur+i+1;
+            }
+            count++;
+        }
+        i++;
+    }
+
+    if (*dataN != 0) {
+        printf("data '%s'\n", dataN);
+    } else {
+        printf("data not find\n");
+    }
+
+    
+    fclose(load);
+    free(fdata);
+
+} 
