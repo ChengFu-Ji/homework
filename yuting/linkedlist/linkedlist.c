@@ -52,6 +52,7 @@ int main(){
 		}
 
 		else if(!strncmp(cmd , "save," ,5)){
+	
 			save(one ,cmd+5);	
 			printf("Command done!\n");
 		}
@@ -135,11 +136,13 @@ void save(Node *current , char *fname){
 	Node *save;
 
 	FILE *fp;
+		
+	if(*(fname + strlen(fname) -1) == '\n'){
+		*(fname + strlen(fname) -1) = '\0';
+	}
 
-	//尚未將檔名的$以及\n換成\0來結束
 
-	fp = fopen(fname , "w+");
-
+	fp = fopen(fname , "w");	
 
 	save = current;
 
