@@ -1,7 +1,7 @@
 /**********************************
-目前有 add 、 del 、 showlist、save、load功能，
-輸入範例:add,1 、del,1 、showlist、save,filename、load,filename。
-跳離請打exit
+目前有 add 、 del 、 showlist、save、load、 show_n_line功能，
+輸入範例:add,1 、del,1 、showlist、save,filename、load,filename、show,filename,row，
+跳離請打exit。
 ***********************************/
 #include<stdio.h>
 #include<string.h>
@@ -145,11 +145,11 @@ void save(char *file, struct node *data)
     fclose(file_save);
 }
 
-struct node *load(char * file, struct node * data)
+struct node *load(char *file, struct node *data)
 {
     FILE *file_load; 
     struct node *load_data;
-    char file_data_puffer[101];
+    char file_data_buffer[101];
 
     file_load = fopen(file, "r");
    
@@ -159,9 +159,9 @@ struct node *load(char * file, struct node * data)
     }
     else
     { 
-        while(fgets(file_data_puffer, 101, file_load) != NULL)
+        while(fgets(file_data_buffer, 101, file_load) != NULL)
         {
-            data=add(file_data_puffer, data);
+            data=add(file_data_buffer, data);
         }
 
         fclose(file_load);
@@ -171,15 +171,59 @@ struct node *load(char * file, struct node * data)
     return data; 
 }
 
+void show_n_line(char *filename, int n_line)
+{
+    int count_rows = 0;
+    int count_max = 0;
+    FILE *file_load;
+    char file_data_buffer[101];
+
+    file_load = fopen(filename, "r");
+
+   
+    if( file_load == NULL)
+    {
+        printf("no search file.\n");
+    }
+    else
+    { 
+        while(fgets(file_data_buffer, 101, file_load) != NULL)
+        {
+            count_max ++;
+        }
+
+        fclose(file_load);
+        file_load = fopen(filename, "r");
+
+        while(count_rows != n_line && count_max != count_rows) 
+        {
+            fgets(file_data_buffer, 101, file_load);
+            count_rows ++;
+        }  
+        if(count_rows == n_line)
+        { 
+            printf("%s",file_data_buffer);
+            printf("show n line down.\n");
+        }
+        else
+        {
+            printf("no search the line,please check the file and try again.\n");
+        }       
+
+        fclose(file_load); 
+    }
+}
+
+
+
 int main(){
     
     const char comma[2]=",";
     char input_data_buffer[105];
     char *input_data;
-    FILE *filename;
     struct node *first = NULL;
     
-    printf("welcome! we have file control with 'save' and 'load' ex: save,filename.filename Extension same as load.\nAnd build linkedlist we need 'add' and 'del' ex: add,data same as del.\nIf you want to show what thing in linkedlist.You can use 'showlist'.  \nAlso leave the progream please keyin 'exit'.\n");
+    printf("welcome! we have file control with 'save' and 'load' ex: save,filename.filename Extension same as load.\nAnd build linkedlist we need 'add' and 'del' ex: add,data same as del.\nIf you want to show what thing in linkedlist.You can use 'showlist'. \nOr show the data of the line in the file. ex: show,filename,row. \nAlso leave the progream please keyin 'exit'.\n");
     while(1)
     {
         printf(">>");   
@@ -222,6 +266,33 @@ int main(){
         {
             *(strstr(input_data, "\n"))='\0';
             first=load(input_data, first);
+        }
+        else if(strncmp( input_data_buffer, "show,", 5) == 0)
+        {
+            int number;
+            char *buffer_of_data;
+            char *filename;
+            int count_comma = 0;
+                 
+            *(strstr(input_data, "\n"))='\0';
+            buffer_of_data = strtok(input_data, comma);
+
+            while( count_comma != 2)
+            {
+                count_comma ++;
+
+                if(count_comma == 1)
+                {    
+                    filename = buffer_of_data; 
+                }
+                else
+                {
+                    number = atoi(buffer_of_data);
+                }
+
+                buffer_of_data = strtok(NULL,comma);
+            }
+            show_n_line(filename, number);
         }
         else
         {
