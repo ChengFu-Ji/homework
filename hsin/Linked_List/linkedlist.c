@@ -192,15 +192,15 @@ void show_n_line(char *filename, int n_line)
             count_max ++;
         }
 
-        fclose(file_load);
-        file_load = fopen(filename, "r");
+        rewind(file_load);  
+        //fseek(file_load, 0, SEEK_SET);
 
         while(count_rows != n_line && count_max != count_rows) 
         {
             fgets(file_data_buffer, 101, file_load);
             count_rows ++;
         }  
-        if(count_rows == n_line)
+        if(count_rows == n_line && n_line != 0)
         { 
             printf("%s",file_data_buffer);
             printf("show n line down.\n");
