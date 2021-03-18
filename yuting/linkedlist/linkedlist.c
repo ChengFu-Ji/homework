@@ -12,6 +12,7 @@ typedef struct node{
 
 Node *add(Node *first , char *data);
 Node *del(Node *first , char *data);
+Node *load(Node *node , char *fname);
 void save(Node *save , char *fname);
 void show(Node *one);
 
@@ -57,6 +58,12 @@ int main(){
 			printf("Command done!\n");
 		}
 
+		else if(!strncmp(cmd , "load," ,5)){
+			
+			one = load(one , cmd+5);
+			printf("Command done!\n");
+		}
+
 		else if(!strncmp(cmd , "show" ,4)){
 		
 			show(one);
@@ -65,9 +72,9 @@ int main(){
 			printf("error");
 		}
   	}   
- 	
 	
 	return 0;
+	
 	
 }
 
@@ -142,13 +149,13 @@ void save(Node *current , char *fname){
 	}
 
 
-	fp = fopen(fname , "w");	
+	fp = fopen(fname , "w+");	
 
 	save = current;
 
 	while(1){
 	
-		fwrite(save -> data , sizeof(save -> data), 1, fp);	
+		fwrite(save -> data , strlen(save -> data), 1, fp);	
 		if(save -> next == NULL){
 			break;
 		}
@@ -160,6 +167,49 @@ void save(Node *current , char *fname){
  
 }
 
+Node *load(Node *node, char *fname){
 
+	FILE *fp;
+	char *data_read ;
 
+	Node *current_node = node;
+
+        if(*(fname + strlen(fname) -1) == '\n'){
+		 *(fname + strlen(fname) -1) = '\0';
+	 }
+	printf("f %s\n", fname);
+
+	
+	fp = fopen(fname , "r");
+
+	if (fp == NULL) {
+		printf("err!\n");
+		return node;
+	}
+
+	fseek(fp, 0, SEEK_END);
+
+	int len = ftell(fp);
+	data_read = (char *)malloc(len+1);
+
+	fseek(fp, 0, SEEK_SET);
+	fread(data_read,len,1,fp);
+
+	if(fp == NULL){
+		printf("no file.\n");
+	}
+	else{	
+
+		//尚未將收到的資料分成不同的節點
+		
+	
+		current_node = add(current_node , data_read);	
+		
+		
+		fclose(fp);
+	}
+
+	return current_node;	
+
+}
 
