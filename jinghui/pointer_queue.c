@@ -13,7 +13,7 @@ struct node *ptr,*head,*current,*prev,*tmp;
  
 void add()
 {
-	char change[4];						 //因gets只接受char型態 
+	char change[101];						 //因gets只接受char型態 
 	ptr = (struct node*)malloc(sizeof(struct node)); 
 	fgets(change, sizeof(change),stdin);			 //stdin為標準輸入 
 	ptr->data = atoi(change);				 //atoi()是將字串轉成int型態 
@@ -75,7 +75,7 @@ void free_list()
 
 void del()
 {
-	char del_data[20];
+	char del_data[101];
 	printf("刪除資料\n");
 	fgets(del_data,sizeof(del_data),stdin);		//目標刪除的資料
 
@@ -83,16 +83,39 @@ void del()
 	//2.目標資料在尾
 	//3.目標資料在中間
 	
-	current=head;					//重頭開始
-	printf("head資料%d",head->data);
-	if(head == del_data)				//目標在頭
+	prev=head;					//重頭開始
+	current = prev->next;
+	if(strcmp(del_data,current->data) == 0)		//strcmp為兩字串相符回傳0
 	{
-	  ptr = head;					//要刪除之目標
-	  head = current->next;				//下一個為head
-	  free(ptr);					//刪除目標
-	  current = head->next;				//移動current
+		prev->next = current->next;		//前一個指向刪除資料的下一個
+		free(ptr);
+		printf("已刪除資料%d\n",del_data);
 	}
-} 
+	else
+		printf("找不到資料\n");	
+
+}
+
+int save()
+{
+	FILE *fp;
+	prev = head;
+	current = prev->next;
+	fp = fopen("FileName.txt","w+");			//開啟要讀文件,w+為建新空白文件,讀取和寫入
+
+	while(current != NULL)
+	{
+		fprintf(save,"%s",current->data);
+		current = current->next;
+	}
+	fclose(save);
+}
+
+int load()
+{
+	FILE *fd;
+
+}
 
 int main()
 {
@@ -106,13 +129,15 @@ int main()
 		switch(option)
 		{
 			case'1':
-				printf("輸入資料(最多只能輸入3位元)\n\n");
+				printf("輸入資料(最多只能輸入100位元)\n\n");
 				add();
+				save();
 				break;
 			case'2':
 				del();
 				break;
 			case'3':
+				load();
 				list();
 				break;
 			case'4':
