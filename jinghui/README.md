@@ -11,3 +11,5 @@
   * 修改pointer_queue的刪除功能
 * 3/8
   * 修改pointer_queue部分bug
+* 3/19
+  * 新增load功能,修改del功能
