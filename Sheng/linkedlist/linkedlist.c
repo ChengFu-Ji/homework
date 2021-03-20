@@ -122,19 +122,32 @@ int del (Node **node, char *data) {
  */
 
 void save (Node **node, char *fname) {
-    FILE *save;
+    FILE *save, *index;
+    char *name_index;
     Node *current;
+    int len;
 
+    name_index = (char *)malloc(strlen(fname)+6);
     *(fname + strlen(fname)-1) = '\0';
     save = fopen(fname, "w");
-    current = *node;
+    
+    *(strstr(fname,".")) = '\0';
+    strcpy(name_index, fname);
+    strcat(name_index, "_index.txt");
+    index = fopen(name_index, "wb");
 
+    current = *node;
+    len = 0;
     while (current != NULL) {
         fprintf(save, "%s", current->data);
+        fwrite(&len, sizeof(int), 1, index);
+        len += strlen(current->data);
         current = current->next;
     }
 
     fclose(save);
+    fclose(index);
+    free(name_index);
 }
 
 /*  用於讀取目標檔案並將資料存入 linked list 的 function
@@ -208,9 +221,9 @@ void showList (Node **list) {
 }
 
 void showN (char *data) {
-    FILE *load;
-    int count, len, n;
-    char *charN, *cur, *fdata, *dataN;
+    FILE *load, *index;
+    int len, n, pos, seek;
+    char *dataN, *name_index;
     char *newline = "\n";
 
     charN = strstr(data, ",");
@@ -223,34 +236,37 @@ void showN (char *data) {
     *(strstr(charN, newline)) = '\0';
     n = atoi(charN);
     load = fopen(data, "r");
+    if (load == NULL) {
+        printf("can't not open the file %s\n", data);
+    }
     
-    fseek(load, 0, SEEK_END);
-    len = ftell(load);
-    fdata = (char *)malloc(len+1);
-
-    fseek(load, 0, SEEK_SET);
-    fread(fdata, len, 1, load);
-
-    cur = fdata;
-    dataN = cur;
-    count = 1;
-    while ((cur = strstr(cur, newline)) != NULL) {
-        if (count == n-1) {
-            dataN = cur+1;
-        } else if (count == n) {
-           *(cur) = '\0'; 
-           break;
-        }
-        cur++;
-        count++;
+    name_index = (char *)malloc(strlen(data)+6);
+    *(strstr(data, ".")) = '\0';
+    strcpy(name_index, data);
+    strcat(name_index, "_index.txt");
+    index = fopen(name_index, "rb");
+    if (index == NULL) {
+        printf("can't not open the file %s\n", name_index);
     }
 
-    if (cur != NULL) {
-        printf("data '%s'\n", dataN);
-    } else {
-        printf("data not find\n");
+    seek = (n-1)*sizeof(int);
+    fseek(index, seek, SEEK_SET);
+    fread(&pos, sizeof(int), 1, index);
+    fread(&len, sizeof(int), 1, index);
+    len -= pos;
+
+
+    fseek(load, pos, SEEK_SET);
+    dataN = (char *)malloc(len);
+    fread(dataN, len, 1, load);
+
+    if (dataN != NULL) {
+        printf("data %s\n", dataN);
     }
+
     
     fclose(load);
-    free(fdata);
+    fclose(index);
+    free(name_index);
+    free(dataN);
 } 
