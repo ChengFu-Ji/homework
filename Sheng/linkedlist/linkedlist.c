@@ -133,7 +133,7 @@ void save (Node **node, char *fname) {
     
     *(strstr(fname,".")) = '\0';
     strcpy(name_index, fname);
-    strcat(name_index, "_index.txt");
+    strcat(name_index, "_index.bin");
     index = fopen(name_index, "wb");
 
     current = *node;
@@ -144,6 +144,7 @@ void save (Node **node, char *fname) {
         len += strlen(current->data);
         current = current->next;
     }
+    fwrite(&len, sizeof(int), 1, index);
 
     fclose(save);
     fclose(index);
@@ -220,53 +221,61 @@ void showList (Node **list) {
     }
 }
 
-void showN (char *data) {
+void showN (char *input) {
     FILE *load, *index;
     int len, n, pos, seek;
-    char *dataN, *name_index;
+    char *number, *data, *name_index;
     char *newline = "\n";
 
-    charN = strstr(data, ",");
-    if (charN == NULL) {
+    number = strstr(input, ",");
+    if (number == NULL) {
         printf("Error Type input!!\n");
         return;
     }
 
-    *(charN++) = '\0';
-    *(strstr(charN, newline)) = '\0';
-    n = atoi(charN);
-    load = fopen(data, "r");
+    *(number++) = '\0';
+    *(strstr(number, newline)) = '\0';
+    n = atoi(number);
+    if (n <= 0) {
+        printf("list out of range\n");
+        return;
+    }
+    load = fopen(input, "r");
     if (load == NULL) {
-        printf("can't not open the file %s\n", data);
+        printf("can't not open the file %s\n", input);
+        return;
     }
     
-    name_index = (char *)malloc(strlen(data)+6);
-    *(strstr(data, ".")) = '\0';
-    strcpy(name_index, data);
-    strcat(name_index, "_index.txt");
+    name_index = (char *)malloc(strlen(input)+6);
+    *(strstr(input, ".")) = '\0';
+    strcpy(name_index, input);
+    strcat(name_index, "_index.bin");
     index = fopen(name_index, "rb");
     if (index == NULL) {
         printf("can't not open the file %s\n", name_index);
+        return;
     }
 
     seek = (n-1)*sizeof(int);
     fseek(index, seek, SEEK_SET);
     fread(&pos, sizeof(int), 1, index);
     fread(&len, sizeof(int), 1, index);
+    if (pos < 0 || len < 0) {
+        printf("list out of range\n");
+        return;
+    }
     len -= pos;
 
-
     fseek(load, pos, SEEK_SET);
-    dataN = (char *)malloc(len);
-    fread(dataN, len, 1, load);
+    data = (char *)malloc(len);
+    fread(data, len, 1, load);
 
-    if (dataN != NULL) {
-        printf("data %s\n", dataN);
+    if (data != NULL) {
+        printf("data %s\n", data);
     }
 
-    
     fclose(load);
     fclose(index);
     free(name_index);
-    free(dataN);
+    free(data);
 } 
