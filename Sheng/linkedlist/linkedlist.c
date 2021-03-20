@@ -15,7 +15,7 @@ int del (Node **node, char *data);
 int load (Node **node, char *fname);
 void save (Node **node, char *fname);
 void showList (Node **list);
-void showN (char *data);
+void showN (char *input);
 
 int main (void) {
     Node **first;
