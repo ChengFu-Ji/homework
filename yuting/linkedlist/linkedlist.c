@@ -168,19 +168,14 @@ void save(Node *current , char *fname){
 Node *load(Node *node, char *fname){
 
 	FILE *fp;
-
 	char *data_read ;
-
 	char *data_write;
-	
 	Node *current_node = node;
 	
-
         if(*(fname + strlen(fname) -1) == '\n'){
 		 *(fname + strlen(fname) -1) = '\0';
 	 }
 	printf("f %s\n", fname);
-
 	
 	fp = fopen(fname , "r");
 
@@ -188,27 +183,19 @@ Node *load(Node *node, char *fname){
 		printf("err!\n");
 	}
 
-
 	data_read = (char *)malloc(sizeof(101));
-
-	char *read = data_read;
-	
+	char *read = data_read;	
 	data_write =(char *)malloc(sizeof(101));
-
 
 	if(fp == NULL){
 		printf("no file.\n");
 	}
-	
 	else{
-		while(1){
-			
+		while(1){		
 			*(read + strlen(read) -1 ) = '\0';
 
 			if(fgets(data_read , sizeof(101) , fp)!=NULL){					
-
 				current_node = add(current_node , read);
-
 			}
 			else{
 				break;
@@ -217,9 +204,7 @@ Node *load(Node *node, char *fname){
 		fclose(fp);
 
 	}
-
 	return current_node;
-
 }
 
 
