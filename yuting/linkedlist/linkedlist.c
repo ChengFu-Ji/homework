@@ -187,19 +187,12 @@ Node *load(Node *node, char *fname){
 	if (fp == NULL) {
 		printf("err!\n");
 	}
-
-//	fseek(fp, 0, SEEK_END);
-
-//	int len = ftell(fp);
+	
 
 	data_read = (char *)malloc(sizeof(101));
 	
 	data_write =(char *)malloc(sizeof(101));
 
-//	fseek(fp, 0, SEEK_SET);
-
-//	fread(data_read,len,1,fp);
-//	printf("%s",data_read);
 
 	if(fp == NULL){
 		printf("no file.\n");
