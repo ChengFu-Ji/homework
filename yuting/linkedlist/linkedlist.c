@@ -47,11 +47,10 @@ int main(){
 		}
 		else if(!strncmp(cmd ,"del," ,4)){
 			if(!del(one ,cmd+4)){
-				one = del(one ,cmd+4);
+			one = del(one ,cmd+4);
 			}
 			printf("Command done!\n");
 		}
-
 		else if(!strncmp(cmd , "save," ,5)){
 	
 			save(one ,cmd+5);	
@@ -70,13 +69,12 @@ int main(){
 		}
 		else{
 			printf("error");
-		}
-  	}   
+		}		 
 	
-	return 0;
-	
-	
+	}	
+	return 0;	
 }
+
 
 void show(Node *one){
 	Node *current;
@@ -170,9 +168,13 @@ void save(Node *current , char *fname){
 Node *load(Node *node, char *fname){
 
 	FILE *fp;
+
 	char *data_read ;
 
+	char *data_write;
+	
 	Node *current_node = node;
+	
 
         if(*(fname + strlen(fname) -1) == '\n'){
 		 *(fname + strlen(fname) -1) = '\0';
@@ -184,32 +186,40 @@ Node *load(Node *node, char *fname){
 
 	if (fp == NULL) {
 		printf("err!\n");
-		return node;
 	}
 
-	fseek(fp, 0, SEEK_END);
+//	fseek(fp, 0, SEEK_END);
 
-	int len = ftell(fp);
-	data_read = (char *)malloc(len+1);
+//	int len = ftell(fp);
 
-	fseek(fp, 0, SEEK_SET);
-	fread(data_read,len,1,fp);
+	data_read = (char *)malloc(sizeof(101));
+	
+	data_write =(char *)malloc(sizeof(101));
+
+//	fseek(fp, 0, SEEK_SET);
+
+//	fread(data_read,len,1,fp);
+//	printf("%s",data_read);
 
 	if(fp == NULL){
 		printf("no file.\n");
 	}
-	else{	
-
-		//尚未將收到的資料分成不同的節點
-		
 	
-		current_node = add(current_node , data_read);	
-		
-		
+	else{
+		while(1){
+			if(fgets(data_read , sizeof(101) , fp)!=NULL){
+				current_node = add(current_node , data_read);
+
+			}
+			else{
+				break;
+			}
+		}
 		fclose(fp);
+
 	}
 
-	return current_node;	
+	return current_node;
 
 }
 
