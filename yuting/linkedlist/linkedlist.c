@@ -15,7 +15,7 @@ Node *del(Node *first , char *data);
 Node *load(Node *node , char *fname);
 void save(Node *save , char *fname);
 void show(Node *one);
-
+void showN(char *shown);
 
 int main(){
 
@@ -187,9 +187,11 @@ Node *load(Node *node, char *fname){
 	if (fp == NULL) {
 		printf("err!\n");
 	}
-	
+
 
 	data_read = (char *)malloc(sizeof(101));
+
+	char *read = data_read;
 	
 	data_write =(char *)malloc(sizeof(101));
 
@@ -200,8 +202,12 @@ Node *load(Node *node, char *fname){
 	
 	else{
 		while(1){
-			if(fgets(data_read , sizeof(101) , fp)!=NULL){
-				current_node = add(current_node , data_read);
+			
+			*(read + strlen(read) -1 ) = '\0';
+
+			if(fgets(data_read , sizeof(101) , fp)!=NULL){					
+
+				current_node = add(current_node , read);
 
 			}
 			else{
@@ -215,4 +221,5 @@ Node *load(Node *node, char *fname){
 	return current_node;
 
 }
+
 
