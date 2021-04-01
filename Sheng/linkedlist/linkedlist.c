@@ -131,7 +131,9 @@ void save (Node **node, char *fname) {
     *(fname + strlen(fname)-1) = '\0';
     save = fopen(fname, "w");
     
-    *(strstr(fname,".")) = '\0';
+    if (strstr(fname,".") != NULL) {
+        *(strstr(fname,".")) = '\0';
+    }
     strcpy(name_index, fname);
     strcat(name_index, "_index.bin");
     index = fopen(name_index, "wb");
@@ -243,16 +245,24 @@ void showN (char *input) {
     load = fopen(input, "r");
     if (load == NULL) {
         printf("can't not open the file %s\n", input);
+
+        fclose(load);
         return;
     }
     
     name_index = (char *)malloc(strlen(input)+6);
-    *(strstr(input, ".")) = '\0';
+    if (strstr(input, ".") != NULL) {
+        *(strstr(input, ".")) = '\0';
+    }
     strcpy(name_index, input);
     strcat(name_index, "_index.bin");
     index = fopen(name_index, "rb");
     if (index == NULL) {
         printf("can't not open the file %s\n", name_index);
+
+        fclose(load);
+        fclose(index);
+        free(name_index);
         return;
     }
 
@@ -262,16 +272,20 @@ void showN (char *input) {
     fread(&len, sizeof(int), 1, index);
     if (pos < 0 || len < 0) {
         printf("list out of range\n");
+
+        fclose(load);
+        fclose(index);
+        free(name_index);
         return;
     }
     len -= pos;
 
     fseek(load, pos, SEEK_SET);
     data = (char *)malloc(len);
-    fread(data, len, 1, load);
-
-    if (data != NULL) {
+    if(fread(data, len, 1, load)) {
         printf("data %s\n", data);
+    } else {
+        printf("data not find!!\n");
     }
 
     fclose(load);
