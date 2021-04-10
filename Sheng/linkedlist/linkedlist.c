@@ -223,6 +223,9 @@ void showList (Node **list) {
     }
 }
 
+/* 用於顯示檔案中第 N 筆資料的 function
+*/
+
 void showN (char *input) {
     FILE *load, *index;
     int len, n, pos, seek;
