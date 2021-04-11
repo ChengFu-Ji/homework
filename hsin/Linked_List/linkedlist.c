@@ -110,6 +110,30 @@ struct node *del(struct node *first, char *data)
     return first_in_del;
 }
 
+struct node *cleanlist(struct node *first)
+{ 
+    struct node *first_in_clean = first;
+    struct node *current_in_clean = NULL; 
+
+    if( first_in_clean == NULL)
+    {
+        printf("not thing to clear\n");
+    }
+    else if( first_in_clean != NULL)
+    {
+        current_in_clean = first_in_clean;
+        
+        while( current_in_clean != NULL)
+        { 
+            current_in_clean = current_in_clean -> next;
+            free( first_in_clean );
+            first_in_clean = current_in_clean;
+        }
+        printf("mission complete.\n");
+    }
+    return first_in_clean;
+}
+
 void showlist(struct node *first)
 {
     struct node *current_in_showlist;
@@ -191,7 +215,6 @@ struct node *load(char *file, struct node *data)
         fclose(file_load);
         printf("load file complete.\n");
     }
-
     return data; 
 }
 
@@ -221,7 +244,6 @@ void show_n_line(char *filename, int n_line)
     }
     else
     { 
-
         if(file_index != NULL)                      //方法一，有index檔案時則使用index檔案的紀錄直接位移指標取值。
         {
             fseek(file_index, -1, SEEK_END);
@@ -275,8 +297,6 @@ void show_n_line(char *filename, int n_line)
     }
 }
 
-
-
 int main(){
     
     const char comma[2]=",";
@@ -316,6 +336,10 @@ int main(){
         else if(strncmp( input_data_buffer, "del,", 4) == 0)
         {  
             first = del(first, input_data);
+        }
+        else if(strncmp( input_data_buffer, "cleanlist", 5) ==0)
+        {
+            first = cleanlist(first);
         }
         else if(strncmp( input_data_buffer, "save,", 5) == 0)
         {
