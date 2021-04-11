@@ -11,3 +11,5 @@
 #3/8   add save and load features.
 
 #3/22  add show_n_line function.
+
+#4/11  add cleanlist function.
