@@ -34,3 +34,20 @@ struct:https://programming.im.ncnu.edu.tw/Chapter13.htm
 方法二:
 每筆資料為\n 表示結束,
 藉此從頭開始計算並記數至指定筆數。
+
+--------
+### 以下是各功能示範
+#### add data
+![image](https://github.com/ChengFu-Ji/homework/blob/master/hsin/Linked_List/linkedlist_add.png)
+
+#### delete data
+![image](https://github.com/ChengFu-Ji/homework/blob/master/hsin/Linked_List/linkedlist_del.png)
+
+#### loadfile
+![image](https://github.com/ChengFu-Ji/homework/blob/master/hsin/Linked_List/linkedlist_load.png)
+
+#### show n line
+![image](https://github.com/ChengFu-Ji/homework/blob/master/hsin/Linked_List/linkedlist_show_n_line.png)
+
+#### cleanlist 
+![image](https://github.com/ChengFu-Ji/homework/blob/master/hsin/Linked_List/linkedlist_cleanlist.png)
