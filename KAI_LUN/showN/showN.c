@@ -27,6 +27,7 @@ int main(int argv , char * argc[])
 	}
 	
 	printf("Input the file name : \n");
+
 	//輸入檔案名稱
 	scanf("%s",input_file_name);	
 	for(int i = 1 ; i < argv ; i++)
@@ -55,7 +56,6 @@ int main(int argv , char * argc[])
 	seek_temp += (n-1);
 	printf("Current Seek = %d\n", seek_temp);	
 	
-	
 	//指定要讀的檔案
 	fp1 = fopen(argc[which_file],"r+");
 	fseek(fp1,seek_temp,SEEK_SET);
@@ -78,7 +78,6 @@ int data_n(FILE *fp,char *file_name)
 		
 	data_temp = (char *)malloc(file_size+1);
 	fseek(fp,0,SEEK_SET);
-	
 	
 	while(1)
 	{
