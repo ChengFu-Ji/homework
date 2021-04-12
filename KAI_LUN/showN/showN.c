@@ -9,7 +9,7 @@ int main(int argv , char * argc[])
 {
 	
 	FILE *fp1;	
-	int n , seek_temp = 0;
+	int n , seek_temp = 0 , file_check_count = 0;
 	char *data , *input_file_name;
 	int *test_len[argv-1] , which_file;
 	
@@ -27,9 +27,8 @@ int main(int argv , char * argc[])
 	}
 	
 	printf("Input the file name : \n");
-
 	//輸入檔案名稱
-	scanf("%s",input_file_name);	
+	scanf("%[^\n]",input_file_name);	
 	for(int i = 1 ; i < argv ; i++)
 	{
 		if(strcmp(input_file_name , argc[i]) == 0)	
@@ -38,9 +37,16 @@ int main(int argv , char * argc[])
 		}	
 		else
 		{
-			continue;	
+			file_check_count++;	
 		}
 	}	
+	if(file_check_count == (argv-1) || *input_file_name == '\n' )
+	{
+		printf("=============================================\n");
+		printf("The file entered by the user does not exist\n");
+		printf("=============================================\n");
+		return 1;	
+	}
 	
 	printf("Need n with %s : ",argc[which_file]);
 	
@@ -48,13 +54,34 @@ int main(int argv , char * argc[])
 	scanf("%d",&n);
 	fflush(stdin);	
 	
+	if(n < 0 || n > data_n(fp1,argc[which_file]))	
+	{
+		printf("==========================\n");
+		printf("User input n out of range\n");	
+		printf("==========================\n");
+		return 1;
+	}
+
 	//移多少位置	
 	for(int i = 0 ; i < n-1 ; i++)
 	{
 		seek_temp += *(test_len[which_file-1] + i);	
 	}
+	
 	seek_temp += (n-1);
-	printf("Current Seek = %d\n", seek_temp);	
+	
+	if(seek_temp < 0)
+	{
+		printf("==================\n");
+		printf("n is not a number\n");	
+		printf("==================\n");
+		return 1;	
+	}
+	else
+	{
+			
+		printf("Current Seek = %d\n", seek_temp);	
+	}
 	
 	//指定要讀的檔案
 	fp1 = fopen(argc[which_file],"r+");
@@ -78,6 +105,7 @@ int data_n(FILE *fp,char *file_name)
 		
 	data_temp = (char *)malloc(file_size+1);
 	fseek(fp,0,SEEK_SET);
+	
 	
 	while(1)
 	{
