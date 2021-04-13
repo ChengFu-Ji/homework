@@ -228,7 +228,7 @@ void showList (Node **list) {
 
 void showN (char *input) {
     FILE *load, *index;
-    int len, n, pos, seek;
+    int len, n, pos, seek, fileLen;
     char *number, *data, *name_index;
     char *newline = "\n";
 
@@ -270,17 +270,19 @@ void showN (char *input) {
     }
 
     seek = (n-1)*sizeof(int);
-    fseek(index, seek, SEEK_SET);
-    fread(&pos, sizeof(int), 1, index);
-    fread(&len, sizeof(int), 1, index);
-    if (pos < 0 || len < 0) {
-        printf("list out of range\n");
+    fseek(index, 0, SEEK_END);
+    fileLen = ftell(index);
+    if (fileLen < seek) {
+        printf("list out of range!\n");
 
         fclose(load);
         fclose(index);
         free(name_index);
         return;
     }
+    fseek(index, seek, SEEK_SET);
+    fread(&pos, sizeof(int), 1, index);
+    fread(&len, sizeof(int), 1, index);
     len -= pos;
 
     fseek(load, pos, SEEK_SET);
