@@ -27,7 +27,8 @@ void add(char *str)
 	else
 		head = ptr;
 }
-void list()
+
+int list()
 {
 	printf("\nShow List\n");
 	if(head != NULL)
@@ -41,12 +42,11 @@ void list()
 	}
 	else
 		printf("error\n");
-	
 }
 
 void del(char *str)
 {
-	printf("Del_Data\n\n");
+	printf("\nDel_Data\n");
 	prev = current = head;
 	while(current != NULL)
 	{
@@ -56,7 +56,7 @@ void del(char *str)
 			target = current;
 			prev->next = current->next;
 			printf("del: %s\n",target->data);
-			printf("prev_data: %s\n",prev->data);
+			//printf("prev_data: %s\n",prev->data);
 			free(target);
 		}
 		prev = current;
@@ -64,6 +64,19 @@ void del(char *str)
 	}
 	
 }
+
+
+void test()
+{
+	add("a");
+	add("b");
+	add("c");
+	add("d");
+	add("e");
+	add("f");
+	list();
+	del("d");
+}	list();
 
 void save()
 {
@@ -73,7 +86,7 @@ void save()
 
 	while(current != NULL)
 	{
-		fprintf(fp,"%s",current->data);
+		fprintf(fp,"Data = %s\n",current->data);
 		current = current->next;
 	}
 	fclose(fp);
@@ -84,21 +97,27 @@ void load()
 	FILE *fp;
 	if((fp = fopen("FileName.txt","r")) == NULL)
 	{
-		printf("first data");
+		printf("Not Find File\n\n");
+		test();
 	}
+	else
+		printf("Open File\n");
+	fclose(fp);
+
 }
 		
 int main()
 {
-	add("a");
-	add("b");
-	add("c");
-	add("d");
-	add("e");
-	add("f");
-	list();
-	del("d");
-	list();
+	load();
+	//add("a");
+	//add("b");
+	//add("c");
+	//add("d");
+	//add("e");
+	//add("f");
+	//list();
+	//del("d");
+	//list();
 	save();
 	return 0;
 }
