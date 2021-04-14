@@ -8,8 +8,7 @@ struct node
 	struct node *next;
 };
 
-struct node *head,*current,*prev,*ptr;
-
+struct node *head,*current,*prev,*ptr,*target;
 void add(char *str)
 {
 	ptr = (struct node*) malloc(sizeof(struct node));
@@ -41,14 +40,35 @@ void list()
 	  }
 	}
 	else
-		printf("err\n");
+		printf("error\n");
+	
+}
+
+void del(char *str)
+{
+	printf("Del_Data\n\n");
+	prev = current = head;
+	while(current != NULL)
+	{
+		
+		if(strcmp(str,current->data) == 0)
+		{
+			target = current;
+			prev->next = current->next;
+			printf("del: %s\n",target->data);
+			printf("prev_data: %s\n",prev->data);
+			free(target);
+		}
+		prev = current;
+		current = current->next;
+	}
 	
 }
 
 void save()
 {
 	FILE *fp;
-	current = head->next;
+	current = head;
 	fp = fopen("FileName.txt","w+");
 
 	while(current != NULL)
@@ -65,7 +85,6 @@ void load()
 	if((fp = fopen("FileName.txt","r")) == NULL)
 	{
 		printf("first data");
-		add("a");
 	}
 }
 		
@@ -74,8 +93,11 @@ int main()
 	add("a");
 	add("b");
 	add("c");
+	add("d");
 	add("e");
 	add("f");
+	list();
+	del("d");
 	list();
 	save();
 	return 0;
