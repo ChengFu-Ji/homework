@@ -176,17 +176,20 @@ void save(char *file, struct node *data)
     {
         fwrite(&lencount, 1, sizeof(int), file_index);
         lencount = lencount + strlen(save_data -> data);
-        //fprintf(file_index, "%c", '\n');
+        //fprintf(file_index, "%c", '\n');           //fprintf 以字元方式寫入檔案
         //fprintf(file_index, "%d ", lencount);
-        fprintf(file_save, "%s", save_data -> data);         
+        fprintf(file_save, "%s", save_data -> data);    
         save_data = save_data -> next;
         count++;
     }
+
     fwrite(&count, 1, sizeof(int), file_index);
     //fprintf(file_index, "%d", count);
     printf("count:%d\n",count);
+
     fclose(file_save);
     fclose(file_index);
+
 }
 
 struct node *load(char *file, struct node *data)
@@ -219,10 +222,9 @@ void show_n_line(char *filename, int n_line)
     FILE *file_load; 
     FILE *file_index;
 
-    char file_data_buffer[101];
-
     int len = strlen(filename) + 8;
     char file_index_name[len];
+
     strcpy(file_index_name,".index_");
     strcat(file_index_name, filename);
 
@@ -230,14 +232,6 @@ void show_n_line(char *filename, int n_line)
     file_index = fopen(file_index_name, "rb");
 
     int count_rows = 1;
-    int *count_max;
-    count_max = (int *)malloc(sizeof(int));
-    int n_line_next = n_line + 1;
-    //char max_tmp[2];
-    int *count_rown;
-    count_rown = (int *)malloc(sizeof(int)); 
-    int *count_rown_next;
-    count_rown_next = (int *)malloc(sizeof(int));
 
     if( file_load == NULL)
     {
@@ -248,9 +242,18 @@ void show_n_line(char *filename, int n_line)
         if(file_index != NULL)                      //方法一，有index檔案時則使用index檔案的紀錄直接位移指標取值。
         {
             fseek(file_index, (-1)*sizeof(int), SEEK_END);
+
+            int *count_max;
+            count_max = (int *)malloc(sizeof(int));
+
+            int *count_rown;
+            count_rown = (int *)malloc(sizeof(int)); 
+
+            int *count_rown_next;
+            count_rown_next = (int *)malloc(sizeof(int));
+
             //fgets(max_tmp, 2, file_index);        
             fread(count_max, sizeof(int), 1, file_index);        
-            //count_max = atoi(max_tmp);
 
             if( *count_max == 0)
             {
@@ -276,8 +279,13 @@ void show_n_line(char *filename, int n_line)
                     fread(count_rown, sizeof(int), 1, file_index);
                     
                     fseek(file_load, *count_rown, SEEK_SET); 
+
+                    char file_data_buffer[file_max_len - *count_rown + 1];
+
                     fread(file_data_buffer, file_max_len - *count_rown, 1, file_load);
                     file_data_buffer[ file_max_len - *count_rown] = '\0';
+
+                    printf("%s",file_data_buffer);
                 }
                 else
                 { 
@@ -291,11 +299,15 @@ void show_n_line(char *filename, int n_line)
 
                     fseek(file_load, *count_rown, SEEK_SET); 
                     //fgets(file_data_buffer, 101, file_load); 
+                    
+                    char file_data_buffer[*count_rown_next - *count_rown + 1];
+
                     fread(file_data_buffer, *count_rown_next - *count_rown, 1, file_load);
                     file_data_buffer[*count_rown_next - *count_rown] = '\0';
+
+                    printf("%s",file_data_buffer);
                 }
 
-                printf("%s",file_data_buffer);
             }
             else
             {
@@ -309,7 +321,10 @@ void show_n_line(char *filename, int n_line)
         }
         else
         {
+            char file_data_buffer[101];
+
             printf("no search index file but we can search file data too!\n");
+
             while(count_rows <= n_line && fgets(file_data_buffer, 101, file_load) != NULL)      //方法二(原方法)，一個一個累加取得資料。
             {
                 count_rows ++;
@@ -376,16 +391,23 @@ int main(){
         else if(strncmp( input_data_buffer, "save,", 5) == 0)
         {
             *(strstr(input_data, "\n")) = '\0';
-            save(input_data, first); 
 
-            printf("save file complete.\n");
+            if( strlen(input_data) != 0)
+            {
+                save(input_data, first); 
+                printf("save file complete.\n");
+            }
+            else
+            {
+                printf("save file error.\n");
+            }
         }    
         else if(strncmp( input_data_buffer, "load,", 5) == 0)
         {
             *(strstr(input_data, "\n"))='\0';
             first=load(input_data, first);
         }
-       else if(strncmp( input_data_buffer, "show,", 5) == 0)
+        else if(strncmp( input_data_buffer, "show,", 5) == 0)
         {
             int number;
             char *buffer_of_data;
@@ -393,10 +415,17 @@ int main(){
             int count_comma = 0;
                  
             *(strstr(input_data, "\n"))='\0';
+            
             buffer_of_data = strtok(input_data, comma);
 
             while( count_comma != 2)
             {
+                if(buffer_of_data == NULL)
+                {
+                    printf("input error\n");
+                    break;
+                }
+
                 count_comma ++;
 
                 if(count_comma == 1)
@@ -406,11 +435,12 @@ int main(){
                 else if(count_comma == 2)
                 {
                     number = atoi(buffer_of_data);
+                    show_n_line(filename, number);
                 }
+                else if( filename == NULL)break;
 
                 buffer_of_data = strtok(NULL,comma);
             }
-            show_n_line(filename, number);
         }
         else
         {
