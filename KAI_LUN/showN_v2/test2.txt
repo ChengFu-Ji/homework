@@ -1,0 +1,7 @@
+file_2_data
+apple
+banana
+suger
+battle
+skr
+hello_world
