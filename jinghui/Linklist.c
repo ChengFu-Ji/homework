@@ -66,7 +66,7 @@ void del(char *str)
 }
 
 
-void test()
+void Link()
 {
 	add("a");
 	add("b");
@@ -76,7 +76,8 @@ void test()
 	add("f");
 	list();
 	del("d");
-}	list();
+	list();
+}
 
 void save()
 {
@@ -95,29 +96,22 @@ void save()
 void load()
 {
 	FILE *fp;
-	if((fp = fopen("FileName.txt","r")) == NULL)
+	fp = fopen("FileName.txt","r");
+	if(fp == NULL)
 	{
 		printf("Not Find File\n\n");
-		test();
+		Link();
 	}
 	else
-		printf("Open File\n");
-	fclose(fp);
+	{	printf("Open File\n");
+		fclose(fp);
+	}
 
 }
 		
 int main()
 {
 	load();
-	//add("a");
-	//add("b");
-	//add("c");
-	//add("d");
-	//add("e");
-	//add("f");
-	//list();
-	//del("d");
-	//list();
 	save();
 	return 0;
 }
