@@ -7,6 +7,7 @@
 4. save 功能
 5. showlist 功能
 6. commandinput 功能
+7. showN 功能
 
 ### 程式執行截圖 ###
 
