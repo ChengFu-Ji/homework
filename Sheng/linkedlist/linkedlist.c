@@ -16,8 +16,9 @@ int load (Node **node, char *fname);
 void save (Node **node, char *fname);
 void showList (Node **list);
 void showN (char *input);
+void cleanList (Node **list);
 
-int main (void) {
+int main () {
     Node **first;
     Node *current, *next;
     char *cmd;
@@ -28,7 +29,7 @@ int main (void) {
     
     printf("Welcome to linked list service!\n");
     printf("\nThe command format is <CMD,data>.\n"); 
-    printf("commands have <add> ,<del>, <save>, <load>, <showlist>, <show>!\n");
+    printf("commands have <add> ,<del>, <save>, <load>, <showlist>, <show>, <clear>!\n");
     printf("ex. 'add,data' , 'save,filename' , 'showlist' , 'show,filename,number'.\n");
     printf("\nEnter 'exit' to Exit!\n");
     
@@ -57,17 +58,14 @@ int main (void) {
             showList(first);
         } else if (!strncmp(cmd, "show,", 5)) {
             showN(cmd+5);
+        } else if (!strncmp(cmd, "clear", 5)) {
+            cleanList(first);
         } else {
             printf("error input!!Try again!~\n");
         }
     }
 
-    current = *first;
-    while (current != NULL) {
-        next = current->next;
-        free(current);
-        current = next;
-    }
+    cleanList(first);
     
     free(first);
     return 0;
@@ -91,31 +89,24 @@ void add (Node **node, char *data) {
  */
 
 int del (Node **node, char *data) {
-    Node *previous = NULL;
-    Node *current, *next;
+    Node *current, *previous;
     
-
     current = *node;
-    while (current != NULL && strcmp(current->data, data)) {
+    while (current != NULL ) {
+        if (strcmp(current->data, data) == 0) {
+            if(current == *node)
+                *node = current->next;
+            else
+                previous->next = current->next;
+
+            free(current);
+            return 0;
+        }
         previous = current;
         current = current->next;
-    }
-
-    if (current != NULL) {
-        next = current->next;
-        free(current);
-        
-        if ( previous != NULL) {
-            previous->next = next;
-        } else {
-            *node = next;
-        }
-    } else {
-        printf("didn't find the data '%s'\n", data);
-        return 1;
-    }
-
-    return 0;
+    } 
+    printf("didn't find the data '%s'\n", data);
+    return 1;
 }
 
 /*  將目前 linked list 的資料存入檔案的 function
@@ -157,55 +148,50 @@ void save (Node **node, char *fname) {
  */
 
 int load (Node **node, char *fname) {
-    FILE *load;
-    Node *templist, *next;
-    char *data, *current, *temp;
-    int len, i, lenstr;
+    FILE *load, *index;
+    char *temp, *name_index;
+    int len, i, cur, next;
 
+    name_index = (char *)malloc(strlen(fname)+6);
     *(fname + strlen(fname)-1) = '\0';
-    load = fopen(fname, "r");
-
-    if (load == NULL) {
+    if ((load = fopen(fname, "r")) == NULL) {
         printf("file does not find!\n");
         return 1;
     }
 
-    temp = (char *)malloc(100);
-    templist = NULL;
-    lenstr = 0;
+    if (strstr(fname,".") != NULL) {
+        *(strstr(fname,".")) = '\0';
+    }
+    strcpy(name_index, fname);
+    strcat(name_index, "_index.bin");
+    index = fopen(name_index, "rb");
+
     i = 0;
     
-    fseek(load, 0, SEEK_END);
-    len = ftell(load);
-    data = (char *)malloc(len+1);
+    fseek(index, 0, SEEK_END);
+    len = ftell(index)/4;
+    printf("len %d\n", len);
+    fseek(index, 0, SEEK_SET);
 
-    fseek(load, 0, SEEK_SET);
-    fread(data, len, 1, load);
+    fread(&cur, sizeof(int), 1, index);
+    while (len >= i+1) {
+        fread(&next, sizeof(int), 1, index);
+        if (cur == next) break;
+        printf("i %d, len %d, next %d, cur %d\n", i, next-cur, next, cur);
+        temp = (char *)malloc(next-cur+1);
+        fread(temp, next-cur, 1, load);
 
-    current = data;
-    while (len-i) {
-        if (*(current+i) == '\n') {
-            *(current+i) = '\0';
-
-            strcpy(temp, current+lenstr);
-            strcat(temp, "\n");
-            
-            add(&templist, temp);
-            lenstr = i+1;
-        }
+        *(temp+next-cur+1) = '\0';
+        add(node, temp);
+        
+        cur = next;
         i++;
-    }
-
-    while (templist != NULL) {
-        add(node, templist->data);
-        next = templist->next; 
-        free(templist);
-        templist = next;
+        free(temp);
     }
 
     fclose(load);
-    free(data);
-    free(temp);
+    fclose(index);
+    free(name_index);
 
     return 0;
 }
@@ -223,6 +209,18 @@ void showList (Node **list) {
     }
 }
 
+void cleanList (Node **list) {
+    Node *current, *next;
+
+    current = *list;
+    while (current != NULL) {
+        next = current->next;
+        free(current);
+        current = next;
+    }
+    *list = NULL;
+}
+
 /* 用於顯示檔案中第 N 筆資料的 function
 */
 
@@ -232,8 +230,7 @@ void showN (char *input) {
     char *number, *data, *name_index;
     char *newline = "\n";
 
-    number = strstr(input, ",");
-    if (number == NULL) {
+    if ((number = strstr(input, ",")) == NULL) {
         printf("Error Type input!!\n");
         return;
     }
@@ -245,11 +242,9 @@ void showN (char *input) {
         printf("list out of range\n");
         return;
     }
-    load = fopen(input, "r");
-    if (load == NULL) {
+    if ((load = fopen(input, "r")) == NULL) {
         printf("can't not open the file %s\n", input);
 
-        fclose(load);
         return;
     }
     
@@ -259,12 +254,10 @@ void showN (char *input) {
     }
     strcpy(name_index, input);
     strcat(name_index, "_index.bin");
-    index = fopen(name_index, "rb");
-    if (index == NULL) {
+    if ((index = fopen(name_index, "rb")) == NULL) {
         printf("can't not open the file %s\n", name_index);
 
         fclose(load);
-        fclose(index);
         free(name_index);
         return;
     }
