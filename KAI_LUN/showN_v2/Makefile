@@ -10,4 +10,4 @@ showN.o:showN.c
 .PHYON:clean
 
 clean:showN.o
-	rm showN.o
+	rm showN.o 
