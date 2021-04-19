@@ -3,7 +3,7 @@
 #include<string.h>
 
 void file_n_len(FILE *target_file , char *file_name);
-void seek_stack(int *respond , int n , int *data_len);
+void seek_stack(int *respond , int n , int *data_len); 
 
 int main()
 {
