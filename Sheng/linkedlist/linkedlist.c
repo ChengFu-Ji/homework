@@ -46,10 +46,14 @@ int main () {
         } else if (!strncmp(cmd, "load,", 5)) {
             if (!load(first, cmd+5)) {
                 printf("Command done!\n");
+            } else {
+                printf("file not found!\n");
             }
         } else if (!strncmp(cmd, "del,", 4)) {
             if (!del(first, cmd+4)) {
                 printf("Command done!\n");
+            } else {
+                printf("didn't find the data '%s'\n", data);
             }
         } else if (!strncmp(cmd, "add,", 4)) {
             add(first, cmd+4);
@@ -105,7 +109,6 @@ int del (Node **node, char *data) {
         previous = current;
         current = current->next;
     } 
-    printf("didn't find the data '%s'\n", data);
     return 1;
 }
 
@@ -150,43 +153,44 @@ void save (Node **node, char *fname) {
 int load (Node **node, char *fname) {
     FILE *load, *index;
     char *temp, *name_index;
-    int len, i, cur, next;
+    int len, i, cur, prev, total;
 
-    name_index = (char *)malloc(strlen(fname)+6);
     *(fname + strlen(fname)-1) = '\0';
     if ((load = fopen(fname, "r")) == NULL) {
-        printf("file does not find!\n");
         return 1;
     }
 
+    name_index = (char *)malloc(strlen(fname)+6);
     if (strstr(fname,".") != NULL) {
         *(strstr(fname,".")) = '\0';
     }
     strcpy(name_index, fname);
     strcat(name_index, "_index.bin");
-    index = fopen(name_index, "rb");
+    if ((index = fopen(name_index, "rb")) == NULL) {
+        free(name_index);
+        fclose(load);
+        return 1;
+    }
 
     i = 0;
-    
-    fseek(index, 0, SEEK_END);
+    fseek(index, -sizeof(int), SEEK_END);
     len = ftell(index)/4;
-    printf("len %d\n", len);
-    fseek(index, 0, SEEK_SET);
 
     fread(&cur, sizeof(int), 1, index);
-    while (len >= i+1) {
-        fread(&next, sizeof(int), 1, index);
-        if (cur == next) break;
-        printf("i %d, len %d, next %d, cur %d\n", i, next-cur, next, cur);
-        temp = (char *)malloc(next-cur+1);
-        fread(temp, next-cur, 1, load);
+    while (len >= i) {
+        fseek(index, -2*sizeof(int), SEEK_CUR);
+        fread(&prev, sizeof(int), 1, index);
+        temp = (char *)malloc(cur-prev+1);
 
-        *(temp+next-cur+1) = '\0';
+        fseek(load, prev, SEEK_SET);
+        fread(temp, cur-prev, 1, load);
+        *(temp+ cur-prev+1) = '\0';
         add(node, temp);
         
-        cur = next;
-        i++;
         free(temp);
+        if (prev == 0) break;
+        cur = prev;
+        i++;
     }
 
     fclose(load);
@@ -244,7 +248,6 @@ void showN (char *input) {
     }
     if ((load = fopen(input, "r")) == NULL) {
         printf("can't not open the file %s\n", input);
-
         return;
     }
     
