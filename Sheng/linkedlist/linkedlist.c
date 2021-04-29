@@ -66,6 +66,8 @@ int main() {
         } else if (!strncmp(cmd, "load,", 5)) {
             load(first, cmd+5);
             printf("Command Done\n");
+        } else if (!strncmp(cmd, "show,", 5)) {
+            showN(cmd+5);
         } else if (!strcmp(cmd, "showlist\n")) {
             showList(first);
         } else if (!strcmp(cmd, "cleanlist\n")) {
@@ -219,4 +221,52 @@ void cleanList (Node **node) {
     printf("Clean Done!\n");
 }
 
+void showN (char *input) {
+    FILE *show, *index;
+    char *index_name, *data;
+    int n, Flen, pos, nextpos, dataId;
 
+    if (strstr(input, ",") != NULL) {
+        if ((n = atoi(strstr(input, ",")+1)) != 0) {
+
+            *(strstr(input, ",")) = '\0';
+            if ((show = fopen(input, "r")) == NULL) 
+                return;
+
+            index_name = (char *)malloc(strlen(input)+4);
+            if (strstr(index_name, ".") != NULL) 
+                *(strstr(index_name, ".")) = '\0';
+            
+            strcpy(index_name, input);
+            strcat(index_name, ".idx");
+            if ((index = fopen(index_name, "rb")) == NULL)
+                return;
+
+            fseek(index, 0, SEEK_END);
+            Flen = ftell(index);
+            if (Flen/sizeof(int) > n) {
+                fseek(index, (n-1)*sizeof(int), SEEK_SET); 
+                fread(&pos, sizeof(int), 1, index);
+                fread(&nextpos, sizeof(int), 1, index);
+
+                data = (char *)malloc(nextpos-pos-sizeof(int)+1);
+                fseek(show, pos, SEEK_SET);
+                fread(&dataId, sizeof(int), 1, show);
+                fread(data, nextpos-pos-sizeof(int), 1, show);
+                *(data+strlen(data)) = '\0';
+                printf("id = %d, data = %s\n", dataId, data);
+                
+                free(data);
+            } else {
+                printf("error range!\n");
+            }
+            fclose(show);
+            fclose(index);
+            free(index_name);
+        } else {
+            printf("error range!\n");
+        }
+    } else {
+        printf("wrong input!\n");
+    }
+}
