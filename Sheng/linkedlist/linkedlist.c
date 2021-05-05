@@ -1,62 +1,53 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
-typedef struct data_s {
-    char data[100];
-    int id;
-} Data;
 typedef struct node_s {
-    Data *input;
+    char data[100];
     struct node_s *next;
 } Node;
 
-void add(Node **, Data);
+void add(Node **, char *);
 void save(Node **, char *);
 void load(Node **, char *);
 void showList(Node **);
 void cleanList(Node **);
 void showN(char *);
-int del(Node **, Data);
+int del(Node **, char *);
 
 int main() {
     Node **first;
-    Data data;
-    char *cmd, cmdspc[105];
+    char *cmd, cmdspc[105], *addon;
     int id;
 
     cmd = cmdspc;
+    addon = (char *)malloc(100);
     first = (Node **)malloc(sizeof(Node *));
     *first = (Node *)malloc(sizeof(Node));
-    (*first)->input = NULL;
     (*first)->next = NULL;
     id = 1;
 
     printf("Welcome!\n");
-    printf("\ncommands : <add>, <del,[id/data]>, <save>, <load>, <showlist>, <cleanlist>\n");
-    printf("ex : [add,<data>], [del,id=<id> or del,data=<data>], [save,filename], [showlist]\n\n");
+    printf("\ncommands : <add>, <del>, <save>, <load>, <showlist>, <cleanlist>, <show,,>\n");
+    printf("ex : [add,<data>], [save,filename], [showlist], [show,filename,number]\n");
+    printf("p.s. Data format [(id,)data], id can auto-fill \n\n");
+
 
     while (1) {
         printf(">> ");
         fgets(cmd, 105, stdin);
 
         if (!strncmp(cmd, "add,", 4)) {
-            strcpy(data.data, cmd+4); 
-            data.id = id++;
-            add(first, data);
+            if (strstr(cmd+4, ",") == NULL) 
+                sprintf(addon, "%d,%s", id, cmd+4);
+            else 
+                strcpy(addon, cmd+4);
+            add(first, addon);
+            id++;
             printf("Command Success\n");
         } else if (!strncmp(cmd, "del,", 4)) {
-            if (!strncmp(cmd+4, "id=", 3)) {
-                data.id = atoi(cmd+7);
-                strcpy(data.data, "\0");
-            } else if (!strncmp(cmd+4, "data=", 5)) {
-                data.id = 0;
-                strcpy(data.data, cmd+9);
-            } else {
-                printf("wrong input of del!\n");
-                continue;
-            }
-            if (!del(first, data)) 
+            if (!del(first, cmd+4)) 
                 printf("Command Success\n");
             else 
                 printf("Failed to process\n");
@@ -86,7 +77,7 @@ int main() {
     return 0;
 }
 
-void add (Node **node, Data data) {
+void add (Node **node, char *data) {
     Node *new_node, *cur;
 
     cur = *node;
@@ -94,24 +85,22 @@ void add (Node **node, Data data) {
         cur = cur->next;
 
     new_node = (Node *)malloc(sizeof(Node));
-    new_node->input = (Data *)malloc(sizeof(Data));
 
-    strcpy(new_node->input->data, data.data);
-    new_node->input->id = data.id;
+    strcpy(new_node->data, data);
     new_node->next = NULL;
 
     cur->next = new_node;
 }
 
-int del (Node **node, Data data) {
-    Node *cur, *rm;
+int del (Node **node, char *data) {
+    Node *cur, *tmp;
 
     cur = *node;
     while (cur->next != NULL) {
-        if (!strcmp(cur->next->input->data, data.data) || cur->next->input->id == data.id) {
-            rm = cur->next;
-            cur->next = rm->next;
-            free(rm);
+        if (!strcmp(cur->next->data, data)) {
+            tmp = cur->next->next;
+            free(cur->next);
+            cur->next = tmp;
             return 0;
         }
         cur = cur->next;
@@ -122,8 +111,8 @@ int del (Node **node, Data data) {
 
 void save (Node **node, char *fn) {
     FILE *save, *index;
-    char *index_name;
-    int len;
+    char *index_fn, *data;
+    int len, id;
     Node *cur;
 
     *(strstr(fn, "\n")) = '\0';
@@ -131,66 +120,66 @@ void save (Node **node, char *fn) {
 
         if (strstr(fn, ".") != NULL) 
             *(strstr(fn, ".")) = '\0';
-        index_name = (char *)malloc(strlen(fn)+4);
-        strcpy(index_name, fn);
-        strcat(index_name, ".idx");
-        if ((index = fopen(index_name, "wb")) != NULL) {
+        index_fn = (char *)malloc(strlen(fn)+4);
+        strcpy(index_fn, fn);
+        strcat(index_fn, ".idx");
+
+        if ((index = fopen(index_fn, "wb")) != NULL) {
             cur = (*node)->next;
             len = 0; 
             fwrite(&len, sizeof(int), 1, index);
+
             while (cur != NULL) {
-                fwrite(&cur->input->id, sizeof(int), 1, save);
-                fwrite(cur->input->data, strlen(cur->input->data), 1, save);
-                len += sizeof(int)+strlen(cur->input->data);
+                id = atoi(cur->data);
+                if ((data = strstr(cur->data, ",")+1) == NULL)
+                    break;
+                len += strlen(data);
+
+                fwrite(&id, sizeof(int), 1, save);
+                fwrite(data, strlen(data), 1, save);
                 fwrite(&len, sizeof(int), 1, index);
+
                 cur = cur->next;
             }
-
             fclose(index);
         }
-
-        free(index_name);
+        free(index_fn);
         fclose(save);
     }
 }
 
 void load (Node **node, char *fn) {
-    Data file_in;
-    FILE *load, *index;
-    char *index_name;
-    int i, len, cur, next;
+    FILE *load;
+    char *data, *output;
+    int i, len, id;
 
     *(strstr(fn, "\n")) = '\0';
     if ((load = fopen(fn, "r")) != NULL) {
-        if (strstr(fn, ".") != NULL) 
-            *(strstr(fn, ".")) = '\0';
-        index_name = (char *)malloc(strlen(fn)+4);
-        strcpy(index_name, fn);
-        strcat(index_name, ".idx");
-        if ((index = fopen(index_name, "rb")) != NULL) {
-            fseek(index, 0, SEEK_END);
-            len = ftell(index)/sizeof(int);
-            fseek(index, 0, SEEK_SET);
-
-            i = 1;
-            fread(&cur, sizeof(int), 1, index);
+        fseek(load, 0, SEEK_END);
+        len = ftell(load);
+        fseek(load, 0, SEEK_SET);
+        
+        data = (char *)malloc(100);
+        while (len) {
+            output = (char *)malloc(100);
+            fread(&id, sizeof(int), 1, load);
+            len-=4;
+            i = 0;
             while (1) {
-                if (i == len) break;
-                fread(&next, sizeof(int), 1, index);
-                fread(&file_in.id, sizeof(int), 1, load);
-                fread(&file_in.data, next-cur-sizeof(int), 1, load);
-
-                file_in.data[next-cur-sizeof(int)] = '\0';
-                add(node, file_in);
-
-                cur = next;
+                fread((data+i), 1, 1, load);
+                if (*(data+i) == '\n') {
+                    *(data+i+1) = '\0';
+                    break;
+                }
                 i++;
             }
-            
-            fclose(index);
+            len-=i+1;
+
+            sprintf(output,"%d,%s", id, data);
+            add(node, output);
+            free(output);
         }
-        
-        free(index_name);
+        free(data);
         fclose(load);
     }
 }
@@ -200,7 +189,7 @@ void showList (Node **node) {
 
     cur = (*node)->next;
     while (cur != NULL) {
-        printf("id %d, Data %s\n", cur->input->id, cur->input->data);
+        printf("%s\n", cur->data);
         cur = cur->next;
     }
     printf("----------------------------end----------------------------\n");
@@ -213,7 +202,6 @@ void cleanList (Node **node) {
     while (cur != NULL) {
         next = cur->next;
         
-        free(cur->input);
         free(cur);
         cur = next;
     }
