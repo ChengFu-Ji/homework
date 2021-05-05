@@ -30,8 +30,8 @@ int main() {
 
     printf("Welcome!\n");
     printf("\ncommands : <add>, <del>, <save>, <load>, <showlist>, <cleanlist>, <show,,>\n");
-    printf("ex : [add,<data>], [save,filename], [showlist], [show,filename,number]\n");
-    printf("p.s. Data format [(id,)data], id can auto-fill \n\n");
+    printf("ex : [add,(id,)'data'], [del,id or del,'data'], [save,filename], [showlist], [show,filename,number]\n");
+    printf("p.s. id can auto-fill and must use '' to encase data\n\n");
 
 
     while (1) {
@@ -39,18 +39,29 @@ int main() {
         fgets(cmd, 105, stdin);
 
         if (!strncmp(cmd, "add,", 4)) {
-            if (strstr(cmd+4, ",") == NULL) 
-                sprintf(addon, "%d,%s", id, cmd+4);
-            else 
-                strcpy(addon, cmd+4);
-            add(first, addon);
-            id++;
-            printf("Command Success\n");
-        } else if (!strncmp(cmd, "del,", 4)) {
-            if (!del(first, cmd+4)) 
+            if (strstr(cmd, "'") != NULL && strstr(strstr(cmd, "'")+1, "'") != NULL) {
+                if (strstr(cmd+4, ",") > strstr(cmd+4, "'") || strstr(cmd+4, ",") == NULL) 
+                    sprintf(addon, "%d,%s", id, cmd+4);
+                else 
+                    strcpy(addon, cmd+4);
+                
+                add(first, addon);
+                id++;
                 printf("Command Success\n");
-            else 
-                printf("Failed to process\n");
+            } else {
+                printf("Use '' to encase data\n");
+            }
+
+        } else if (!strncmp(cmd, "del,", 4)) {
+            if (strstr(cmd, "'") != NULL && strstr(strstr(cmd, "'")+1, "'") != NULL || atoi(cmd+4) != 0) {
+                if (!del(first, cmd+4)) 
+                    printf("Command Success\n");
+                else 
+                    printf("Failed to process\n");
+            } else {
+                printf("Use '' to encase data or type in number to del\n");
+            }
+
         } else if (!strncmp(cmd, "save,", 5)) {
             save(first, cmd+5);
             printf("Command Done\n");
@@ -77,8 +88,14 @@ int main() {
     return 0;
 }
 
-void add (Node **node, char *data) {
+void add (Node **node, char *input) {
     Node *new_node, *cur;
+    char *data;
+
+    *(strstr(input, "\n")) = '\0'; 
+    *(strstr(strstr(input, "'")+1, "'")) = '\n';
+    data = strstr(input, "'")+1;
+    *(data-1) = '\0';
 
     cur = *node;
     while (cur->next != NULL)
@@ -86,24 +103,47 @@ void add (Node **node, char *data) {
 
     new_node = (Node *)malloc(sizeof(Node));
 
-    strcpy(new_node->data, data);
+    strcpy(new_node->data, input);
+    strcat(new_node->data, data);
     new_node->next = NULL;
 
     cur->next = new_node;
 }
 
-int del (Node **node, char *data) {
+int del (Node **node, char *input) {
     Node *cur, *tmp;
+    char *data;
+    int id;
+
+    id = 0;
+    if (strstr(input, "'") == NULL) { 
+        id = atoi(input);
+    } else {
+        *(strstr(input, "\n")) = '\0'; 
+        *(strstr(strstr(input, "'")+1, "'")) = '\n';
+        data = strstr(input, "'")+1;
+    }
+
 
     cur = *node;
     while (cur->next != NULL) {
-        if (!strcmp(cur->next->data, data)) {
-            tmp = cur->next->next;
-            free(cur->next);
-            cur->next = tmp;
-            return 0;
+        if (id == 0) {
+            if (strcmp(strstr(cur->next->data, ",")+1, data) != 0) {
+                cur = cur->next;
+                continue;
+            }
+        } else {
+            if (atoi(cur->next->data) != id) {
+                cur = cur->next;
+                continue;
+            }
         }
-        cur = cur->next;
+
+        tmp = cur->next->next;
+        free(cur->next); 
+        cur->next = tmp;
+        return 0;
+
     } 
 
     return 1;
@@ -133,7 +173,7 @@ void save (Node **node, char *fn) {
                 id = atoi(cur->data);
                 if ((data = strstr(cur->data, ",")+1) == NULL)
                     break;
-                len += strlen(data);
+                len += strlen(data)+sizeof(int);
 
                 fwrite(&id, sizeof(int), 1, save);
                 fwrite(data, strlen(data), 1, save);
@@ -237,11 +277,12 @@ void showN (char *input) {
                 fread(&pos, sizeof(int), 1, index);
                 fread(&nextpos, sizeof(int), 1, index);
 
-                data = (char *)malloc(nextpos-pos-sizeof(int)+1);
+                data = (char *)malloc(nextpos-pos+1);
                 fseek(show, pos, SEEK_SET);
                 fread(&dataId, sizeof(int), 1, show);
                 fread(data, nextpos-pos-sizeof(int), 1, show);
                 *(data+strlen(data)) = '\0';
+
                 printf("id = %d, data = %s\n", dataId, data);
                 
                 free(data);
