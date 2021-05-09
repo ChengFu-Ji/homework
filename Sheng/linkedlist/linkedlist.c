@@ -43,8 +43,7 @@ int main() {
 
     printf("Welcome!\n");
     printf("\ncommands : <add>, <del>, <save>, <load>, <showlist>, <cleanlist>, <show,,>\n");
-    printf("ex : [add,(id,)'data'], [del,id or del,'data'], [save,filename], [showlist], [show,filename,number]\n");
-    printf("p.s. id can auto-fill and must use '' to encase data\n\n");
+    printf("ex : [add,id,data], [save,filename], [showlist], [show,filename,number]\n");
 
 
     while (1) {
