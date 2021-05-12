@@ -103,8 +103,9 @@ int del (Node **node, char *input) {
             tmp = cur->next->next;
             free(cur->next); 
             cur->next = tmp;
+            return 0;
         }
-        return 0;
+        cur = cur->next;
     } 
     return 1;
 }
