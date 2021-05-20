@@ -43,7 +43,7 @@ int main() {
 
     printf("Welcome!\n");
     printf("\ncommands : <add>, <del>, <save>, <load>, <showlist>, <cleanlist>, <show,,>\n");
-    printf("ex : [add,id,data], [save,filename], [showlist], [show,filename,number]\n");
+    printf("ex : [add,(id,)data], [save,filename], [showlist], [show,filename,number]\n");
 
 
     while (1) {
@@ -76,9 +76,14 @@ int main() {
 int add (Node **node, char *input) {
     Node *new_node, *cur;
     char *data;
+    static int id = 0;
 
-    if (atoi(input) == 0 || strstr(input, ",") == NULL)
-        return 1;
+    id++;
+    data = (char *)malloc(strlen(input)+11);
+    if (atoi(input) == 0 || strstr(input, ",") == NULL) {
+        sprintf(data, "%d,", id);
+    }
+    strcat(data, input);
 
     cur = *node;
     while (cur->next != NULL)
@@ -86,27 +91,32 @@ int add (Node **node, char *input) {
 
     new_node = (Node *)malloc(sizeof(Node));
 
-    strcpy(new_node->data, input);
+    strcpy(new_node->data, data);
     new_node->next = NULL;
 
     cur->next = new_node;
+    free(data);
     return 0;
 }
 
 int del (Node **node, char *input) {
     Node *cur, *tmp;
     char *data;
+    int id;
 
+    data = (char *)malloc(strlen(input));
     cur = *node;
     while (cur->next != NULL) {
-        if (!strcmp(cur->next->data, input)) {
+        strcpy(data, strstr(cur->next->data, ",")+1);
+        id = atoi(cur->next->data);
+        if (!strcmp(cur->next->data, input) || id == atoi(input) || !strcmp(input, data)) {
             tmp = cur->next->next;
             free(cur->next); 
             cur->next = tmp;
             return 0;
         }
         cur = cur->next;
-    } 
+    }
     return 1;
 }
 
