@@ -133,9 +133,10 @@ int save (Node **list, char *fn) {
 
     strcpy(idx_fn, fn);
     if (strstr(fn, ".") != 0) {
-        strcpy(idx_fn, strstr(fn, ".")+1);
+        strcpy(strstr(idx_fn, "."), ".idx");
+    } else {
+        strcat(idx_fn, ".idx");
     }
-    strcat(idx_fn, ".idx");
     idx = fopen(idx_fn, "w");
 
     cur = *list;
@@ -171,9 +172,10 @@ int load (Node **list, char *fn) {
     if ((load = fopen(fn, "r")) != NULL) {
         strcpy(idx_fn, fn);
         if (strstr(fn, ".") != 0) {
-            strcpy(idx_fn, strstr(fn, ".")+1);
+            strcpy(strstr(idx_fn, "."), ".idx");
+        } else {
+            strcat(idx_fn, ".idx");
         }
-        strcat(idx_fn, ".idx");
 
         if ((idx = fopen(idx_fn, "r")) != NULL) {
             fseek(idx, 0, SEEK_END);
@@ -229,6 +231,45 @@ int cleanList (Node **list, char *none) {
     return 0;
 }
 int showN (Node **none, char *input) {
-    printf("showN function not done\n");
-    return 0;
+    FILE *load, *idx;
+    char *idx_fn;
+    int state, n, curpos, nextpos, len;
+    Data data;
+
+    state = 1;
+    if (strstr(input, ",") != NULL) {
+        n = atoi(strstr(input, ",")+1);
+        *(strstr(input, ",")) = '\0';
+        if ((load = fopen(input, "r")) != NULL) {
+            idx_fn = (char *)malloc(strlen(input));
+            strcpy(idx_fn, input);
+            if (strstr(input, ".") != NULL) {
+                strcpy(strstr(idx_fn, "."), ".idx");
+            } else {
+                strcat(idx_fn, ".idx");
+            }
+            if ((idx = fopen(idx_fn, "r")) != NULL) {
+                fseek(idx, 0, SEEK_END);
+                len = ftell(idx);
+                fseek(idx, 0, SEEK_SET);
+                if (len > (n-1)*sizeof(int)) {
+                    fseek(idx, (n-1)*sizeof(int), SEEK_SET);
+                    fread(&curpos, sizeof(int), 1, idx);
+                    fread(&nextpos, sizeof(int), 1, idx);
+                    fseek(load, curpos, SEEK_SET);
+                    fread(&data.id, sizeof(int), 1, load);
+                    fread(data.input, nextpos-curpos-sizeof(int), 1, load);
+                    data.input[nextpos-curpos-sizeof(int)] = '\0';
+
+                    printf("id %d, data %s", data.id, data.input);
+                    state = 0;
+                }
+                fclose(idx);
+            }
+            free(idx_fn);
+            fclose(load);
+        }
+    }
+
+    return state;
 }
