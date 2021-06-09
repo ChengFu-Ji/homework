@@ -16,7 +16,7 @@ typedef struct node_s {
 
 typedef struct cmd_p {
     char cmd[10];
-    char cmdlen;
+    int cmdlen;
     int (*cmdfp) (Node **, char *);
 } Cmd;
 
@@ -131,12 +131,11 @@ int save (Node **list, char *fn) {
     *(strstr(fn, "\n")) = '\0';
     save = fopen(fn, "w");
 
-    strcpy(idx_fn, fn);
     if (strstr(fn, ".") != 0) {
-        strcpy(strstr(idx_fn, "."), ".idx");
-    } else {
-        strcat(idx_fn, ".idx");
+        *strstr(idx_fn, ".") = '\0';
     }
+    strcpy(idx_fn, fn);
+    strcat(idx_fn, ".idx");
     idx = fopen(idx_fn, "w");
 
     cur = *list;
@@ -170,12 +169,11 @@ int load (Node **list, char *fn) {
     idx_fn =(char *)malloc(strlen(fn)+4);
     *(strstr(fn, "\n")) = '\0';
     if ((load = fopen(fn, "r")) != NULL) {
-        strcpy(idx_fn, fn);
         if (strstr(fn, ".") != 0) {
-            strcpy(strstr(idx_fn, "."), ".idx");
-        } else {
-            strcat(idx_fn, ".idx");
+            *strstr(idx_fn, ".")= '\0';
         }
+        strcpy(idx_fn, fn);
+        strcat(idx_fn, ".idx");
 
         if ((idx = fopen(idx_fn, "r")) != NULL) {
             fseek(idx, 0, SEEK_END);
@@ -242,12 +240,12 @@ int showN (Node **none, char *input) {
         *(strstr(input, ",")) = '\0';
         if ((load = fopen(input, "r")) != NULL) {
             idx_fn = (char *)malloc(strlen(input));
-            strcpy(idx_fn, input);
+
             if (strstr(input, ".") != NULL) {
-                strcpy(strstr(idx_fn, "."), ".idx");
-            } else {
-                strcat(idx_fn, ".idx");
+                *strstr(idx_fn, ".") = '\0';
             }
+            strcpy(idx_fn, input);
+            strcat(idx_fn, ".idx");
             if ((idx = fopen(idx_fn, "r")) != NULL) {
                 fseek(idx, 0, SEEK_END);
                 len = ftell(idx);

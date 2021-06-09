@@ -9,7 +9,7 @@ typedef struct node_s {
 } Node;
 typedef struct cmd {
     char cmd[10];
-    char cmdlen;
+    int cmdlen;
     int (*cmdfp) (Node **, char *);
 } fcmd;
 
@@ -52,8 +52,8 @@ int main() {
 
         int i = 0;
         while (cmds[i].cmdlen) {
-            if (!strncmp(cmds[i].cmd, cmd, (int)cmds[i].cmdlen)) {
-                if (cmds[i].cmdfp(first, (cmd+(int)cmds[i].cmdlen)) == 0) {
+            if (!strncmp(cmds[i].cmd, cmd, cmds[i].cmdlen)) {
+                if (cmds[i].cmdfp(first, (cmd+cmds[i].cmdlen)) == 0) {
                     printf("command done!\n");
                 } else {
                     printf("command fail...\n");
