@@ -23,7 +23,7 @@ int showN(Node **, char *);
 
 int main() {
     Node **first;
-    char *cmd, cmdspc[105], *addon;
+    char *cmd, cmdspc[105];
     fcmd cmds[] = {
         {"add,", 4, add},
         {"del,", 4, del},
@@ -36,7 +36,6 @@ int main() {
     };
 
     cmd = cmdspc;
-    addon = (char *)malloc(100);
     first = (Node **)malloc(sizeof(Node *));
     *first = (Node *)malloc(sizeof(Node));
     (*first)->next = NULL;

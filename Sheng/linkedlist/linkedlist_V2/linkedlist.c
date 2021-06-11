@@ -224,7 +224,7 @@ int cleanList (Node **list, char *none) {
         next = cur->next->next;
         free(cur->next->data);
         free(cur->next);
-        cur = cur->next;
+        cur->next = next;
     }
     return 0;
 }
