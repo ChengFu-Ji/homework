@@ -174,7 +174,7 @@ int load (Node **node, char *fn) {
         while (len) {
             output = (char *)malloc(100);
             fread(&id, sizeof(int), 1, load);
-            len-=4;
+            len -= sizeof(int);
             i = 0;
             while (1) {
                 fread((data+i), 1, 1, load);
@@ -184,9 +184,9 @@ int load (Node **node, char *fn) {
                 }
                 i++;
             }
-            len-=i+1;
+            len -= i+1;
 
-            sprintf(output,"%d,%s", id, data);
+            sprintf(output, "%d,%s", id, data);
             add(node, output);
             free(output);
         }
@@ -233,7 +233,7 @@ int showN (Node **none, char *input) {
 
             *(strstr(input, ",")) = '\0';
             if ((show = fopen(input, "r")) == NULL) 
-                return 1;
+                return status;
 
             index_name = (char *)malloc(strlen(input)+4);
             strcpy(index_name, input);
@@ -242,7 +242,7 @@ int showN (Node **none, char *input) {
             
             strcat(index_name, ".idx");
             if ((index = fopen(index_name, "rb")) == NULL)
-                return 1;
+                return status;
 
             fseek(index, 0, SEEK_END);
 

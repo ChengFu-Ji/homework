@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdarg.h>
-#include <time.h>
 
 typedef struct data {
     int id;
@@ -58,8 +56,8 @@ int main () {
 
         int i = 0;
         while (cmds[i].cmdlen) {
-            if (!strncmp(cmds[i].cmd, cmd, (int)cmds[i].cmdlen)) {
-                if (cmds[i].cmdfp(head, (cmd+(int) cmds[i].cmdlen)) == 0) {
+            if (!strncmp(cmds[i].cmd, cmd, cmds[i].cmdlen)) {
+                if (cmds[i].cmdfp(head, (cmd+cmds[i].cmdlen)) == 0) {
                     printf("Command done!\n");
                 } else {
                     printf("Command failed...\n");
@@ -127,7 +125,7 @@ int save (Node **list, char *fn) {
     int len;
     Node *cur;
     
-    idx_fn =(char *)malloc(strlen(fn)+4);
+    idx_fn = (char *)malloc(strlen(fn)+4);
     *(strstr(fn, "\n")) = '\0';
     save = fopen(fn, "w");
 
@@ -216,6 +214,7 @@ int showList (Node **list, char *none) {
     printf("-----------------------------END-------------------------------------\n");
     return 0;
 }
+
 int cleanList (Node **list, char *none) {
     Node *cur, *next;
 
@@ -228,6 +227,7 @@ int cleanList (Node **list, char *none) {
     }
     return 0;
 }
+
 int showN (Node **none, char *input) {
     FILE *load, *idx;
     char *idx_fn;
