@@ -160,9 +160,8 @@ int save (Node **list, char *fn) {
 
 int load (Node **list, char *fn) {
     FILE *load, *idx;
-    int curpos, nextpos, len;
-    char *data, *idx_fn;
-    Data fileData;
+    int curpos, nextpos, len, id;
+    char *data, *idx_fn, *fileData;
 
     idx_fn =(char *)malloc(strlen(fn)+4);
     *(strstr(fn, "\n")) = '\0';
@@ -179,24 +178,26 @@ int load (Node **list, char *fn) {
             fseek(idx, 0, SEEK_SET);
 
             fread(&curpos, sizeof(int), 1, idx);
+            data = (char *)malloc(100);
             int n = 1;
             while (len-n) {
                 fread(&nextpos, sizeof(int), 1, idx);
-                fread(&fileData.id, sizeof(int), 1, load);
-                fread(fileData.input, nextpos - curpos - n*sizeof(int), 1, load);
-                fileData.input[nextpos - curpos - n*sizeof(int)] = '\n';
-                fileData.input[nextpos - curpos - n*sizeof(int) + 1] = '\0';
+
+                fileData = (char *)malloc(nextpos - curpos);
+
+                fread(&id, sizeof(int), 1, load);
+                fread(fileData, nextpos - curpos - sizeof(int), 1, load);
                 
-                data = (char *)malloc(nextpos - curpos);
-                sprintf(data, "%d,", fileData.id);
-                strcat(data, fileData.input);
+                sprintf(data, "%d,", id);
+                strcat(data, fileData);
 
                 add(list, data);
 
-                free(data);
+                free(fileData);
                 curpos = nextpos;
                 n++;
             }
+            free(data);
         }
     }
 
