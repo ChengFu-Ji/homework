@@ -74,27 +74,22 @@ int main() {
 
 int add (Node **node, char *input) {
     Node *new_node, *cur;
-    char *data;
     static int id = 0;
 
     id++;
-    data = (char *)malloc(strlen(input)+11);
-    if (atoi(input) == 0 || strstr(input, ",") == NULL) {
-        sprintf(data, "%d,", id);
-    }
-    strcat(data, input);
-
     cur = *node;
     while (cur->next != NULL)
         cur = cur->next;
 
     new_node = (Node *)malloc(sizeof(Node));
-
-    strcpy(new_node->data, data);
+    strcpy(new_node->data, "");
+    if (atoi(input) == 0 || strstr(input, ",") == NULL) {
+        sprintf(new_node->data, "%d,", id);
+    }
+    strcat(new_node->data, input);
     new_node->next = NULL;
 
     cur->next = new_node;
-    free(data);
     return 0;
 }
 
