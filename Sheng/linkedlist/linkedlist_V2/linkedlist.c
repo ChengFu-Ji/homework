@@ -174,7 +174,7 @@ int load (Node **list, char *fn) {
 
         if ((idx = fopen(idx_fn, "r")) != NULL) {
             fseek(idx, 0, SEEK_END);
-            len = ftell(idx)/4;
+            len = ftell(idx)/sizeof(int);
             fseek(idx, 0, SEEK_SET);
 
             fread(&curpos, sizeof(int), 1, idx);
@@ -187,6 +187,7 @@ int load (Node **list, char *fn) {
 
                 fread(&id, sizeof(int), 1, load);
                 fread(fileData, nextpos - curpos - sizeof(int), 1, load);
+                *(fileData + nextpos - curpos - sizeof(int)) = '\0';
                 
                 sprintf(data, "%d,", id);
                 strcat(data, fileData);
