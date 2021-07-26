@@ -22,7 +22,7 @@ struct:https://programming.im.ncnu.edu.tw/Chapter13.htm
 ### show_n_line function.
 其功能為顯示檔案第N筆資料.
 
-我的方法分為兩種,現在共存於此 funcition 內,以是否有 .index_ 檔案作為判斷使用:
+我的方法分為兩種,現在共存於此 function 內,以是否有 .index_ 檔案作為判斷使用:
 
 
 方法一:
@@ -49,5 +49,5 @@ struct:https://programming.im.ncnu.edu.tw/Chapter13.htm
 #### show n line
 ![image](https://github.com/ChengFu-Ji/homework/blob/master/hsin/Linked_List/linkedlist_show_n_line.png)
 
-#### cleanlist 
-![image](https://github.com/ChengFu-Ji/homework/blob/master/hsin/Linked_List/linkedlist_cleanlist.png)
+#### clearlist 
+![image](https://github.com/ChengFu-Ji/homework/blob/master/hsin/Linked_List/linkedlist_showlist_and_clear.png)
