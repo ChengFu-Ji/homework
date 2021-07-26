@@ -47,6 +47,10 @@ int main () {
     (*head)->data = NULL;
     (*head)->next = NULL;
 
+    printf("Welcome!\n");
+    printf("\ncommands : <add>, <del>, <save>, <load>, <showlist>, <cleanlist>, <show,,>\n");
+    printf("ex : [add,(id,)data], [del,(id/data)], [save,filename], [showlist], [show,filename,number]\n");
+
     while (1) {
         printf(">> ");
         fgets(cmd, 100, stdin);
