@@ -110,28 +110,28 @@ struct node *del(struct node *first, char *data)
     return first_in_del;
 }
 
-struct node *cleanlist(struct node *first)
+struct node *clearlist(struct node *first)
 { 
-    struct node *first_in_clean = first;
-    struct node *current_in_clean = NULL; 
+    struct node *first_in_clear = first;
+    struct node *current_in_clear = NULL; 
 
-    if( first_in_clean == NULL)
+    if( first_in_clear == NULL)
     {
         printf("not thing to clear\n");
     }
-    else if( first_in_clean != NULL)
+    else if( first_in_clear != NULL)
     {
-        current_in_clean = first_in_clean;
+        current_in_clear = first_in_clear;
         
-        while( current_in_clean != NULL)
+        while( current_in_clear != NULL)
         { 
-            current_in_clean = current_in_clean -> next;
-            free( first_in_clean );
-            first_in_clean = current_in_clean;
+            current_in_clear = current_in_clear -> next;
+            free( first_in_clear );
+            first_in_clear = current_in_clear;
         }
-        printf("mission complete.\n");
+        printf("list clean.\n");
     }
-    return first_in_clean;
+    return first_in_clear;
 }
 
 void showlist(struct node *first)
@@ -195,7 +195,6 @@ void save(char *file, struct node *data)
 struct node *load(char *file, struct node *data)
 {
     FILE *file_load; 
-    struct node *load_data;
     char file_data_buffer[101];
 
     file_load = fopen(file, "r");
@@ -350,8 +349,8 @@ int main(){
     char input_data_buffer[105];
     char *input_data;
     struct node *first = NULL;
-    
-    printf("welcome! we have file control with 'save' and 'load' ex: save,filename.filename Extension same as load.\nAnd build linkedlist we need 'add' and 'del' ex: add,data same as del.\nIf you want to show what thing in linkedlist.You can use 'showlist'. \nOr show the data of the line in the file. ex: show,filename,row. \nAlso leave the progream please keyin 'exit'.\n");
+   
+    printf("Welcome!\n add,data: create new data.\n del,data: delete the data.\n showlist: print all the data in the list.\n clear: delete all data in the list.\n save,filename: save list in file.\n load,filename: load data in file to list.\n show,filename,data_sequence: show data was set in the file. ex:show,data.txt,1\n exit: end the program.\n"); 
     while(1)
     {
         printf(">>");   
@@ -362,7 +361,7 @@ int main(){
 
         if(strcmp( input_data_buffer, "exit\n" ) == 0 )
         {   
-            printf( "out\n" );  
+            printf( "Bye\n" );  
             
             while(first != NULL)
             {   
@@ -384,9 +383,9 @@ int main(){
         {  
             first = del(first, input_data);
         }
-        else if(strncmp( input_data_buffer, "cleanlist", 5) ==0)
+        else if(strncmp( input_data_buffer, "clear", 5) ==0)
         {
-            first = cleanlist(first);
+            first = clearlist(first);
         }
         else if(strncmp( input_data_buffer, "save,", 5) == 0)
         {

@@ -1,7 +1,7 @@
 listfile = linkedlist.c
 
 all:$(listfile)
-		gcc $(listfile) -o linkedlist 
+		gcc $(listfile) -Wall -o linkedlist 
 
 clean:
 		@rm linkedlist 
