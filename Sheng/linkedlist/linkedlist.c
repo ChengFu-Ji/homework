@@ -3,6 +3,10 @@
 #include <string.h>
 #include "linkedlist.h"
 
+/*
+ *  新增一筆資料在 Linkedlist 中，
+ *  如果使用者未輸入 id 則會自動補上。
+ */
 int add (Node **node, char *input) {
     Node *new_node, *cur;
     static int id = 0;
@@ -24,6 +28,10 @@ int add (Node **node, char *input) {
     return 0;
 }
 
+/*
+ *  刪除一筆和輸入資料相符的 Linkedlist 資料。
+ *  (只需 id 或 data 其中一項與使用者輸入相符，便進行刪除)。
+ */
 int del (Node **node, char *input) {
     Node *cur, *tmp;
     char *data;
@@ -45,6 +53,10 @@ int del (Node **node, char *input) {
     return 1;
 }
 
+/*
+ *  將目前的 Linkedlist 存入使用者輸入的檔案中。
+ *  (會額外生成相同名稱的 .idx 索引檔)。
+ */
 int save (Node **node, char *fn) {
     FILE *save, *index;
     char *index_fn, *data;
@@ -85,6 +97,10 @@ int save (Node **node, char *fn) {
     return 0;
 }
 
+/*
+ *  讀取使用者選定的檔案資料進 Linkedlist 。
+ *  (不使用 .idx 檔)。
+ */
 int load (Node **node, char *fn) {
     FILE *load;
     char *data, *output;
@@ -122,6 +138,9 @@ int load (Node **node, char *fn) {
     return 0;
 }
 
+/*
+ *  顯示目前 Linkedlist 所有的資料。
+ */
 int showList (Node **node, char *none) {
     Node *cur;
 
@@ -134,6 +153,9 @@ int showList (Node **node, char *none) {
     return 0;
 }
 
+/*
+ *  刪除目前 Linkedlist 所有的資料。
+ */
 int cleanList (Node **node, char *none) {
     Node *cur, *next;
 
@@ -148,6 +170,10 @@ int cleanList (Node **node, char *none) {
     return 0;
 }
 
+/*
+ *  讀取使用者選定檔案中，指定的該行資料並顯示。
+ *  (使用 .idx 檔)。
+ */
 int showN (Node **none, char *input) {
     FILE *show, *index;
     char *index_name, *data;

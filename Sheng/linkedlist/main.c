@@ -1,16 +1,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-//#include "cmd.h"
 #include "linkedlist.h"
 
-//extern fcmd cmds[];
 typedef struct cmd {
     char cmd[10];
     int cmdlen;
     int (*cmdfp) (Node **, char *);
 } fcmd;
 
+/*
+ *  主程式
+ */
 int main() {
     Node **first;
     char *cmd, cmdspac[105];
