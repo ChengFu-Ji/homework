@@ -1,7 +1,7 @@
 CC = gcc
-obj = linkedlist.c
+objs = linkedlist.c main.c linkedlist.h
 
-all: $(obj) 
+all: $(objs) 
 	$(CC) $^ -o linkedlist 
 
 .PHONY: clean
