@@ -1,81 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-typedef struct data {
-    int id;
-    char input[100];
-} Data;
-
-typedef struct node_s {
-    Data *data;
-    struct node_s *next;
-} Node;
-
-typedef struct cmd_p {
-    char cmd[10];
-    int cmdlen;
-    int (*cmdfp) (Node **, char *);
-} Cmd;
-
-int add(Node **, char *);
-int del(Node **, char *);
-int save(Node **, char *);
-int load(Node **, char *);
-int showList(Node **, char *);
-int cleanList(Node **, char *);
-int showN(Node **, char *);
-
-int main () {
-    Node **head;
-    char *cmd, cmdspac[100];
-
-    Cmd cmds[] = {
-        {"add,", 4, add},
-        {"del,", 4, del},
-        {"save,", 5, save},
-        {"load,", 5, load},
-        {"showlist", 8, showList},
-        {"clean", 5, cleanList},
-        {"show,", 5, showN},
-        {"", 0, NULL}
-    };
-    
-    cmd = cmdspac;
-    head = (Node **)malloc(sizeof(Node *));
-    *head = (Node *)malloc(sizeof(Node));
-    (*head)->data = NULL;
-    (*head)->next = NULL;
-
-    printf("Welcome!\n");
-    printf("\ncommands : <add>, <del>, <save>, <load>, <showlist>, <cleanlist>, <show,,>\n");
-    printf("ex : [add,(id,)data], [del,(id/data)], [save,filename], [showlist], [show,filename,number]\n");
-
-    while (1) {
-        printf(">> ");
-        fgets(cmd, 100, stdin);
-        if (!strcmp(cmd, "exit\n")) {
-            break;
-        }
-
-        int i = 0;
-        while (cmds[i].cmdlen) {
-            if (!strncmp(cmds[i].cmd, cmd, cmds[i].cmdlen)) {
-                if (cmds[i].cmdfp(head, (cmd+cmds[i].cmdlen)) == 0) {
-                    printf("Command done!\n");
-                } else {
-                    printf("Command failed...\n");
-                }
-                break;
-            }
-            i++;
-        }
-    }
-
-    free(*head);
-    free(head);
-    return 0;
-}
+#include "linkedlist.h"
 
 int add (Node **list, char *input) {
     Node *cur, *new_node;
@@ -118,6 +44,7 @@ int del (Node **list, char *input) {
             cur->next = tmp;
             return 0;
         }
+        cur = cur->next;
     }
 
     return 1;
