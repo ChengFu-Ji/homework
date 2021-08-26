@@ -12,7 +12,7 @@ typedef struct cmd_p {
 
 int main() {
     Node **head;
-    char *cmd, cmdspac[105]; 
+    char *cmd, cmdspac[106]; 
 
     Cmd cmds[] = {
         {"add,", 4, add},

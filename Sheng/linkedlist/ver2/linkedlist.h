@@ -3,7 +3,7 @@
 
 typedef struct data {
     int id;
-    char input[100];
+    char input[101];
 } Data;
 
 typedef struct node_s {

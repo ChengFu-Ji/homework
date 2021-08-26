@@ -2,7 +2,7 @@
 #define __LINKEDLIST_H__
 
 typedef struct node_s {
-    char data[100];
+    char data[101];
     struct node_s *next;
 } Node;
 

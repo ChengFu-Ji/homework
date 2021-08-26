@@ -14,7 +14,7 @@ typedef struct cmd {
  */
 int main() {
     Node **first;
-    char *cmd, cmdspac[105];
+    char *cmd, cmdspac[106];
     fcmd cmds[] = {
         {"add,", 4, add},
         {"del,", 4, del},
