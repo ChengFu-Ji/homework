@@ -9,4 +9,4 @@
 
 <pre><code>2/05 inetd掛載service(字典搜尋) 及 報告 完成</code></pre>
 
-<pre><code>7/31 linked list 及 showN 功能完成</code></pre>
+<pre><code>9/1 linked list 及 showN 功能完成</code></pre>
