@@ -1,5 +1,5 @@
 CC = gcc
-objs = linkedlist.c main.c linkedlist.h
+objs = linkedlist.c main.c
 
 all: $(objs) 
 	$(CC) $^ -o linkedlist 
