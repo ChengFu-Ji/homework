@@ -130,10 +130,11 @@ int load (Node **list, char *fn) {
                 n++;
             }
             free(data);
+            return 0;
         }
     }
 
-    return 0;
+    return 1;
 }
 
 int showList (Node **list, char *none) {
