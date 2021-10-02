@@ -2,8 +2,8 @@ CC = gcc
 objs = linkedlist.c socketServer.c
 
 all: $(objs) 
-	$(CC) $^ -I ../include -o linkedlist 
+	gcc $^ -I ../include -o socketServer
 
 .PHONY: clean
 clean:
-	-@rm linkedlist
+	-@rm socketServer
