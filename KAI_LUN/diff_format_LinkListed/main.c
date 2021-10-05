@@ -4,7 +4,7 @@
 
 struct DataFormat
 {
-	int inter;
+	int id; 
 	char *str;
 }typedef DF;
 
@@ -26,24 +26,27 @@ struct Cmd
 void add(node **current_node , char *data);
 void del(node **current_node , char *data);
 void show(node **hand_node , char *data);
+void clean_list(node **Hand_node , char *data);
 
 void save(node **hand_node_node , char *file_name);
 void load(node **current_node , char *file_name);
-
+void showN(node **current, char *data);
 void write_node(node **current , char *data);
 void init();
 int process_data(node **current , char *data);
 
 node *hand_node , *current_node;
- 
-//Init Command 
-cmd Command[6] = {{"add" , 3 , add}
-				 ,{"del" , 3 , del}
-				 ,{"show" , 4 , show}
-				 ,{"save" , 4 , save}
-				 ,{"load" , 4 , load}
-				 ,{NULL , 0 , NULL}};
 				 
+//Init Command 
+cmd Command[] = {{"add"   , 3 , add}
+				,{"del"   , 3 , del}
+				,{"show"  , 4 , show}
+				,{"save"  , 4 , save}
+				,{"load"  , 4 , load}
+				,{"clean" , 5 , clean_list}
+				,{"ShowN" , 5 , showN}
+				,{NULL    , 0 , NULL}};
+
 int main()
 {
 	printf("Please input the command and data\n");
@@ -52,7 +55,7 @@ int main()
 
 	char *input;
 	int command_count = 0;
-
+	//Init hand_node
 	init();
 
 	while(1)
@@ -77,11 +80,11 @@ int main()
 			}
 			command_count++;
 		}
-		if(command_count == 5)	
+		if(command_count == 7)	
 		{
 			printf("Command don't exist\n");	
 		}
-		printf("\n\n");
+		printf("\n");
 		command_count = 0;
 		free(input);
 	}
@@ -89,7 +92,7 @@ int main()
 	return 0;
 }
 
-//Init hand_node
+//Initialize hand_node
 void init()
 {
 	hand_node = (node *)malloc(sizeof(node));
@@ -102,24 +105,21 @@ void init()
 
 	current_node = hand_node;
 }
-
+//Add node to list
 void add(node **current , char *data)
 {
-	int data_flag = 0;
-
 	//Create the new node
 	node *new_node = (node *)malloc(sizeof(node));
 	new_node -> data = (DF *)malloc(sizeof(DF));
-
-	//New node data init 
 	new_node -> next = NULL;
-	data_flag = process_data(current , data);
 	
-	if(data_flag != 0)
+	//Determine the input format is true or false
+	if(process_data(current , data))
 	{
 		return;	
 	}
 	
+	//Write the data to current node
 	write_node(current , data);
 	//Link node to list
 	(*current) -> next = new_node;
@@ -134,7 +134,7 @@ void show(node **Hand_node , char *data)
 
 	while(cur -> next != NULL)
 	{
-		printf("%s , %d\n",cur -> data -> str , cur -> data -> inter);
+		printf("%s , %d\n",cur -> data -> str , cur -> data -> id);
 		cur = cur -> next;	
 	}
 }
@@ -153,9 +153,9 @@ void del(node **Hand_node , char *data)
 			break;
 		}
 
-		if(cur->data->inter == atoi(data) && cur->data->inter != 0)
+		if(cur->data->id == atoi(data) && cur->data->id != 0)
 		{
-			cur->data->inter = 0;	
+			cur->data->id = 0;	
 			break;
 		}
 
@@ -168,7 +168,8 @@ void del(node **Hand_node , char *data)
 		return;
 	}
 
-	if(strlen(cur->data->str) == 0 && cur->data->inter == 0)
+	//free node
+	if(strlen(cur->data->str) == 0 && cur->data->id == 0)
 	{
 		node *temp = cur;
 		if(cur == hand_node)
@@ -193,10 +194,16 @@ void save(node **Hand_node , char *file_name)
 	node *cur = hand_node;
 	int str_len;
 
+	char *index_file_name = (char *)malloc(strlen(file_name) + 8);	
+	memset(index_file_name , '\0' , strlen(index_file_name) + 8);	
+	strcpy(index_file_name , ".");
+	strcat(index_file_name , file_name);
+	strcat(index_file_name , "_index");
+
 	FILE *fp;
-	FILE *index = fopen("index" , "w");
+	FILE *index = fopen(index_file_name , "w");
 	
-	if((fp = fopen(file_name , "wb")) == NULL)	
+	if((fp = fopen(file_name , "w")) == NULL)	
 	{
 		printf("The file is not exist");
 		return;	
@@ -211,7 +218,7 @@ void save(node **Hand_node , char *file_name)
 
 		fwrite(cur->data->str , sizeof(char) , strlen(cur->data->str) , fp);	
 		fwrite("," , sizeof(char) , 1 , fp);
-		fwrite(&cur->data->inter , sizeof(int) , 1 , fp);
+		fwrite(&cur->data->id , sizeof(int) , 1 , fp);
 		fwrite("\n" , sizeof(char) , 1 ,fp);
 		
 		cur = cur -> next;	
@@ -227,7 +234,13 @@ void load(node **current_node , char *file_name)
 {
 	int str_len = 0 , count = 0 , index_file_size = 0;	
 
-	FILE *index = fopen("index" , "r");
+	char *index_file_name = (char *)malloc(strlen(file_name) + 8);	
+	memset(index_file_name , '\0' , strlen(index_file_name) + 8);	
+	strcpy(index_file_name , ".");
+	strcat(index_file_name , file_name);
+	strcat(index_file_name , "_index");
+
+	FILE *index = fopen(index_file_name , "r");
 	FILE *fp;
 	
 	if((fp = fopen(file_name , "r")) == NULL)	
@@ -235,6 +248,7 @@ void load(node **current_node , char *file_name)
 		printf("The file is not exist");
 		return;	
 	}
+
 	fseek(index , 0 , SEEK_END);
 	index_file_size = ftell(index);
 	fseek(index , 0 , SEEK_SET);
@@ -255,7 +269,7 @@ void load(node **current_node , char *file_name)
 		//Since data_file read data for new_node
 		fread((*current_node) -> data -> str , sizeof(char) , str_len, fp);
 		fseek(fp , 1 , SEEK_CUR);	
-		fread(&(*current_node) -> data -> inter , sizeof(int) , 1 , fp);
+		fread(&(*current_node) -> data -> id , sizeof(int) , 1 , fp);
 		fseek(fp , 1 , SEEK_CUR);
 		
 		new_node -> next = NULL;
@@ -329,7 +343,6 @@ int process_data(node **current , char *data)
 
 	return 0;
 }
-//-----------------------------------------------	
 
 void write_node(node **current , char *data) 
 {	
@@ -363,7 +376,7 @@ void write_node(node **current , char *data)
 		}
 		else
 		{
-			(*current) -> data -> inter = atoi(sp);	
+			(*current) -> data -> id = atoi(sp);	
 		}
 		
 		char_flag = 0;
@@ -371,3 +384,82 @@ void write_node(node **current , char *data)
 	}
 	return; 
 }
+
+void clean_list(node **Hand_node , char *data)
+{
+	node* cur = hand_node; 
+
+	while(cur -> next != NULL)
+	{
+		node *temp = cur;	
+		cur = cur->next;	
+		free(temp);
+	}
+
+	hand_node = cur;
+	
+}
+
+void showN(node **current, char *data)
+{
+	int seek_count = 0 , prev_seek_count = 0;	
+	int data_len , data_of_integer , n;		
+	char *buffer , *index_file_name , *file_name;
+	char *dot;
+	FILE *index , *fp; 
+
+	if((dot = strstr(data,",")) == NULL)
+	{
+		printf("Input data are fault\n");
+		return;	
+	}
+
+	file_name = (char *)malloc(dot - data + 1);
+	memset(file_name , '\0' , dot - data + 1);
+	strncpy(file_name , data , dot - data);
+
+	n = atoi(dot + 1);
+	
+    if(!(fp = fopen(file_name ,"r")))
+	{
+		printf("%s file open error\n" , file_name);
+		return;
+	}
+
+	index_file_name = (char *)malloc(strlen(file_name) + 8);	
+	memset(index_file_name , '\0' , strlen(index_file_name) + 8);	
+	strcpy(index_file_name , ".");
+	strcat(index_file_name , file_name);
+	strcat(index_file_name , "_index");
+
+    if(!(index = fopen(index_file_name ,"r")))
+	{
+		printf("%s file open error\n" , index_file_name);
+		return;
+	}
+
+	for(int i = 0 ; i < n ; i++)
+	{
+		prev_seek_count = seek_count;
+		fread(&data_len , 4 , 1 , index);	
+		fseek(index , 1 , SEEK_CUR);
+		seek_count += data_len + 6;	
+	}
+
+	buffer = (char *)malloc(seek_count - prev_seek_count - 6 + 1);
+	memset(buffer , '\0' , seek_count - prev_seek_count - 6 + 1);
+	
+	fseek(fp , prev_seek_count , SEEK_SET);
+	fread(buffer , 1 , seek_count - prev_seek_count - 6 , fp);	
+	fseek(fp , 1 ,SEEK_CUR);
+	fread(&data_of_integer , 4 , 1 , fp);
+
+	printf("%s , %d\n" , buffer , data_of_integer);
+
+	fclose(index);
+	fclose(fp);
+	
+}
+
+
+
