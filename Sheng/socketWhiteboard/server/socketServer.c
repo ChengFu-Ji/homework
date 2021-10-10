@@ -94,13 +94,19 @@ int main() {
                         }
                     }
                         //cleanList(head);
-                }
+                } else {
+                    if (n == 0 || errno == ECONNRESET) {
+                        printf("Exit: User[%d]\n", i);
+                        close(clientSockfd);
+                        clients[i].fd = -1;
+                    }
+                } 
             }
             if (--nready <= 0) {
                 continue;
             }
         }
-
+    }
     return 0;
 }
 

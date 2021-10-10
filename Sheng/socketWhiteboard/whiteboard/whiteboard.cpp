@@ -9,6 +9,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <signal.h>
 
 #include "linkedlist.h"
 
@@ -25,7 +26,7 @@ Node_s **sendList;
 
 int main() {
     pthread_t t;
-    int len, fd;
+    int fd;
     struct sockaddr_in me;
     struct hostent *host;
 
@@ -35,48 +36,43 @@ int main() {
 
     host = gethostbyname("192.168.0.236");
     fd = socket(AF_INET, SOCK_STREAM, 0);
+
     memset(&me, 0, sizeof(struct sockaddr_in));
     me.sin_family = AF_INET;
     me.sin_port = htons(2244);
     memcpy(&me.sin_addr, host->h_addr_list[0], host->h_length);
-    len = sizeof(struct sockaddr_in);
-    if (connect(fd, (struct sockaddr *) &me, len) < 0) {
+
+    
+
+    if (connect(fd, (struct sockaddr *) &me, sizeof(struct sockaddr_in)) < 0) {
         printf("Error Connection!\n");
         exit(1);
     }
 
     image = imread(imageName, 1);
     namedWindow(windowName, WINDOW_NORMAL);
-    /*  WINDOW_NORMAL: 0x00000000 can resize
-        WINDOW_AUTOSIZE: 0x00000001 can't resize
-    */
-
     imshow(windowName, image);
+
     setMouseCallback(windowName, onMouse, (void *) &fd);
-    pthread_create(&t, NULL, recvControl, (void *) &fd);
 
-    if (waitKey(0) == 27) {
-        Data_s quit = {-1, -1};
-        write(fd, &quit, sizeof(Data_s));
-        close(fd);
-        free(*sendList);
-        free(sendList);
-        printf("Exiting...\n");
-    }
+    pthread_create(&t, NULL, recvData, (void *) &fd);
 
-
-    return 0;
-}
-
-void *recvControl (void *fd) {
-    pthread_t t;
-    pthread_create(&t, NULL, recvData, fd);
     while (1) {
-        if (pthread_join(t, NULL)) {
-            printf("created new thread!\n");
-            pthread_create(&t, NULL, recvData, fd);
+        if (waitKey(100) == 27) {
+            close(fd);
+            free(*sendList);
+            free(sendList);
+            printf("Exiting...\n");
+            break;
+        }
+        if (pthread_kill(t, 0) == ESRCH) {
+            pthread_create(&t, NULL, recvData, (void *) &fd);
         }
     }
+    if (pthread_kill(t, 0) != ESRCH) {
+        pthread_cancel(t);
+    }
+    return 0;
 }
 
 void *recvData(void *fd) {
@@ -96,12 +92,11 @@ void *recvData(void *fd) {
             p1.y = cur->point.y;
             p2.x = cur->next->point.x;
             p2.y = cur->next->point.y;
-            line(image, p1, p2, Scalar(0, 0, 0), 2); imshow(windowName, image);
+            line(image, p1, p2, Scalar(55, 55, 0), 2); 
+            imshow(windowName, image);
             cur = cur->next;
         }
         cleanList(&recv);
-    } else {
-        printf("get Nothing...\n");
     }
 
     pthread_exit(0);
@@ -123,7 +118,7 @@ void onMouse (int event, int x, int y, int flags, void *userdata) {
         now_pos.x = x;
         now_pos.y = y;
 
-        line(image, pre_pos, now_pos, Scalar(0, 0, 0), 2);
+        line(image, pre_pos, now_pos, Scalar(0, 255, 0), 2);
         imshow(windowName, image);
 
         add(sendList, pre_pos.x, pre_pos.y);
@@ -133,6 +128,7 @@ void onMouse (int event, int x, int y, int flags, void *userdata) {
 
         printf("moving pos x: %d, y: %d\n", x, y);
     } else if (event == EVENT_LBUTTONUP) {
+        
         add(sendList, pre_pos.x, pre_pos.y);
 
         showList(sendList);
