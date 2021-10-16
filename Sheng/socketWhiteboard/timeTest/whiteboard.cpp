@@ -59,18 +59,18 @@ int main() {
     pthread_create(&t, NULL, recvData, (void *) &fd);
 
     while (1) {
-        if (waitkey(100) == 27) {
+        if (waitKey(100) == 27) {
             close(fd);
-            free(*sendlist);
-            free(sendlist);
+            free(*sendList);
+            free(sendList);
             printf("exiting...\n");
             break;
         }
-        if (pthread_kill(t, 0) == esrch) {
-            pthread_create(&t, null, recvdata, (void *) &fd);
+        if (pthread_kill(t, 0) == ESRCH) {
+            pthread_create(&t, NULL, recvData, (void *) &fd);
         }
     }
-    if (pthread_kill(t, 0) != esrch) {
+    if (pthread_kill(t, 0) != ESRCH) {
         pthread_cancel(t);
     }
     return 0;
