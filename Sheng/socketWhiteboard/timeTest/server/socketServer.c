@@ -11,16 +11,17 @@
 #include "linkedlist.h"
 
 #define MAX_P 10
-void showTime(char *status, struct timespec);
 
+void *writefile(void*);
+void showTime(char *, int);
+void writeCSV(size_t, char *, int);
+void CSVinit();
+
+int times = 0;
 int main() {
     int serverSockfd, clientSockfd, serverlen, clientlen;
     struct sockaddr_in  server, client;
     struct pollfd clients[MAX_P];
-    Node_s **head;
-
-    head = (Node_s **)malloc(sizeof(Node_s *));
-    *head = (Node_s *)malloc(sizeof(Node_s));
 
     serverSockfd = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -39,22 +40,25 @@ int main() {
     for (int i = 1; i < MAX_P; i++) {
         clients[i].fd = -1;
     }
+    CSVinit();
+
     int nready = 0;
     int maxi = 1;
+    printf("waiting...\n");
+
     while (1) {
-        printf("waiting...\n");
         nready = poll(clients, maxi, -1);
-        printf("status: polled\n");
 
         if (clients[0].revents & POLLRDNORM) {
             clientlen = sizeof(client);
             clientSockfd = accept(serverSockfd, (struct sockaddr *) &client, (socklen_t *) &clientlen);
             int i = 0;
-            for (i = 1; i < MAX_P; i++) {
+            for (i = 1; i <= MAX_P; i++) {
                 if (clients[i].fd < 0) {
                     clients[i].fd = clientSockfd;
                     clients[i].events = POLLRDNORM;
-                    printf("Add client in %d\n", i);
+                    showTime("Add", i);
+                    write(clientSockfd, &i, sizeof(int));
                     break;
                 }
             }
@@ -81,15 +85,13 @@ int main() {
                 int n;
 
                 if ((n = read(clientSockfd, &tmp, sizeof(tmp))) > 0) {
-                    if (tmp.x == -1) {
-                        showTime("After Read ");
+                    if (tmp.x == -1 && tmp.y == 0) {
+                        printf("time %d\n", ++times);
+                        showTime("Read", i);
                     }
-                    if (tmp.x == -1 && tmp.y == -1) {
-                        printf("Exit: User[%d]\n", i);
-                        close(clientSockfd);
-                        clients[i].fd = -1;
-                        continue;
-                    }
+
+                    /*
+                        刪除部分＿轉發功能
                     for (int j = 1; j <= maxi; j++) {
                         if (clients[j].fd != clientSockfd && clients[j].fd != -1) {
                             //int n = sprintf(sendArr, "x: %d, y: %d\n", tmp.x, tmp.y);
@@ -97,9 +99,10 @@ int main() {
                             write(clients[j].fd, &tmp, n);
                         }
                     }
+                    */
                 } else {
                     if (n == 0 || errno == ECONNRESET) {
-                        printf("Exit: User[%d]\n", i);
+                        showTime("Exit", i);
                         close(clientSockfd);
                         clients[i].fd = -1;
                     }
@@ -113,9 +116,34 @@ int main() {
     return 0;
 }
 
-void showTime(char *status) {
-    static struct timespec ts;
+void showTime(char *status, int id) {
+    struct timespec ts;
+    size_t t;
+
     clock_gettime(CLOCK_REALTIME, &ts);
-    
-    printf("%s, time [%ld]\n", status, ts.tv_nsec);
+
+    t = ts.tv_sec;
+    for (int i = 0; i < 9; i++) {
+        t *= 10;
+    }
+
+    writeCSV(ts.tv_nsec+t, status, id);
+    printf("%s, time [%lu ns]\n", status, ts.tv_nsec + t);
 }
+
+void writeCSV(size_t time, char *status, int id) {
+    FILE *fp;
+
+    fp = fopen("serverLog.csv", "a");
+    fprintf(fp, "%d, %s, %lu\n", id, status, time);
+    fclose(fp);
+}
+
+void CSVinit() {
+    FILE *fp;
+
+    fp = fopen("serverLog.csv", "w");
+    fprintf(fp, "PID, status, recv_time (unit: ns)\n");
+    fclose(fp);
+}
+

@@ -16,21 +16,28 @@
 
 using namespace cv;
 
-void *recvData(void*);
-void onMouse (int, int, int, int, void*);
 void showTime (char *);
+void autoTesting (int fd);
+void writeCSV(size_t, char *);
+void CSVinit();
 
 char windowName[] = "Display Image";
 char imageName[] = "background.png";
 Mat image;
 Node_s **sendList;
+int pid = 0;
 
 int main() {
-    pthread_t t;
+    FILE *fp;
     int fd;
     struct sockaddr_in me;
     struct hostent *host;
 
+    if ((fp = fopen("clientLog.csv", "r"))) {
+        fclose(fp);
+    } else {
+        CSVinit();
+    }
     sendList = (Node_s **)malloc(sizeof(Node_s *));
     *sendList = (Node_s *)malloc(sizeof(Node_s));
     (*sendList)->next = NULL;
@@ -42,105 +49,111 @@ int main() {
     me.sin_family = AF_INET;
     me.sin_port = htons(2244);
     memcpy(&me.sin_addr, host->h_addr_list[0], host->h_length);
-
     
-
     if (connect(fd, (struct sockaddr *) &me, sizeof(struct sockaddr_in)) < 0) {
         printf("Error Connection!\n");
         exit(1);
+    } else {
+        showTime("connected");
+        read(fd, &pid, sizeof(int));
     }
 
     image = imread(imageName, 1);
     namedWindow(windowName, WINDOW_NORMAL);
     imshow(windowName, image);
 
-    setMouseCallback(windowName, onMouse, (void *) &fd);
+    autoTesting(fd);
+    waitKey(10);
 
-    pthread_create(&t, NULL, recvData, (void *) &fd);
+    close(fd);
+    showTime("exit");
+    free(*sendList);
+    free(sendList);
 
-    while (1) {
-        if (waitKey(100) == 27) {
-            close(fd);
-            free(*sendList);
-            free(sendList);
-            printf("exiting...\n");
-            break;
-        }
-        if (pthread_kill(t, 0) == ESRCH) {
-            pthread_create(&t, NULL, recvData, (void *) &fd);
-        }
-    }
-    if (pthread_kill(t, 0) != ESRCH) {
-        pthread_cancel(t);
-    }
     return 0;
 }
 
-void *recvData(void *fd) {
-    int sockfd = *(int *) fd;
-    Node_s space;
-    Node_s *recv, *cur;
-    Point p1, p2;
+void autoTesting (int fd) {
+    Point sp, ep;
+    int count;
+    double spacingX, spacingY;
 
-    recv = &space;
-    recv->next = NULL;
-
-    if (!socket_read(&recv, sockfd)) {
-        showList(&recv);
-        cur = recv->next;
-        while (cur->next != NULL) {
-            p1.x = cur->point.x;
-            p1.y = cur->point.y;
-            p2.x = cur->next->point.x;
-            p2.y = cur->next->point.y;
-            line(image, p1, p2, Scalar(55, 55, 0), 2); 
-            imshow(windowName, image);
-            cur = cur->next;
+    srand(time(NULL));
+    count = 1;
+    while (1) {
+        sp.x = rand() % 600;
+        sp.y = rand() % 1000;
+        ep.x = rand() % 600;
+        ep.y = rand() % 1000;
+        while (sp.x == ep.x && sp.y == ep.y) {
+            sp.x = rand() % 600;
+            sp.y = rand() % 1000;
         }
-        cleanList(&recv);
-    }
 
-    pthread_exit(0);
-}
+        spacingX = (ep.x - sp.x)/100.0;
+        spacingY = (ep.y - sp.y)/100.0;
 
-void onMouse (int event, int x, int y, int flags, void *userdata) {
-    Data_s tmp;
-    static Point pre_pos;
-    int fd = *(int *) userdata;
+        for (int i = 1; i <= 100; i++) {
+            ep.x = sp.x + (int) (spacingX);
+            ep.y = sp.y + (int) (spacingY);
+            line(image, sp, ep, Scalar(0, 255, 0), 2);
+            imshow(windowName, image);
+            waitKey(1);
+            add(sendList, sp.x, sp.y);
+            sp = ep;
+        }
 
-    if (event == EVENT_LBUTTONDOWN) {
-        pre_pos.x = x;
-        pre_pos.y = y;
-        printf("L click pos x: %d, y: %d\n", pre_pos.x, pre_pos.y);
-    } else if (event == EVENT_MOUSEMOVE && flags == EVENT_FLAG_LBUTTON) {
-        Point now_pos;
-
-        now_pos.x = x;
-        now_pos.y = y;
-
-        line(image, pre_pos, now_pos, Scalar(0, 255, 0), 2);
-        imshow(windowName, image);
-
-        add(sendList, pre_pos.x, pre_pos.y);
-
-        pre_pos.x = x;
-        pre_pos.y = y;
-
-    } else if (event == EVENT_LBUTTONUP) {
-        add(sendList, pre_pos.x, pre_pos.y);
-
-        showList(sendList);
+        add(sendList, sp.x, sp.y);
         add(sendList, -1, 0);
+        
         socket_write(sendList, fd);
-        showTime("end send");
+
+        showTime("LineSend");
         
         cleanList(sendList);
+        if (count >= 100) {
+            printf("times %d\n", count);
+            break;
+        } else {
+            printf("times %d\n", count);
+            count++;
+        }
     }
 }
 
 void showTime (char *status) {
     struct timespec ts;
+    size_t t;
+
     clock_gettime(CLOCK_REALTIME, &ts);
 
-    printf("%s, time[%ld]\n", status, ts.tv_nsec);
+    t = ts.tv_sec;
+    for (int i = 0; i < 9; i++) {
+        t *= 10;
+    }
+
+    writeCSV(ts.tv_nsec+t, status);
+    printf("%s, time[%lu ns]\n", status, t + ts.tv_nsec);
 }
+
+void writeCSV(size_t time, char *status) {
+    FILE *fp;
+
+    while (1) {
+        fp = fopen("clientLog.csv", "a");
+        if (fp) {
+            break;
+        }
+    }
+    fprintf(fp, "%d, %s, %lu\n", pid, status, time);
+    fclose(fp);
+}
+
+void CSVinit() {
+    FILE *fp;
+
+    fp = fopen("clientLog.csv", "w");
+    fprintf(fp, "PID, status, recv_time (unit: ns)\n");
+    fclose(fp);
+}
+
