@@ -8,7 +8,7 @@
  *  新增一筆資料在 Linkedlist 中，
  *  如果使用者未輸入 id 則會自動補上。
  */
-int add (Node_s **node, int x, int y) {
+int add (Node_s **node, Data_s pt) {
     Node_s *new_node, *cur;
 
     cur = *node;
@@ -16,8 +16,9 @@ int add (Node_s **node, int x, int y) {
         cur = cur->next;
 
     new_node = (Node_s *)malloc(sizeof(Node_s));
-    new_node->point.x = x;
-    new_node->point.y = y;
+    new_node->point.id = pt.id;
+    new_node->point.x = pt.x;
+    new_node->point.y = pt.y;
     new_node->next = NULL;
 
     cur->next = new_node;
@@ -72,10 +73,32 @@ int socket_read (Node_s **node, int fd) {
     Data_s pt;
 
     while (read(fd, &(pt), sizeof(pt)) > 0) {
-        if (pt.x == -1) {
-            return 0;
+        add(node, pt);
+        if (pt.x == -1 && pt.y == 0) {
+            return pt.id;
         }
-        add(node, pt.x, pt.y);
     }
-    return 1;
+    return -1;
+}
+
+int IDdelete (Node_s **node, int id) {
+    Node_s *cur, *next;
+    int x, y;
+
+    cur = *node;
+    while (cur->next != NULL) {
+        next = cur->next->next;
+        if (id == cur->next->point.id) {
+            x = cur->next->point.x;
+            y = cur->next->point.y;
+            free(cur->next);
+            cur->next = next;
+            if (x == -1 && y == 0) {
+                break;
+            }
+        } else {
+            cur = cur->next;
+        }
+    }
+    return 0;
 }

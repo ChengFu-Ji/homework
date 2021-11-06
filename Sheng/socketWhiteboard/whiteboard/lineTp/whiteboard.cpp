@@ -21,6 +21,7 @@ void onMouse (int, int, int, int, void*);
 char windowName[] = "Display Image";
 char imageName[] = "background.png";
 Mat image;
+Node_s **sendList;
 Node_s **recvList;
 
 int main() {
@@ -28,6 +29,10 @@ int main() {
     int fd;
     struct sockaddr_in me;
     struct hostent *host;
+
+    sendList = (Node_s **)malloc(sizeof(Node_s *));
+    *sendList = (Node_s *)malloc(sizeof(Node_s));
+    (*sendList)->next = NULL;
 
     recvList = (Node_s **)malloc(sizeof(Node_s *));
     *recvList = (Node_s *)malloc(sizeof(Node_s));
@@ -40,6 +45,8 @@ int main() {
     me.sin_family = AF_INET;
     me.sin_port = htons(2244);
     memcpy(&me.sin_addr, host->h_addr_list[0], host->h_length);
+
+    
 
     if (connect(fd, (struct sockaddr *) &me, sizeof(struct sockaddr_in)) < 0) {
         printf("Error Connection!\n");
@@ -57,6 +64,8 @@ int main() {
     while (1) {
         if (waitKey(100) == 27) {
             close(fd);
+            free(*sendList);
+            free(sendList);
             free(*recvList);
             free(recvList);
             printf("Exiting...\n");
@@ -127,19 +136,23 @@ void onMouse (int event, int x, int y, int flags, void *userdata) {
 
         tmp.x = pre_pos.x;
         tmp.y = pre_pos.y;
-        write(fd, &tmp, sizeof(tmp));
+        add(sendList, tmp);
 
         pre_pos.x = x;
         pre_pos.y = y;
 
         printf("moving pos x: %d, y: %d\n", x, y);
     } else if (event == EVENT_LBUTTONUP) {
-        
-        write(fd, &tmp, sizeof(tmp));
 
+        add(sendList, tmp);
+
+        showList(sendList);
         tmp.x = -1;
         tmp.y = 0;
-        write(fd, &tmp, sizeof(tmp));
+        add(sendList, tmp);
+        socket_write(sendList, fd);
+        
+        cleanList(sendList);
         
     }
 }

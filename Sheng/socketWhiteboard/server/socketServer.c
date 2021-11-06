@@ -79,13 +79,8 @@ int main() {
                 char sendArr[200];
 
                 if ((n = read(clientSockfd, &tmp, sizeof(tmp))) > 0) {
-                    printf("Read in data\n");
-                    if (tmp.x == -1 && tmp.y == -1) {
-                        printf("Exit: User[%d]\n", i);
-                        close(clientSockfd);
-                        clients[i].fd = -1;
-                        continue;
-                    }
+                    tmp.id = i;
+                    printf("id %d, (%d, %d)\n", tmp.id, tmp.x, tmp.y);
                     for (int j = 1; j <= maxi; j++) {
                         if (clients[j].fd != clientSockfd && clients[j].fd != -1) {
                             //int n = sprintf(sendArr, "x: %d, y: %d\n", tmp.x, tmp.y);
