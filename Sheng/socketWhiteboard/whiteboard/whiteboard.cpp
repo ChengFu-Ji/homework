@@ -17,6 +17,7 @@ using namespace cv;
 
 void *recvData(void*);
 void onMouse (int, int, int, int, void*);
+int clientInit (int port, char *address);
 
 char windowName[] = "Display Image";
 char imageName[] = "background.png";
@@ -26,23 +27,17 @@ Node_s **recvList;
 int main() {
     pthread_t t;
     int fd;
-    struct sockaddr_in me;
-    struct hostent *host;
+
+    int port = 2244;
+    char address[] = "localhost";
+    //char address[] = "10.25.1.133";
 
     recvList = (Node_s **)malloc(sizeof(Node_s *));
     *recvList = (Node_s *)malloc(sizeof(Node_s));
     (*recvList)->next = NULL;
 
-    host = gethostbyname("10.25.1.133");
-    fd = socket(AF_INET, SOCK_STREAM, 0);
-
-    memset(&me, 0, sizeof(struct sockaddr_in));
-    me.sin_family = AF_INET;
-    me.sin_port = htons(2244);
-    memcpy(&me.sin_addr, host->h_addr_list[0], host->h_length);
-
-    if (connect(fd, (struct sockaddr *) &me, sizeof(struct sockaddr_in)) < 0) {
-        printf("Error Connection!\n");
+    if ((fd = clientInit(port, address)) < 0) {
+        printf("ERROR:Can't not connect to %s:%d....\nExiting...\n", address, port);
         exit(1);
     }
 
@@ -72,6 +67,28 @@ int main() {
     return 0;
 }
 
+int clientInit (int port, char *address) {
+    int fd;
+    struct sockaddr_in mAddr;
+    struct hostent *host;
+
+    if ((host = gethostbyname(address)) == NULL) {
+        return -1;
+    }
+
+    fd = socket(AF_INET, SOCK_STREAM, 0);
+    memset(&mAddr, 0, sizeof(mAddr));
+    mAddr.sin_family = AF_INET;
+    mAddr.sin_port = htons(port);
+    memcpy(&mAddr.sin_addr, host->h_addr_list[0], host->h_length);
+
+    if (connect(fd, (struct sockaddr *) &mAddr, sizeof(struct sockaddr_in)) < 0) {
+        return -1;
+    }
+
+    return fd;
+}
+
 void *recvData(void *fd) {
     int sockfd = *(int *) fd;
     int id;
@@ -82,18 +99,19 @@ void *recvData(void *fd) {
     if ((id = socket_read(recvList, sockfd)) != -1) {
         cur = (*recvList)->next;
         while (cur->next != NULL) {
-            printf("id %d\n", id);
-            if (cur->point.id == id && cur->next->point.x != -1 && cur->next->point.y != 0) {
+            if (cur->point.id == id && cur->point.x != -1 && cur->point.y != 0) {
                 p1.x = cur->point.x;
                 p1.y = cur->point.y;
                 next = cur->next;
+
                 while (next->point.id != id && next != NULL) {
                     next = next->next;
                 }
-                if (next->point.x != -1 && next->point.y != 0) {
+
+                if (next != NULL && next->point.x != -1 && next->point.y != 0) {
                     p2.x = next->point.x;
                     p2.y = next->point.y;
-                    line(image, p1, p2, Scalar(55, 55, 0), 2); 
+                    line(image, p1, p2, Scalar(17, 200, 170), 2); 
                     imshow(windowName, image);
                 }
             }
@@ -110,12 +128,10 @@ void onMouse (int event, int x, int y, int flags, void *userdata) {
     static Point pre_pos;
     int fd = *(int *) userdata;
 
-
     tmp.id = 0;
     if (event == EVENT_LBUTTONDOWN) {
         pre_pos.x = x;
         pre_pos.y = y;
-        printf("L click pos x: %d, y: %d\n", pre_pos.x, pre_pos.y);
     } else if (event == EVENT_MOUSEMOVE && (flags & EVENT_FLAG_LBUTTON)) {
         Point now_pos;
 
@@ -132,7 +148,6 @@ void onMouse (int event, int x, int y, int flags, void *userdata) {
         pre_pos.x = x;
         pre_pos.y = y;
 
-        printf("moving pos x: %d, y: %d\n", x, y);
     } else if (event == EVENT_LBUTTONUP) {
         
         write(fd, &tmp, sizeof(tmp));

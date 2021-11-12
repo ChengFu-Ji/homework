@@ -17,6 +17,7 @@ using namespace cv;
 
 void *recvData(void*);
 void onMouse (int, int, int, int, void*);
+int clientInit (int port, char *address);
 
 char windowName[] = "Display Image";
 char imageName[] = "background.png";
@@ -27,8 +28,9 @@ Node_s **recvList;
 int main() {
     pthread_t t;
     int fd;
-    struct sockaddr_in me;
-    struct hostent *host;
+
+    int port = 2244;
+    char address[] = "localhost";
 
     sendList = (Node_s **)malloc(sizeof(Node_s *));
     *sendList = (Node_s *)malloc(sizeof(Node_s));
@@ -38,21 +40,11 @@ int main() {
     *recvList = (Node_s *)malloc(sizeof(Node_s));
     (*recvList)->next = NULL;
 
-    host = gethostbyname("10.25.1.133");
-    fd = socket(AF_INET, SOCK_STREAM, 0);
-
-    memset(&me, 0, sizeof(struct sockaddr_in));
-    me.sin_family = AF_INET;
-    me.sin_port = htons(2244);
-    memcpy(&me.sin_addr, host->h_addr_list[0], host->h_length);
-
-    
-
-    if (connect(fd, (struct sockaddr *) &me, sizeof(struct sockaddr_in)) < 0) {
-        printf("Error Connection!\n");
+    if ((fd = clientInit(port, address)) < 0) {
+        printf("ERROR:Can't not connect to %s:%d....\nExiting...\n", address, port);
         exit(1);
     }
-
+    
     image = imread(imageName, 1);
     namedWindow(windowName, WINDOW_NORMAL);
     imshow(windowName, image);
@@ -79,6 +71,28 @@ int main() {
         pthread_cancel(t);
     }
     return 0;
+}
+
+int clientInit (int port, char *address) {
+    int fd;
+    struct sockaddr_in maddr;
+    struct hostent *host;
+
+    if ((host = gethostbyname(address)) == null) {
+        return -1;
+    }
+
+    fd = socket(af_inet, sock_stream, 0);
+    memset(&maddr, 0, sizeof(maddr));
+    maddr.sin_family = af_inet;
+    maddr.sin_port = htons(port);
+    memcpy(&maddr.sin_addr, host->h_addr_list[0], host->h_length);
+
+    if (connect(fd, (struct sockaddr *) &maddr, sizeof(struct sockaddr_in)) < 0) {
+        return -1;
+    }
+
+    return fd;
 }
 
 void *recvData(void *fd) {

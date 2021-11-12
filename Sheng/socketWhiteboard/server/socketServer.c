@@ -11,37 +11,29 @@
 
 #define MAX_P 10
 
+int serverInit (int port);
+
 int main() {
-    int serverSockfd, clientSockfd, serverlen, clientlen;
-    struct sockaddr_in  server, client;
+    int serverSockfd, clientSockfd, clientlen;
+    struct sockaddr_in client;
     struct pollfd clients[MAX_P];
-    Node_s **head;
 
-    head = (Node_s **)malloc(sizeof(Node_s *));
-    *head = (Node_s *)malloc(sizeof(Node_s));
-
-    serverSockfd = socket(AF_INET, SOCK_STREAM, 0);
-
-    serverlen = sizeof(server);
-
-    bzero(&server, serverlen);
-    server.sin_family = AF_INET;
-    server.sin_port = htons(2244);
-    server.sin_addr.s_addr = INADDR_ANY;
-
-    bind(serverSockfd, (struct sockaddr *) &server, sizeof(server));
-    listen(serverSockfd, 5);
-
+    int port = 2244;
+    if ((serverSockfd = serverInit(port)) < 0) {
+        printf("ERROR: Fail to listen on port %d\nExiting...\n", port);
+        exit(1);
+    }
+    
     clients[0].fd = serverSockfd;
     clients[0].events = POLLRDNORM;
     for (int i = 1; i < MAX_P; i++) {
         clients[i].fd = -1;
     }
+
     int nready = 0;
     int maxi = 1;
     while (1) {
         nready = poll(clients, maxi, -1);
-        printf("status: polled\n");
 
         if (clients[0].revents & POLLRDNORM) {
             clientlen = sizeof(client);
@@ -51,11 +43,12 @@ int main() {
                 if (clients[i].fd < 0) {
                     clients[i].fd = clientSockfd;
                     clients[i].events = POLLRDNORM;
-                    printf("Add client in %d\n", i);
+                    printf("Add client at %d\n", i);
                     break;
                 }
             }
-            if (i == MAX_P) {
+
+            if (maxi > MAX_P) {
                 printf("There are too many people here, Exiting...\n");
                 exit(1);
             } else if (i == maxi) {
@@ -72,23 +65,19 @@ int main() {
             if (clients[i].fd < 0) {
                 continue;
             }
+
             clientSockfd = clients[i].fd;
             if (clients[i].revents & (POLLRDNORM | POLLERR)) {
                 Data_s tmp;
                 int n;
-                char sendArr[200];
 
                 if ((n = read(clientSockfd, &tmp, sizeof(tmp))) > 0) {
                     tmp.id = i;
-                    printf("id %d, (%d, %d)\n", tmp.id, tmp.x, tmp.y);
                     for (int j = 1; j <= maxi; j++) {
                         if (clients[j].fd != clientSockfd && clients[j].fd != -1) {
-                            //int n = sprintf(sendArr, "x: %d, y: %d\n", tmp.x, tmp.y);
-                            //write(clients[j].fd, sendArr, n);
                             write(clients[j].fd, &tmp, n);
                         }
                     }
-                        //cleanList(head);
                 } else {
                     if (n == 0 || errno == ECONNRESET) {
                         printf("Exit: User[%d]\n", i);
@@ -103,5 +92,25 @@ int main() {
         }
     }
     return 0;
+}
+
+int serverInit (int port) {
+    int fd, len;
+    struct sockaddr_in server;
+
+    fd = socket(AF_INET, SOCK_STREAM, 0);
+
+    len = sizeof(server);
+
+    bzero(&server, len);
+    server.sin_family = AF_INET;
+    server.sin_port = htons(port);
+    server.sin_addr.s_addr = INADDR_ANY;
+
+    if ((bind(fd, (struct sockaddr *) &server, len)) < 0 || (listen(fd, 5)) < 0) {
+        return -1;
+    }
+
+    return fd;
 }
 
