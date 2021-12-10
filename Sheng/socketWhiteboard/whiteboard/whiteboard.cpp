@@ -1,70 +1,98 @@
 #include <stdio.h>
-#include <opencv2/opencv.hpp>
-#include <opencv2/highgui.hpp>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+#include <time.h>
 
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
-#include <string.h>
 #include <unistd.h>
 #include <pthread.h>
 #include <signal.h>
 
+#include <opencv2/opencv.hpp>
+
 #include "linkedlist.h"
+
+#define TIMES 1000
+#define DOTS 6
 
 using namespace cv;
 
-void *recvData(void*);
-void onMouse (int, int, int, int, void*);
-int clientInit (int port, char *address);
+int clientInit (int, char *);
+Node_s **linkedlistInit ();
+void linkedlistFree (Node_s **);
+int factorial(int);
+double dist (Point2d, Point2d);
+double bezierPoly (double, int, int); 
+void triangleDist (Point2d *, double *);
+void bezierCurve (Point2d *, int, Point2d *, int);
+void plotHandwriting (Point2d *, Point2d *, int);
+void *recvData (void *);
+void MouseWork (int, int, int, int, void *);
 
-char windowName[] = "Display Image";
+char windowName[] = "whiteboard";
 char imageName[] = "background.png";
 Mat image;
-Node_s **recvList;
+Node_s **recvList, **sendList;
 
-int main() {
+int main () {
     pthread_t t;
     int fd;
 
+    image = Mat(900, 1600, CV_8UC3, Scalar(255, 255, 255));
+
     int port = 2244;
     char address[] = "localhost";
-    //char address[] = "10.25.1.133";
 
-    recvList = (Node_s **)malloc(sizeof(Node_s *));
-    *recvList = (Node_s *)malloc(sizeof(Node_s));
-    (*recvList)->next = NULL;
+    sendList = linkedlistInit();
+    recvList = linkedlistInit();
 
-    if ((fd = clientInit(port, address)) < 0) {
-        printf("ERROR:Can't not connect to %s:%d....\nExiting...\n", address, port);
-        exit(1);
-    }
-
-    image = imread(imageName, 1);
     namedWindow(windowName, WINDOW_NORMAL);
     imshow(windowName, image);
 
-    setMouseCallback(windowName, onMouse, (void *) &fd);
+    setMouseCallback(windowName, MouseWork, (void *) &fd);
 
-    pthread_create(&t, NULL, recvData, (void *) &fd);
+    if ((fd = clientInit(port, address)) < 0) {
+        printf("ERROR:Can't not connect to %s:%d....\nTurn on offline mode\n", address, port);
+    } else {
+        pthread_create(&t, NULL, recvData, (void *) &fd);
+    }
 
     while (1) {
         if (waitKey(100) == 27) {
             close(fd);
-            free(*recvList);
-            free(recvList);
+            linkedlistFree(recvList);
+            linkedlistFree(sendList);
             printf("Exiting...\n");
             break;
         }
-        if (pthread_kill(t, 0) == ESRCH) {
-            pthread_create(&t, NULL, recvData, (void *) &fd);
+        if (fd > 0) {
+            if (pthread_kill(t, 0) == ESRCH) {
+                pthread_create(&t, NULL, recvData, (void *) &fd);
+            }
         }
     }
-    if (pthread_kill(t, 0) != ESRCH) {
-        pthread_cancel(t);
+    if (fd > 0) {
+        if (pthread_kill(t, 0) != ESRCH) {
+            pthread_cancel(t);
+        }
     }
-    return 0;
+}
+
+Node_s **linkedlistInit () {
+    Node_s **list;
+    list = (Node_s **)malloc(sizeof(Node_s *));
+    *list = (Node_s *)malloc(sizeof(Node_s));
+    (*list)->next = NULL;
+    return list;
+}
+
+void linkedlistFree (Node_s **list) {
+    free(*list);
+    free(list);
 }
 
 int clientInit (int port, char *address) {
@@ -90,72 +118,230 @@ int clientInit (int port, char *address) {
 }
 
 void *recvData(void *fd) {
-    int sockfd = *(int *) fd;
-    int id;
-    Node_s space;
-    Node_s *recv, *cur, *next;
-    Point p1, p2;
+    Point2d p[DOTS], plot[TIMES];
+    Node_s *cur, *next;
+    int sockfd = *(int *) fd, i = 0, j = 0;
+    int id, size;
+    double distance = 0.0;
 
-    if ((id = socket_read(recvList, sockfd)) != -1) {
+    if (read(sockfd, &size, sizeof(int)) < 0) {
+        pthread_exit(NULL);
+    }
+
+    if (socket_read(recvList, sockfd, size)) {
+        for (i = 0; i < DOTS; i++) {
+            p[i] = Point(-1, -1);
+        }
         cur = (*recvList)->next;
-        while (cur->next != NULL) {
-            if (cur->point.id == id && cur->point.x != -1 && cur->point.y != 0) {
-                p1.x = cur->point.x;
-                p1.y = cur->point.y;
-                next = cur->next;
-
-                while (next->point.id != id && next != NULL) {
-                    next = next->next;
+        while (cur != NULL) {
+            //printf("%d:cur %d %d\n", cur->point.id, cur->point.x, cur->point.y);
+            if (cur->point.x != -1 && cur->point.y != 0) {
+                for(i = 0; i < DOTS-1; i++) {
+                    if (p[i].x == -1 && p[i].y == -1) {
+                        p[i] = Point(cur->point.x, cur->point.y);
+                        cur = cur->next;
+                        break;
+                    }
                 }
-
-                if (next != NULL && next->point.x != -1 && next->point.y != 0) {
-                    p2.x = next->point.x;
-                    p2.y = next->point.y;
-                    line(image, p1, p2, Scalar(17, 200, 170), 2); 
-                    imshow(windowName, image);
+                if (i != DOTS-1) {
+                    continue;
                 }
+                p[DOTS-1] = Point(cur->point.x, cur->point.y);
+                bezierCurve(plot, TIMES, p, DOTS);
+                plotHandwriting(p, plot, 0);
+                imshow(windowName, image);
             }
             cur = cur->next;
         }
-        IDdelete(recvList, id);
-    }
 
+        plotHandwriting(p, plot, 1);
+        imshow(windowName, image);
+        //IDdelete(recvList, id);
+        cleanList(recvList);
+    }
     pthread_exit(0);
 }
 
-void onMouse (int event, int x, int y, int flags, void *userdata) {
+void MouseWork (int event, int x, int y, int flags, void *userdata) {
     static Data_s tmp;
-    static Point pre_pos;
-    int fd = *(int *) userdata;
+    static Point2d p[DOTS];
+    static int dots = 0;
+    Point2d plot[TIMES] ;
+    int fd = *(int *) userdata, i = 0, j = 0;
+    double distance = 0.0;
 
-    tmp.id = 0;
     if (event == EVENT_LBUTTONDOWN) {
-        pre_pos.x = x;
-        pre_pos.y = y;
-    } else if (event == EVENT_MOUSEMOVE && (flags & EVENT_FLAG_LBUTTON)) {
-        Point now_pos;
+        p[0] = Point(x, y);
 
-        now_pos.x = x;
-        now_pos.y = y;
+        if (fd > 0) {
+            dots++;
+            tmp.x = x;
+            tmp.y = y;
+            add(sendList, tmp);
+        }
+        for (i = 1; i < DOTS; i++) {
+            p[i] = Point(-1, -1);
+        }
+    } else if (event == EVENT_MOUSEMOVE && (flags & EVENT_FLAG_LBUTTON) && p[0].x != -1 && p[0].y != -1) {
+        for (i = 0; i < DOTS-1; i++) {
+            if (p[i].x == -1 && p[i].y == -1) {
+                p[i] = Point(x, y);
+                if (fd > 0) {
+                    dots++;
+                    tmp.x = x;
+                    tmp.y = y;
+                    add(sendList, tmp);
+                }
+                return;
+            }
+        }
 
-        line(image, pre_pos, now_pos, Scalar(0, 255, 0), 2);
+        p[DOTS-1] = Point(x, y);
+        if (fd > 0) {
+            dots++;
+            tmp.x = x;
+            tmp.y = y;
+            add(sendList, tmp);
+        }
+
+        bezierCurve(plot, TIMES, p, DOTS);
+        plotHandwriting(p, plot, 0);
+        printf("draw\n");
         imshow(windowName, image);
-
-        tmp.x = pre_pos.x;
-        tmp.y = pre_pos.y;
-        write(fd, &tmp, sizeof(tmp));
-
-        pre_pos.x = x;
-        pre_pos.y = y;
-
     } else if (event == EVENT_LBUTTONUP) {
-        
-        write(fd, &tmp, sizeof(tmp));
-
-        tmp.x = -1;
-        tmp.y = 0;
-        write(fd, &tmp, sizeof(tmp));
-        
+        if (fd > 0) {
+            dots++;
+            tmp.x = -1;
+            tmp.y = 0;
+            add(sendList, tmp);
+            socket_write(sendList, fd, dots);
+            cleanList(sendList);
+            dots = 0;
+        }
+        plotHandwriting(p, plot, 1);
+        imshow(windowName, image);
     }
 }
 
+void bezierCurve (Point2d *det, int SR, Point2d *p, int length) {
+    double t = 1.0/SR;
+    double tn = 0.0;
+    double s;
+    double w[length];
+    double distance[length];
+    double angle[length-2];
+
+    for (int i = 0; i < length; i++) {
+        w[i] = 1;
+    }
+
+    for (int j = 0; j < length-2; j++) {
+        triangleDist(p+j, distance);
+        double a = (pow(distance[2], 2) - pow(distance[1], 2) - pow(distance[0], 2));
+        double b = -2*distance[0]*distance[1];
+        if ((int) (abs(a)-abs(b)) != 0) {
+            angle[j] = acos( a/b )/acos(-1)*180;
+        } else {
+            angle[j] = 180;
+            if ((int) a == (int) b) {
+                angle[j] = 0;
+            }
+        }
+ 
+    }
+    for (int i = 1, j = 0; i < length-1; i++, j++) {
+        w[i] = (1+fabs(sin(angle[j]*acos(-1)/180)))*(fabs(1000-dist(p[i], p[i+1])))/100;
+        //w[i] = 2;
+    }
+    /*
+    for (int i = 0; i < length; i++) {
+        printf("w[i] %lf\n", w[i]); 
+    }
+    */
+
+    for (int i = 0; i < SR; i++, tn+=t) {
+        det[i] = Point(0,0);
+        s = 0;
+        for (int j = 0; j < length; j++) {
+            double bz = (bezierPoly(t*i, length, j)) * w[j];
+            det[i].x +=  bz * p[j].x;
+            det[i].y += bz * p[j].y;
+            s += bz; 
+        }
+        det[i].x /= s;
+        det[i].y /= s;
+    }
+}
+
+int factorial(int n) {
+    int back = 1;
+    for (int i = 1; i <= n; i++) {
+        back *= i;
+    }
+    return back;
+}
+double dist (Point2d p1, Point2d p2) {
+    return sqrt(pow(fabs(p1.x-p2.x), 2) + pow(fabs(p1.y-p2.y), 2));
+}
+
+double bezierPoly (double t, int n, int i) {
+    return (factorial(n)/(factorial(i)*factorial(n-i))) * pow(t, i) * pow(1-t, n-i);
+}
+
+void triangleDist (Point2d *p, double *dists) {
+    int i;
+    for (i = 0; i < 2; i++) {
+        dists[i] = dist(p[i], p[i+1]);
+    }
+    dists[i] = dist(p[0], p[i]);
+}
+
+void plotHandwriting (Point2d *p, Point2d *plot, int repair) {
+    int i, j;
+    double distance = 0.0;
+    Scalar handwritColor = Scalar(17, 10, 120);
+    int thk = 6;
+
+
+    if (!repair) {
+        for (i = 0; i < DOTS-1; i++) {
+            distance += dist(p[i], p[i+1]);
+        }
+        if (distance <= 70) {
+            for (i = 0; i < TIMES-1; i++) {
+                line(image, plot[i], plot[i+1], handwritColor, thk);
+            }
+            line(image, plot[TIMES-1], p[DOTS-1], handwritColor, thk);
+            p[0] = plot[i-1];
+            i = 0;
+        } else {
+            for (i = 0; dist(plot[i], p[DOTS-1]) > 30 && i < TIMES-3; i++) {
+                line(image, plot[i], plot[i+1], handwritColor, thk);
+            }
+            for (j = i; dist(plot[j], p[DOTS-1]) > 21.2 && j < TIMES-2; j++);
+            p[0] = plot[i];
+            p[1] = plot[j];
+            p[2] = p[DOTS-1];
+            i = 3;
+        }
+    } else {
+        for (i = DOTS; i >= 3; i--) {
+            if (p[i-1].x != -1 && p[i-1].y != -1) {
+                bezierCurve(plot, TIMES, p, i);
+                for (j = 0; j < TIMES-1; j++) {
+                    line(image, plot[j], plot[j+1], handwritColor, thk);
+                }
+                line(image, plot[TIMES-1], p[i-1], handwritColor, thk);
+                break;
+            }
+        }
+        if (p[1].x != -1 && p[1].y != -1) {
+            line(image, p[0], p[1], handwritColor, thk); 
+        }
+        i = 0;
+    }
+
+    for (; i < DOTS; i++) {
+        p[i] = Point(-1, -1);
+    }
+}

@@ -16,7 +16,7 @@ int serverInit (int port);
 int main() {
     int serverSockfd, clientSockfd, clientlen;
     struct sockaddr_in client;
-    struct pollfd clients[MAX_P];
+    struct pollfd clients[MAX_P+1];
 
     int port = 2244;
     if ((serverSockfd = serverInit(port)) < 0) {
@@ -26,12 +26,14 @@ int main() {
     
     clients[0].fd = serverSockfd;
     clients[0].events = POLLRDNORM;
-    for (int i = 1; i < MAX_P; i++) {
+    for (int i = 1; i <= MAX_P; i++) {
         clients[i].fd = -1;
     }
 
     int nready = 0;
     int maxi = 1;
+    int refuse = 0;
+
     while (1) {
         nready = poll(clients, maxi, -1);
 
@@ -40,17 +42,20 @@ int main() {
             clientSockfd = accept(serverSockfd, (struct sockaddr *) &client, (socklen_t *) &clientlen);
             int i = 0;
             for (i = 1; i < MAX_P; i++) {
-                if (clients[i].fd < 0) {
+                if (refuse) {
+                    close(clientSockfd);
+                    break;
+                } else if (clients[i].fd < 0) {
                     clients[i].fd = clientSockfd;
                     clients[i].events = POLLRDNORM;
-                    printf("Add client at %d\n", i);
+                    printf("added %d\n", i);
                     break;
                 }
             }
 
-            if (maxi > MAX_P) {
-                printf("There are too many people here, Exiting...\n");
-                exit(1);
+            if (i > MAX_P) {
+                printf("There are too many people here, refused...\n");
+                refuse = 1;
             } else if (i == maxi) {
                 maxi++;
                 printf("i = %d, maxi = %d\n", i, maxi);
@@ -69,13 +74,15 @@ int main() {
             clientSockfd = clients[i].fd;
             if (clients[i].revents & (POLLRDNORM | POLLERR)) {
                 Data_s tmp;
-                int n;
+                int n, len;
 
-                if ((n = read(clientSockfd, &tmp, sizeof(tmp))) > 0) {
-                    tmp.id = i;
+                if ((n = read(clientSockfd, &len, sizeof(tmp))) > 0) {
+                    Data_s tmp[len];
+                    read(clientSockfd, &tmp, sizeof(Data_s)*len);
+
                     for (int j = 1; j <= maxi; j++) {
                         if (clients[j].fd != clientSockfd && clients[j].fd != -1) {
-                            write(clients[j].fd, &tmp, n);
+                            write(clients[j].fd, &tmp, len*sizeof(Data_s));
                         }
                     }
                 } else {
@@ -83,6 +90,7 @@ int main() {
                         printf("Exit: User[%d]\n", i);
                         close(clientSockfd);
                         clients[i].fd = -1;
+                        refuse = 0;
                     }
                 } 
             }

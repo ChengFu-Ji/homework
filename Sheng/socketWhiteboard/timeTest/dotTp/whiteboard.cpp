@@ -67,8 +67,10 @@ int main() {
 }
 
 void autoTesting (int fd) {
-    Point sp, ep;
-    int count;
+    Point2d sp, ep;
+    Data_s tmp;
+    int count, l = 1;
+    char data[100];
     double spacingX, spacingY;
 
     srand(time(NULL));
@@ -86,31 +88,39 @@ void autoTesting (int fd) {
         spacingX = (ep.x - sp.x)/100.0;
         spacingY = (ep.y - sp.y)/100.0;
 
-        for (int i = 1; i <= 100; i++) {
-            ep.x = sp.x + (int) (spacingX);
-            ep.y = sp.y + (int) (spacingY);
+        showTime("DSSend");
+        for (int i = 1; i < 100; i++) {
+            ep.x = sp.x + (spacingX);
+            ep.y = sp.y + (spacingY);
             if (ep.x < 0 || ep.y < 0) {
                 printf("ep.x %d, ep.y %d\n", ep.x, ep.y);
             }
             line(image, sp, ep, Scalar(0, 255, 0), 2);
             imshow(windowName, image);
-            waitKey(1);
-            write(fd, &sp, sizeof(sp));
+            tmp.x = sp.x;
+            tmp.y = sp.y;
+            write(fd, &l, sizeof(int));
+            write(fd, &tmp, sizeof(tmp));
             sp = ep;
         }
 
-        write(fd, &sp, sizeof(sp));
+        tmp.x = sp.x;
+        tmp.y = sp.y;
+        write(fd, &l, sizeof(int));
+        write(fd, &tmp, sizeof(tmp));
 
-        sp.x = -1;
-        sp.y = 0;
-        write(fd, &sp, sizeof(sp));
-        showTime("DotSend");
+        tmp.x = -1;
+        tmp.y = 0;
+        write(fd, &l, sizeof(int));
+        write(fd, &tmp, sizeof(tmp));
+        showTime("DESend");
         
         if (count >= 100) {
             printf("times %d\n", count);
             break;
         } else {
             printf("times %d\n", count);
+            waitKey(1);
             count++;
         }
     }

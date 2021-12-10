@@ -74,13 +74,14 @@ int main() {
 }
 
 void autoTesting (int fd) {
-    Point sp, ep;
+    Point2d sp, ep;
+    Data_s tmp;
+    char data[100];
     int count;
     double spacingX, spacingY;
 
     srand(time(NULL));
-    count = 1;
-    while (1) {
+    for (int count = 1; count <= 100; count++) {
         sp.x = rand() % 600;
         sp.y = rand() % 1000;
         ep.x = rand() % 600;
@@ -93,31 +94,36 @@ void autoTesting (int fd) {
         spacingX = (ep.x - sp.x)/100.0;
         spacingY = (ep.y - sp.y)/100.0;
 
-        for (int i = 1; i <= 100; i++) {
-            ep.x = sp.x + (int) (spacingX);
-            ep.y = sp.y + (int) (spacingY);
+        showTime("LSSend");
+        int i;
+        for (i = 1; i < 100; i++) {
+            ep.x = sp.x + (spacingX);
+            ep.y = sp.y + (spacingY);
             line(image, sp, ep, Scalar(0, 255, 0), 2);
             imshow(windowName, image);
-            waitKey(1);
-            add(sendList, sp.x, sp.y);
+            tmp.x = sp.x;
+            tmp.y = sp.y;
+            add(sendList, tmp);
             sp = ep;
         }
 
-        add(sendList, sp.x, sp.y);
-        add(sendList, -1, 0);
+        tmp.x = sp.x;
+        tmp.y = sp.y;
+        add(sendList, tmp);
+        tmp.x = -1;
+        tmp.y = 0;
+        add(sendList, tmp);
+        i++;
         
-        socket_write(sendList, fd);
+        socket_write(sendList, fd, i);
+        
 
-        showTime("LineSend");
+        showTime("LESend");
         
         cleanList(sendList);
-        if (count >= 100) {
-            printf("times %d\n", count);
-            break;
-        } else {
-            printf("times %d\n", count);
-            count++;
-        }
+
+        printf("times %d\n", count);
+        waitKey(1);
     }
 }
 
