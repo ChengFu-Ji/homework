@@ -313,7 +313,7 @@ void plotHandwriting (Point2d *p, Point2d *plot, int repair) {
             }
             line(image, plot[TIMES-1], p[DOTS-1], handwritColor, thk);
             p[0] = plot[i-1];
-            i = 0;
+            i = 1;
         } else {
             for (i = 0; dist(plot[i], p[DOTS-1]) > 30 && i < TIMES-3; i++) {
                 line(image, plot[i], plot[i+1], handwritColor, thk);
