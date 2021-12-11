@@ -34,7 +34,6 @@ void *recvData (void *);
 void MouseWork (int, int, int, int, void *);
 
 char windowName[] = "whiteboard";
-char imageName[] = "background.png";
 Mat image;
 Node_s **recvList, **sendList;
 

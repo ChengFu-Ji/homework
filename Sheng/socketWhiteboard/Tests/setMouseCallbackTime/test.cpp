@@ -11,8 +11,6 @@
 #include <pthread.h>
 #include <time.h>
 
-#include "linkedlist.h"
-
 using namespace cv;
 
 void *recvData(void*);
@@ -22,7 +20,6 @@ void writeCSV(double time);
 void CSVinit();
 
 char windowName[] = "Display Image";
-char imageName[] = "background.png";
 Mat image;
 
 int main() {
