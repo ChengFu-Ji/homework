@@ -22,12 +22,10 @@ int main() {
     int serverSockfd, clientSockfd, serverlen, clientlen;
     struct sockaddr_in  server, client;
     struct pollfd clients[MAX_P+1];
-    /*
     Node_s **head;
 
     head = (Node_s **)malloc(sizeof(Node_s *));
     *head = (Node_s *)malloc(sizeof(Node_s));
-    */
 
     serverSockfd = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -92,15 +90,17 @@ int main() {
             clientSockfd = clients[i].fd;
             if (clients[i].revents & (POLLRDNORM | POLLERR)) {
                 char test[100];
+                Data_s tmp;
                 int n, len;
 
                 if ((n = read(clientSockfd, &len, sizeof(int))) > 0) {
-                    Data_s tmp[len];
-                    read(clientSockfd, &tmp, sizeof(Data_s)*len);
                     if (len > 1) {
+                        socket_read(head, clientSockfd, len); 
                         printf("time %d\n", ++times);
                         showTime("Read", i);
                     } else {
+                        read(clientSockfd, &tmp, sizeof(Data_s)*len);
+                        //if (tmp[0].x == -1 && tmp[0].y == 0) {
                         if (tmp.x == -1 && tmp.y == 0) {
                             printf("time %d\n", ++times);
                             showTime("Read", i);

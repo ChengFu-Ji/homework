@@ -22,7 +22,6 @@ void writeCSV(size_t, char *);
 void CSVinit();
 
 char windowName[] = "Display Image";
-char imageName[] = "background.png";
 Mat image;
 int pid = 0;
 
@@ -54,7 +53,7 @@ int main() {
         read(fd, &pid, sizeof(int));
     }
 
-    image = imread(imageName, 1);
+    image = Mat(1000, 600, CV_8UC3, Scalar(255, 255, 255));
     namedWindow(windowName, WINDOW_NORMAL);
     imshow(windowName, image);
 
@@ -93,14 +92,16 @@ void autoTesting (int fd) {
             ep.x = sp.x + (spacingX);
             ep.y = sp.y + (spacingY);
             if (ep.x < 0 || ep.y < 0) {
-                printf("ep.x %d, ep.y %d\n", ep.x, ep.y);
+                printf("ep.x %lf, ep.y %lf\n", ep.x, ep.y);
             }
             line(image, sp, ep, Scalar(0, 255, 0), 2);
             imshow(windowName, image);
+
             tmp.x = sp.x;
             tmp.y = sp.y;
             write(fd, &l, sizeof(int));
             write(fd, &tmp, sizeof(tmp));
+
             sp = ep;
         }
 

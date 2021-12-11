@@ -9,38 +9,38 @@
 #include <string.h>
 #include <unistd.h>
 #include <pthread.h>
-#include <signal.h>
 #include <time.h>
 
 #include "linkedlist.h"
 
 using namespace cv;
 
+void *writefile(void*);
 void showTime (char *);
 void autoTesting (int fd);
 void writeCSV(size_t, char *);
 void CSVinit();
 
 char windowName[] = "Display Image";
-char imageName[] = "background.png";
 Mat image;
-Node_s **sendList;
 int pid = 0;
+int readOrNot = 1;
 
-int main() {
-    FILE *fp;
+int main(int argc, char *argv[]) {
     int fd;
     struct sockaddr_in me;
     struct hostent *host;
+    FILE *fp;
+
+    if (argc < 2) {
+        printf("useage: ./Whiteboard [0(no read)/1(use read)] \n");
+        exit(1);
+    }
 
     if ((fp = fopen("clientLog.csv", "r"))) {
         fclose(fp);
-    } else {
-        CSVinit();
     }
-    sendList = (Node_s **)malloc(sizeof(Node_s *));
-    *sendList = (Node_s *)malloc(sizeof(Node_s));
-    (*sendList)->next = NULL;
+    readOrNot = atoi(argv[1]);
 
     host = gethostbyname("localhost");
     fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -49,16 +49,16 @@ int main() {
     me.sin_family = AF_INET;
     me.sin_port = htons(2244);
     memcpy(&me.sin_addr, host->h_addr_list[0], host->h_length);
-    
+
     if (connect(fd, (struct sockaddr *) &me, sizeof(struct sockaddr_in)) < 0) {
         printf("Error Connection!\n");
         exit(1);
     } else {
-        showTime("connected");
+        //showTime("connected");
         read(fd, &pid, sizeof(int));
     }
 
-    image = imread(imageName, 1);
+    image = Mat(1000, 600, CV_8UC3, Scalar(255, 255, 255));
     namedWindow(windowName, WINDOW_NORMAL);
     imshow(windowName, image);
 
@@ -66,21 +66,19 @@ int main() {
     waitKey(10);
 
     close(fd);
-    showTime("exit");
-    free(*sendList);
-    free(sendList);
-
     return 0;
 }
 
 void autoTesting (int fd) {
-    Point sp, ep;
+    Point2d sp, ep;
+    Data_s tmp;
+    int count, l = 1;
     char data[100];
-    int count;
     double spacingX, spacingY;
 
     srand(time(NULL));
-    for (int count = 1; count <= 100; count++) {
+    count = 1;
+    while (1) {
         sp.x = rand() % 600;
         sp.y = rand() % 1000;
         ep.x = rand() % 600;
@@ -93,40 +91,49 @@ void autoTesting (int fd) {
         spacingX = (ep.x - sp.x)/100.0;
         spacingY = (ep.y - sp.y)/100.0;
 
-        for (int i = 1; i <= 100; i++) {
-            ep.x = sp.x + (int) (spacingX);
-            ep.y = sp.y + (int) (spacingY);
+        for (int i = 1; i < 100; i++) {
+            ep.x = sp.x + (spacingX);
+            ep.y = sp.y + (spacingY);
+            if (ep.x < 0 || ep.y < 0) {
+                printf("ep.x %lf, ep.y %lf\n", ep.x, ep.y);
+            }
             line(image, sp, ep, Scalar(0, 255, 0), 2);
             imshow(windowName, image);
-            add(sendList, sp.x, sp.y);
+            tmp.x = (int) sp.x;
+            tmp.y = (int) sp.y;
+            write(fd, &tmp, sizeof(tmp));
             sp = ep;
         }
 
-        waitKey(1);
-        add(sendList, sp.x, sp.y);
-        add(sendList, -1, 0);
-        
-        socket_write(sendList, fd);
+        tmp.x = (int) sp.x;
+        tmp.y = (int) sp.y;
+        write(fd, &tmp, sizeof(tmp));
 
-        showTime("LineSend");
+        tmp.x = -1;
+        tmp.y = 0;
+        write(fd, &tmp, sizeof(tmp));
         
-        cleanList(sendList);
-        int i = 0;
-        //當資料送到 第 75 筆，開始讀取 buffer 中的資料
-        if (count >= 75) {
-            for (int j = 0; j < 2000; j++) {
-                read(fd, data, 8);
+        if (readOrNot) {
+            if (count >= 77) {
+                for (int j = 0; j < 2000; j++) {
+                    read(fd, data, 8);
+                }
             }
         }
-
-        printf("times %d\n", count);
+        if (count >= 100) {
+            printf("times %d\n", count);
+            break;
+        } else {
+            printf("times %d\n", count);
+            waitKey(1);
+            count++;
+        }
     }
 }
 
 void showTime (char *status) {
     struct timespec ts;
     size_t t;
-
     clock_gettime(CLOCK_REALTIME, &ts);
 
     t = ts.tv_sec;

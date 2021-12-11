@@ -205,7 +205,6 @@ void MouseWork (int event, int x, int y, int flags, void *userdata) {
 
         bezierCurve(plot, TIMES, p, DOTS);
         plotHandwriting(p, plot, 0);
-        printf("draw\n");
         imshow(windowName, image);
     } else if (event == EVENT_LBUTTONUP) {
         if (fd > 0) {

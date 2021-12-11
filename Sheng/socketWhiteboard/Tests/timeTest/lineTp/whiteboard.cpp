@@ -22,7 +22,6 @@ void writeCSV(size_t, char *);
 void CSVinit();
 
 char windowName[] = "Display Image";
-char imageName[] = "background.png";
 Mat image;
 Node_s **sendList;
 int pid = 0;
@@ -58,7 +57,7 @@ int main() {
         read(fd, &pid, sizeof(int));
     }
 
-    image = imread(imageName, 1);
+    image = Mat(1000, 600, CV_8UC3, Scalar(255, 255, 255));
     namedWindow(windowName, WINDOW_NORMAL);
     imshow(windowName, image);
 

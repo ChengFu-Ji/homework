@@ -40,7 +40,7 @@ int main() {
     for (int i = 1; i < MAX_P; i++) {
         clients[i].fd = -1;
     }
-    CSVinit();
+    //CSVinit();
 
     int nready = 0;
     int maxi = 1;
@@ -58,7 +58,7 @@ int main() {
                 if (clients[i].fd < 0) {
                     clients[i].fd = clientSockfd;
                     clients[i].events = POLLRDNORM;
-                    showTime("Add", i);
+                    //showTime("Add", i);
                     write(clientSockfd, &i, sizeof(int));
                     break;
                 }
@@ -87,16 +87,13 @@ int main() {
                 int n;
 
                 if ((n = read(clientSockfd, &tmp, sizeof(tmp))) > 0) {
-                    if (tmp.x == -1 && tmp.y == 0) {
-                        printf("time %d\n", ++times);
-                        showTime("Read", i);
-                    }
                     
                     //strcpy(test, "12345678")
                     //模擬轉發給其他使用者
                     for (int j = 0; j < 9; j++) {
-                        write(clientSockfd, &tmp, sizeof(tmp));
+                        write(clientSockfd, &tmp, n);
                     }
+                    printf("times %d\n", ++times);
 
                     /*
                     for (int j = 1; j < maxi; j++) {
@@ -111,7 +108,7 @@ int main() {
                     */
                 } else {
                     if (n == 0 || errno == ECONNRESET) {
-                        showTime("Exit", i);
+                        //showTime("Exit", i);
                         close(clientSockfd);
                         clients[i].fd = -1;
                     }

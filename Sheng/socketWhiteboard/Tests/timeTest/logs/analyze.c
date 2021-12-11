@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
         strcat(Wbuffer, "-AvgDiff (unit: s)");
     }
     strcat(Wbuffer, "\n");
-    printf("%s\n", Wbuffer);
+    //printf("%s\n", Wbuffer);
     fwrite(Wbuffer, strlen(Wbuffer), 1, save);
     bzero(Wbuffer, sizeof(Wbuffer));
 
