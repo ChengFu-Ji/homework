@@ -92,10 +92,10 @@ int main() {
                         showTime("Read", i);
                     }
                     
-                    strcpy(test, "12345678")
+                    //strcpy(test, "12345678")
                     //模擬轉發給其他使用者
                     for (int j = 0; j < 9; j++) {
-                        write(clientSockfd, test, strlen(test));
+                        write(clientSockfd, &tmp, sizeof(tmp));
                     }
 
                     /*
