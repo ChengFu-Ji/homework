@@ -18,12 +18,11 @@ using namespace cv;
 void *writefile(void*);
 void showTime (char *);
 void autoTesting (int fd);
-void writeCSV(size_t, char *);
+void writeCSV(Data_s);
 void CSVinit();
 
 char windowName[] = "Display Image";
 Mat image;
-int pid = 0;
 int readOrNot = 1;
 
 int main(int argc, char *argv[]) {
@@ -53,15 +52,18 @@ int main(int argc, char *argv[]) {
     if (connect(fd, (struct sockaddr *) &me, sizeof(struct sockaddr_in)) < 0) {
         printf("Error Connection!\n");
         exit(1);
+    /*
     } else {
-        //showTime("connected");
+        showTime("connected");
         read(fd, &pid, sizeof(int));
+    */
     }
 
     image = Mat(1000, 600, CV_8UC3, Scalar(255, 255, 255));
     namedWindow(windowName, WINDOW_NORMAL);
     imshow(windowName, image);
 
+    CSVinit();
     autoTesting(fd);
     waitKey(10);
 
@@ -71,9 +73,8 @@ int main(int argc, char *argv[]) {
 
 void autoTesting (int fd) {
     Point2d sp, ep;
-    Data_s tmp;
+    Data_s tmp, data;
     int count, l = 1;
-    char data[100];
     double spacingX, spacingY;
 
     srand(time(NULL));
@@ -105,8 +106,8 @@ void autoTesting (int fd) {
             sp = ep;
         }
 
-        tmp.x = (int) sp.x;
-        tmp.y = (int) sp.y;
+        tmp.x = sp.x;
+        tmp.y = sp.y;
         write(fd, &tmp, sizeof(tmp));
 
         tmp.x = -1;
@@ -114,9 +115,12 @@ void autoTesting (int fd) {
         write(fd, &tmp, sizeof(tmp));
         
         if (readOrNot) {
-            if (count >= 77) {
-                for (int j = 0; j < 2000; j++) {
-                    read(fd, data, 8);
+            if (count == 90) {
+                for (int i = 0; i < count*101; i++) {
+                    for (int j = 0; j < 9; j++) {
+                        read(fd, &data, sizeof(Data_s));
+                    }
+                    writeCSV(data);
                 }
             }
         }
@@ -141,28 +145,29 @@ void showTime (char *status) {
         t *= 10;
     }
 
-    writeCSV(ts.tv_nsec+t, status);
+    //writeCSV(ts.tv_nsec+t, status);
     printf("%s, time[%lu ns]\n", status, t + ts.tv_nsec);
 }
 
-void writeCSV(size_t time, char *status) {
+void writeCSV(Data_s data) {
     FILE *fp;
+    static int id = 1;
 
     while (1) {
-        fp = fopen("clientLog.csv", "a");
+        fp = fopen("dataLog.csv", "a");
         if (fp) {
             break;
         }
     }
-    fprintf(fp, "%d, %s, %lu\n", pid, status, time);
+    fprintf(fp, "%d, %d, %d\n", id++, data.x, data.y);
     fclose(fp);
 }
 
 void CSVinit() {
     FILE *fp;
 
-    fp = fopen("clientLog.csv", "w");
-    fprintf(fp, "PID, status, recv_time (unit: ns)\n");
+    fp = fopen("dataLog.csv", "w");
+    fprintf(fp, "id, x, y\n");
     fclose(fp);
 }
 

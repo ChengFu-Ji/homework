@@ -90,7 +90,7 @@ int main() {
                         printf("Exit: User[%d]\n", i);
                         close(clientSockfd);
                         clients[i].fd = -1;
-                        refuse = 0;
+                        refuse && (refuse = 0);
                     }
                 } 
             }

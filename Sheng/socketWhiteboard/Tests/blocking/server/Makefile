@@ -1,5 +1,5 @@
 CC = gcc
-objs = linkedlist.c socketServer.c
+objs = socketServer.c
 
 all: $(objs) 
 	gcc $^ -I ../include -o socketServer

@@ -14,7 +14,7 @@
 
 void *writefile(void*);
 void showTime(char *, int);
-void writeCSV(size_t, char *, int);
+void writeCSV(Data_s data);
 void CSVinit();
 
 int times = 0;
@@ -40,7 +40,7 @@ int main() {
     for (int i = 1; i < MAX_P; i++) {
         clients[i].fd = -1;
     }
-    //CSVinit();
+    CSVinit();
 
     int nready = 0;
     int maxi = 1;
@@ -59,7 +59,7 @@ int main() {
                     clients[i].fd = clientSockfd;
                     clients[i].events = POLLRDNORM;
                     //showTime("Add", i);
-                    write(clientSockfd, &i, sizeof(int));
+                    //write(clientSockfd, &i, sizeof(int));
                     break;
                 }
             }
@@ -92,6 +92,9 @@ int main() {
                     //模擬轉發給其他使用者
                     for (int j = 0; j < 9; j++) {
                         write(clientSockfd, &tmp, n);
+                    }
+                    if (times < 90*101) {
+                        writeCSV(tmp);
                     }
                     printf("times %d\n", ++times);
 
@@ -133,23 +136,24 @@ void showTime(char *status, int id) {
         t *= 10;
     }
 
-    writeCSV(ts.tv_nsec+t, status, id);
+    //writeCSV(ts.tv_nsec+t, status, id);
     printf("%s, time [%lu ns]\n", status, ts.tv_nsec + t);
 }
 
-void writeCSV(size_t time, char *status, int id) {
+void writeCSV(Data_s data) {
     FILE *fp;
+    static int id = 1;
 
-    fp = fopen("serverLog.csv", "a");
-    fprintf(fp, "%d, %s, %lu\n", id, status, time);
+    fp = fopen("dataLog.csv", "a");
+    fprintf(fp, "%d, %d, %d\n", id++, data.x, data.y);
     fclose(fp);
 }
 
 void CSVinit() {
     FILE *fp;
 
-    fp = fopen("serverLog.csv", "w");
-    fprintf(fp, "PID, status, recv_time (unit: ns)\n");
+    fp = fopen("dataLog.csv", "w");
+    fprintf(fp, "id, x, y\n");
     fclose(fp);
 }
 
