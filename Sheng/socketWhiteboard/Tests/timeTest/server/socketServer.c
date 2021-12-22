@@ -95,12 +95,12 @@ int main() {
 
                 if ((n = read(clientSockfd, &len, sizeof(int))) > 0) {
                     if (len > 1) {
-                        socket_read(head, clientSockfd, len); 
+                        socket_read(head, clientSockfd, len);
                         printf("time %d\n", ++times);
                         showTime("Read", i);
+                        cleanList(head);
                     } else {
-                        read(clientSockfd, &tmp, sizeof(Data_s)*len);
-                        //if (tmp[0].x == -1 && tmp[0].y == 0) {
+                        read(clientSockfd, &tmp, sizeof(Data_s));
                         if (tmp.x == -1 && tmp.y == 0) {
                             printf("time %d\n", ++times);
                             showTime("Read", i);

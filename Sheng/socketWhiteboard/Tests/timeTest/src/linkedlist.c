@@ -75,23 +75,21 @@ int cleanList (Node_s **node) {
 
 int socket_write (Node_s **node, int fd, int size) {
     Node_s *cur, *next;
-    Data_s *pts;
+    Data_s *ptp, ptarr[size];
     int i;
 
-    pts = (Data_s *)malloc(sizeof(Data_s)*size);
-    i = 0;
+    ptp = ptarr;
     cur = (*node)->next;
     while (cur != NULL) {
-        pts[i++] = cur->point;
+        *(ptp++) = cur->point;
         /*
         next = cur->next->next;
         del(node, cur->point);
         */
         cur = cur->next;
     }
-    write(fd, &i, sizeof(int));
-    write(fd, pts, i*sizeof(Data_s));
-    free(pts);
+    write(fd, &size, sizeof(int));
+    write(fd, ptarr, size*sizeof(Data_s));
     return 0;
 }
 
