@@ -76,32 +76,43 @@ int cleanList (Node_s **node) {
 int socket_write (Node_s **node, int fd, int size) {
     Node_s *cur, *next;
     Data_s *ptp, ptarr[size];
-    int i;
+    int i, n, times = 5;
 
     ptp = ptarr;
     cur = (*node)->next;
     while (cur != NULL) {
         *(ptp++) = cur->point;
-        /*
-        next = cur->next->next;
-        del(node, cur->point);
-        */
         cur = cur->next;
     }
-    write(fd, &size, sizeof(int));
-    write(fd, ptarr, size*sizeof(Data_s));
+    while ((n = write(fd, &size, sizeof(int))) != sizeof(int) && times--);
+    if (n == sizeof(int)) {
+        n = 0;
+        times = 5;
+        n = write(fd, ptarr, size*sizeof(Data_s));
+        while (n < sizeof(Data_s)*size && times--) {
+            n += write(fd, ptarr+(n/sizeof(Data_s)), (size)*sizeof(Data_s)-n);
+        }
+        if (n < sizeof(Data_s) * size) {
+            return -1;
+        }
+    } else {
+        return -1;
+    }
     return 0;
 }
 
 int socket_read (Node_s **node, int fd, int size) {
     Data_s *pts;
-    int n;
+    int n, times = 5;
 
     pts = (Data_s *)malloc(sizeof(Data_s)*size);
     if ((n = read(fd, pts, sizeof(Data_s)*size)) > 0) {
-        for (int i = 0; i < size; i++) {
+        while (n < sizeof(Data_s)*size && times--) {
+            n += read(fd, pts, sizeof(Data_s)*size);
+        }
+        for (int i = 0; i < n/sizeof(Data_s); i++) {
             if ((pts+i)->x == -1 && (pts+i)->y == 0) {
-                return size;
+                return i;
             }
             add(node, *(pts+i));
         }

@@ -89,9 +89,8 @@ int main() {
             }
             clientSockfd = clients[i].fd;
             if (clients[i].revents & (POLLRDNORM | POLLERR)) {
-                char test[100];
                 Data_s tmp;
-                int n, len;
+                int n, len, times = 5;
 
                 if ((n = read(clientSockfd, &len, sizeof(int))) > 0) {
                     if (len > 1) {
@@ -100,10 +99,11 @@ int main() {
                         showTime("Read", i);
                         cleanList(head);
                     } else {
-                        read(clientSockfd, &tmp, sizeof(Data_s));
-                        if (tmp.x == -1 && tmp.y == 0) {
-                            printf("time %d\n", ++times);
-                            showTime("Read", i);
+                        if (read(clientSockfd, &tmp, sizeof(Data_s)) > 0) {
+                            if (tmp.x == -1 && tmp.y == 0) {
+                                printf("time %d\n", ++times);
+                                showTime("Read", i);
+                            }
                         }
                     }
                     
