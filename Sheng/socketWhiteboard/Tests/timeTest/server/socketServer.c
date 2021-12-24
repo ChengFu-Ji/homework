@@ -94,9 +94,11 @@ int main() {
 
                 if ((n = read(clientSockfd, &len, sizeof(int))) > 0) {
                     if (len > 1) {
-                        socket_read(head, clientSockfd, len);
-                        printf("time %d\n", ++times);
-                        showTime("Read", i);
+                        n = socket_read(head, clientSockfd, len);
+                        if (n == len) {
+                            printf("time %d\n", ++times);
+                            showTime("Read", i);
+                        }
                         cleanList(head);
                     } else {
                         if (read(clientSockfd, &tmp, sizeof(Data_s)) > 0) {
