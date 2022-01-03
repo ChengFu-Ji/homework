@@ -238,9 +238,9 @@ void bezierCurve (Point2d *det, int SR, Point2d *p, int length) {
         double a = (pow(distance[2], 2) - pow(distance[1], 2) - pow(distance[0], 2));
         double b = -2*distance[0]*distance[1];
         if ((int) (abs(a)-abs(b)) != 0) {
-            angle[j] = acos( a/b )/acos(-1)*180;
+            angle[j] =  a/b ;
         } else {
-            angle[j] = 180;
+            angle[j] = -1;
             if ((int) a == (int) b) {
                 angle[j] = 0;
             }
@@ -248,7 +248,7 @@ void bezierCurve (Point2d *det, int SR, Point2d *p, int length) {
  
     }
     for (int i = 1, j = 0; i < length-1; i++, j++) {
-        w[i] = (1+fabs(sin(angle[j]*acos(-1)/180)))*(fabs(1000-dist(p[i], p[i+1])))/100;
+        w[i] = (1+fabs(sqrt((1+angle[j])*(1-angle[j]))))*(fabs(1000-dist(p[i], p[i+1])))/100;
         //w[i] = 2;
     }
     /*
@@ -289,9 +289,17 @@ double bezierPoly (double t, int n, int i) {
 void triangleDist (Point2d *p, double *dists) {
     int i;
     for (i = 0; i < 2; i++) {
-        dists[i] = dist(p[i], p[i+1]);
+        if (p[i].x != p[i+1].x || p[i].y != p[i+1].y) {
+            dists[i] = dist(p[i], p[i+1]);
+        } else {
+            dists[i] = 0.0;
+        }
     }
-    dists[i] = dist(p[0], p[i]);
+    if (p[i].x != p[0].x || p[i].y != p[0].y) {
+        dists[i] = dist(p[0], p[i]);
+    } else {
+        dists[i] = 0.0;
+    }
 }
 
 void plotHandwriting (Point2d *p, Point2d *plot, int repair) {

@@ -11,7 +11,7 @@ typedef struct PosNode {
     int id;
     int len;
     Pos *p;
-    struct node_s *next;
+    struct node_p *next;
 } Node_p;
 
 int add (Node_p **node, int id, Pos *pts, size_t length);
