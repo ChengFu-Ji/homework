@@ -71,6 +71,7 @@ int main () {
         if (fd > 0) {
             if (pthread_kill(t, 0) == ESRCH) {
                 pthread_create(&t, NULL, recvData, (void *) &fd);
+                imshow(windowName, image);
             }
         }
     }
@@ -148,13 +149,11 @@ void *recvData(void *fd) {
                 p[DOTS-1] = Point(cur->point.x, cur->point.y);
                 bezierCurve(plot, TIMES, p, DOTS);
                 plotHandwriting(p, plot, 0);
-                imshow(windowName, image);
             }
             cur = cur->next;
         }
 
         plotHandwriting(p, plot, 1);
-        imshow(windowName, image);
         //IDdelete(recvList, id);
         cleanList(recvList);
     }
@@ -216,6 +215,7 @@ void MouseWork (int event, int x, int y, int flags, void *userdata) {
             cleanList(sendList);
             dots = 0;
         }
+
         plotHandwriting(p, plot, 1);
         imshow(windowName, image);
     }
@@ -237,18 +237,19 @@ void bezierCurve (Point2d *det, int SR, Point2d *p, int length) {
         triangleDist(p+j, distance);
         double a = (pow(distance[2], 2) - pow(distance[1], 2) - pow(distance[0], 2));
         double b = -2*distance[0]*distance[1];
-        if ((int) (abs(a)-abs(b)) != 0) {
-            angle[j] =  a/b ;
+        if (!isnormal(1.0/a) || !isnormal(1.0/b)) {
+            angle[j] = 0.0;
         } else {
-            angle[j] = -1;
-            if ((int) a == (int) b) {
-                angle[j] = 0;
-            }
+            angle[j] = a/b;
         }
  
     }
     for (int i = 1, j = 0; i < length-1; i++, j++) {
-        w[i] = (1+fabs(sqrt((1+angle[j])*(1-angle[j]))))*(fabs(1000-dist(p[i], p[i+1])))/100;
+        if (1-pow(angle[j], 2) < 0 && !isnormal(w[i])) {
+            w[i] = fabs(1000-dist(p[i], p[i+1]))/100;     
+        } else {
+            w[i] = (1+sqrt(1 - pow(angle[j], 2)))*(fabs(1000-dist(p[i], p[i+1])))/100;
+        }
         //w[i] = 2;
     }
     /*

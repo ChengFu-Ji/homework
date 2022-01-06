@@ -316,6 +316,7 @@ void MainWindow::showMat() {
         if (fd > 0) {
             if (pthread_kill(t, 0) == ESRCH) {
                 pthread_create(&t, NULL, recvData, (void *) &fd);
+                imshow(windowName, image);
             }
         }
     }
@@ -395,13 +396,11 @@ void *recvData(void *fd) {
                 p[DOTS-1] = Point(cur->point.x, cur->point.y);
                 bezierCurve(plot, TIMES, p, DOTS);
                 plotHandwriting(p, plot, 0);
-                imshow(windowName, image);
             }
             cur = cur->next;
         }
 
         plotHandwriting(p, plot, 1);
-        imshow(windowName, image);
         //IDdelete(recvList, id);
         cleanList(recvList);
     }
