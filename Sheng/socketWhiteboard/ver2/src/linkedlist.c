@@ -4,7 +4,6 @@
 #include <unistd.h>
 #include "linkedlist.h"
 
-// 依據 linkedlist.h 更改各個 linkedlist function 實作
 /*
  *  新增資料在 Linkedlist 中
  */
@@ -17,9 +16,9 @@ int add (Node_p **node, int id, Pos *pts, size_t length) {
 
     new_node = (Node_p *)malloc(sizeof(Node_p));
     new_node->id = id;
-    new_node->len = lehgth/sizeof(Pos);
+    new_node->len = length/sizeof(Pos);
     new_node->p = (Pos *)malloc(length);
-    memcpy(new_node->p, pts);
+    memcpy(new_node->p, pts, length);
     new_node->next = NULL;
 
     cur->next = new_node;
@@ -82,27 +81,20 @@ int cleanList (Node_p **node) {
     return 0;
 }
 
-int socket_write (int fd, int id, Node_p **node, int size) {
+int socket_write (int fd, int id, Node_p **node) {
     Node_p *cur, *next;
-    Pos *pts, lenId;
-    int total = size;
+    Pos tmp;
 
-    cur = (*node)->next;
-    while (cur != NULL && total) {
-        total -= cur->len;
-
-        lenId.x = cur->len;
-        lenId.y = id;
-        write(fd, &lenId, sizeof(Pos));
-        write(fd, cur->p, len*sizeof(Pos));
-        del(node, cur->p);
-        /*
-        next = cur->next->next;
-        del(node, cur->point);
-        */
+    cur = (*node);
+    while (cur->next != NULL) {
         cur = cur->next;
     }
-    free(pts);
+
+    tmp.x = cur->len;
+    tmp.y = id;
+    write(fd, &tmp, sizeof(Pos));
+    write(fd, cur->p, cur->len*sizeof(Pos));
+
     return 0;
 }
 
@@ -119,7 +111,6 @@ int socket_read (int fd, int id, Node_p **node, int size) {
     free(pts);
     return 0;
 }
-
 /*
 int IDdelete (Node_p **node, int id) {
     Node_p *cur, *next;
