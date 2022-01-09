@@ -15,7 +15,7 @@ double dist (Point2d, Point2d);
 double bezierPoly (double, int, int);
 void triangleDist (Point2d *, double *);
 void bezierCurve (Point2d *, int, Point2d *, int);
-void plotHandwriting (Point2d *, Point2d *, int);
+void plotHandwriting (Point2d *, Point2d *, int, Scalar, int);
 
 
 #endif // WHITEBOARD_H

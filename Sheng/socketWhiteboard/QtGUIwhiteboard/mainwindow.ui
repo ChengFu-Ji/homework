@@ -17,8 +17,8 @@
    <widget class="QPushButton" name="loginPBtn">
     <property name="geometry">
      <rect>
-      <x>200</x>
-      <y>330</y>
+      <x>230</x>
+      <y>350</y>
       <width>101</width>
       <height>41</height>
      </rect>
@@ -30,9 +30,9 @@
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>143</x>
+      <x>0</x>
       <y>100</y>
-      <width>441</width>
+      <width>781</width>
       <height>68</height>
      </rect>
     </property>
@@ -40,7 +40,7 @@
      <enum>QFrame::NoFrame</enum>
     </property>
     <property name="text">
-     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:48pt;&quot;&gt;多功能連線撰寫畫布&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:48pt; font-weight:700; font-style:italic;&quot;&gt;連線小畫家&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
     <property name="alignment">
      <set>Qt::AlignCenter</set>
@@ -52,8 +52,8 @@
    <widget class="QPushButton" name="regPBtn">
     <property name="geometry">
      <rect>
-      <x>420</x>
-      <y>330</y>
+      <x>450</x>
+      <y>350</y>
       <width>101</width>
       <height>41</height>
      </rect>
@@ -65,8 +65,8 @@
    <widget class="QPushButton" name="startPBtn">
     <property name="geometry">
      <rect>
-      <x>310</x>
-      <y>280</y>
+      <x>340</x>
+      <y>300</y>
       <width>101</width>
       <height>41</height>
      </rect>
@@ -78,9 +78,9 @@
    <widget class="QLabel" name="namelabel">
     <property name="geometry">
      <rect>
-      <x>140</x>
+      <x>0</x>
       <y>180</y>
-      <width>441</width>
+      <width>781</width>
       <height>41</height>
      </rect>
     </property>
@@ -94,8 +94,8 @@
    <widget class="QPushButton" name="logoutPBtn">
     <property name="geometry">
      <rect>
-      <x>310</x>
-      <y>380</y>
+      <x>340</x>
+      <y>400</y>
       <width>101</width>
       <height>41</height>
      </rect>
@@ -107,8 +107,8 @@
    <widget class="QPushButton" name="exitPBtn">
     <property name="geometry">
      <rect>
-      <x>310</x>
-      <y>410</y>
+      <x>340</x>
+      <y>430</y>
       <width>101</width>
       <height>41</height>
      </rect>

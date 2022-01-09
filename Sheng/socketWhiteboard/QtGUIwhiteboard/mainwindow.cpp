@@ -26,9 +26,11 @@ QDialog *loginRegDia, *wrong;
 QLineEdit *pinput, *input, *confirm;
 QString account, password;
 Mat image;
+Scalar color = Scalar(0, 0, 0);
 Node_s **recvList, **sendList;
-int is_login = 0, is_register = 0, is_exec = 0;
+int is_login = 0, is_register = 0, is_exec = 0, thk = 1;
 char windowName[] = "whiteboard";
+char colorPickerWinn[] = "picker";
 
 void onTest(int status, void *userdata);
 void regAccount();
@@ -39,6 +41,9 @@ Node_s **linkedlistInit ();
 void linkedlistFree (Node_s **);
 void *recvData (void *);
 void MouseWork (int, int, int, int, void *);
+void startPicker(int, void *);
+void trackcolorPicker(int pos, void *colorChannel);
+void trackThicknessPicker(int pos, void *userdata);
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -139,13 +144,12 @@ void MainWindow::login() {
             btnShow(ui->startPBtn);
             btnShow(ui->logoutPBtn);
             ui->namelabel->show();
-            ui->namelabel->setText(QString("Welcome~ "+account+" !~"));
+            ui->namelabel->setText(QString("Welcome!~ "+account+". "));
         } else {
             warnWin(QString("Wrong password or Account !!"), 0);
         }
     } else {
-
-        warnWin(QString("Not Register yet !!"), 0);
+        warnWin(QString("Password or Account is empty !!"), 0);
     }
 }
 
@@ -233,6 +237,8 @@ void MainWindow::regAccount() {
         } else {
             warnWin(QString("password not the same !!"), 0);
         }
+    } else {
+        warnWin(QString("field cannot be empty!!"), 0);
     }
 }
 
@@ -293,7 +299,8 @@ void MainWindow::showMat() {
     sendList = linkedlistInit();
     recvList = linkedlistInit();
 
-    namedWindow(windowName, WINDOW_NORMAL | WINDOW_FREERATIO | WINDOW_GUI_NORMAL);
+    namedWindow(windowName, WINDOW_NORMAL | WINDOW_FREERATIO);
+    createButton("ColorPicker", startPicker);
     imshow(windowName, image);
 
     setMouseCallback(windowName, MouseWork, (void *) &fd);
@@ -368,14 +375,19 @@ int clientInit (int port, char *address) {
 void *recvData(void *fd) {
     Point2d p[DOTS], plot[TIMES];
     Node_s *cur;
+    Scalar color = Scalar(110, 160, 20);
+    Control c;
     int sockfd = *(int *) fd, i = 0;
-    int size;
+    int size, thk;
 
     if (read(sockfd, &size, sizeof(int)) < 0) {
         pthread_exit(NULL);
     }
 
     if (socket_read(recvList, sockfd, size)) {
+        read(sockfd, &c, sizeof(Control));
+        color = Scalar(c.r, c.g, c.b);
+        thk = c.thk;
         for (i = 0; i < DOTS; i++) {
             p[i] = Point(-1, -1);
         }
@@ -395,12 +407,12 @@ void *recvData(void *fd) {
                 }
                 p[DOTS-1] = Point(cur->point.x, cur->point.y);
                 bezierCurve(plot, TIMES, p, DOTS);
-                plotHandwriting(p, plot, 0);
+                plotHandwriting(p, plot, 0, color, thk);
             }
             cur = cur->next;
         }
 
-        plotHandwriting(p, plot, 1);
+        plotHandwriting(p, plot, 1, color, thk);
         //IDdelete(recvList, id);
         cleanList(recvList);
     }
@@ -411,7 +423,7 @@ void MouseWork (int event, int x, int y, int flags, void *userdata) {
     static Data_s tmp;
     static Point2d p[DOTS];
     static int dots = 0;
-    Point2d plot[TIMES] ;
+    Point2d plot[TIMES];
     int fd = *(int *) userdata, i = 0;
 
     //printf("p[0] %lf ,%lf \n", p[0].x, p[0].y);
@@ -424,6 +436,7 @@ void MouseWork (int event, int x, int y, int flags, void *userdata) {
             tmp.y = y;
             add(sendList, tmp);
         }
+
         for (i = 1; i < DOTS; i++) {
             p[i] = Point(-1, -1);
         }
@@ -450,21 +463,66 @@ void MouseWork (int event, int x, int y, int flags, void *userdata) {
         }
 
         bezierCurve(plot, TIMES, p, DOTS);
-        //printf("draw\n");
-        plotHandwriting(p, plot, 0);
+        plotHandwriting(p, plot, 0, color, thk);
         imshow(windowName, image);
     } else if (event == EVENT_LBUTTONUP) {
-        //printf("wow\n");
         if (fd > 0) {
+            Control c = {(int) color.val[0],
+                         (int) color.val[1],
+                         (int) color.val[2],
+                         thk, 0};
             dots++;
             tmp.x = -1;
             tmp.y = 0;
             add(sendList, tmp);
             socket_write(sendList, fd, dots);
+            write(fd, &c, sizeof(Control));
             cleanList(sendList);
             dots = 0;
         }
-        plotHandwriting(p, plot, 1);
+
+        plotHandwriting(p, plot, 1, color, thk);
         imshow(windowName, image);
+    }
+}
+
+/*
+ * 	選筆雞顏色的軌跡條
+ */
+void trackcolorPicker(int pos, void *colorChannel) {
+    static int RChannel = 0, GChannel = 0, BChannel = 0;
+    char t = *(char *) colorChannel;
+    if (t == 'r') {
+        RChannel = pos;
+    } else if (t == 'g') {
+        GChannel = pos;
+    } else if (t == 'b') {
+        BChannel = pos;
+    }
+
+    color = Scalar(BChannel, GChannel, RChannel);
+    Mat show = Mat(50, 50, CV_8UC3, color);
+    imshow(colorPickerWinn, show);
+}
+
+/*
+ *  筆畫厚度軌跡條
+ */
+void trackThicknessPicker(int pos, void *userdata) {
+    thk = pos+1;
+}
+
+/*
+ * 	選單
+ */
+void startPicker(int status, void *userdata) {
+    static char channel[3] = {'r', 'g', 'b'};
+    if (!status) {
+        namedWindow(colorPickerWinn, WINDOW_NORMAL | WINDOW_GUI_NORMAL);
+        imshow(colorPickerWinn, Mat(50, 50, CV_8UC3, color));
+        createTrackbar("R", colorPickerWinn, 0, 255, trackcolorPicker, (void *) &channel[0]);
+        createTrackbar("G", colorPickerWinn, 0, 255, trackcolorPicker, (void *) &channel[1]);
+        createTrackbar("B", colorPickerWinn, 0, 255, trackcolorPicker, (void *) &channel[2]);
+        createTrackbar("thickness", colorPickerWinn, 0, 999, trackThicknessPicker, NULL);
     }
 }

@@ -121,11 +121,13 @@ void triangleDist (Point2d *p, double *dists) {
     }
 }
 
-void plotHandwriting (Point2d *p, Point2d *plot, int repair) {
+void plotHandwriting (Point2d *p, Point2d *plot, int repair, Scalar color, int thickness) {
     int i, j;
     double distance = 0.0;
-    Scalar handwritColor = Scalar(17, 10, 120);
-    int thk = 6;
+    //Scalar handwritColor = Scalar(17, 10, 120);
+    Scalar handwritColor = color;
+    //int thk = 6;
+    int thk = thickness;
 
 
     if (!repair) {

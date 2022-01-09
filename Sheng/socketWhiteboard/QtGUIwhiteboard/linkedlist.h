@@ -11,6 +11,14 @@ typedef struct node_s {
     struct node_s *next;
 } Node_s;
 
+typedef struct control {
+    int r;
+    int g;
+    int b;
+    int thk;
+    int id;
+} Control;
+
 int add (Node_s **, Data_s);
 int del (Node_s **, Data_s);
 int showList (Node_s **);
