@@ -1,21 +1,25 @@
 #ifndef __LINKEDLIST_H__
 #define __LINKEDLIST_H__
 
-typedef struct data_s {
+#define MAX_P 10
+
+typedef struct position {
     int x;
     int y;
-} Data_s;
+} Pos;
 
-typedef struct node_s {
-    Data_s point;
-    struct node_s *next;
-} Node_s;
+typedef struct PosNode {
+    int id;
+    int len;
+    Pos *p;
+    struct PosNode *next;
+} Node_p;
 
-int add (Node_s **, Data_s);
-int del (Node_s **, Data_s);
-int showList (Node_s **);
-int cleanList (Node_s **);
-int socket_write (Node_s **, int, int);
-int socket_read (Node_s **, int, int);
+int add (Node_p **node, int id, Pos *pts, size_t length);
+int del (Node_p **node, Pos *pts);
+int showList (Node_p **);
+int cleanList (Node_p **);
+int socket_write (int fd, int id, Node_p **node);
+int socket_read (int fd, int id, Node_p **node, int size);
 
 #endif

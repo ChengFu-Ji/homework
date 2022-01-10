@@ -5,17 +5,20 @@
 #include "linkedlist.h"
 
 /*
- *  新增一筆資料在 Linkedlist 中
+ *  新增資料在 Linkedlist 中
  */
-int add (Node_s **node, Data_s pt) {
-    Node_s *new_node, *cur;
+int add (Node_p **node, int id, Pos *pts, size_t length) {
+    Node_p *new_node, *cur;
 
     cur = *node;
     while (cur->next != NULL)
         cur = cur->next;
 
-    new_node = (Node_s *)malloc(sizeof(Node_s));
-    new_node->point = pt;
+    new_node = (Node_p *)malloc(sizeof(Node_p));
+    new_node->id = id;
+    new_node->len = length/sizeof(Pos);
+    new_node->p = (Pos *)malloc(length);
+    memcpy(new_node->p, pts, length);
     new_node->next = NULL;
 
     cur->next = new_node;
@@ -25,13 +28,14 @@ int add (Node_s **node, Data_s pt) {
 /*
  *  在 Linkedlist 中刪除指定資料
  */
-int del (Node_s **node, Data_s pt) {
-    Node_s *cur, *tmp;
+int del (Node_p **node, Pos *pts) {
+    Node_p *cur, *tmp;
 
     cur = *node;
     while (cur->next != NULL) {
-        if (!memcmp(&(cur->next->point), &pt, sizeof(Data_s))) {
+        if (!memcmp(cur->next->p, pts, sizeof(Pos)*cur->next->len)) {
             tmp = cur->next->next;
+            free(cur->next->p);
             free(cur->next); 
             cur->next = tmp;
             return 0;
@@ -44,12 +48,15 @@ int del (Node_s **node, Data_s pt) {
 /*
  *  顯示目前 Linkedlist 所有的資料。
  */
-int showList (Node_s **node) {
-    Node_s *cur;
+int showList (Node_p **node) {
+    Node_p *cur;
 
     cur = (*node)->next;
     while (cur != NULL) {
-        printf("x: %d, y: %d\n", cur->point.x, cur->point.y);
+        for (int i = 0; i < cur->len; i++) {
+            printf("x: %d, y: %d\n", cur->p[i].x, cur->p[i].y);
+        }
+        printf("\n");
         cur = cur->next;
     }
     printf("----------------------------end----------------------------\n");
@@ -59,13 +66,14 @@ int showList (Node_s **node) {
 /*
  *  刪除目前 Linkedlist 所有的資料。
  */
-int cleanList (Node_s **node) {
-    Node_s *cur, *next;
+int cleanList (Node_p **node) {
+    Node_p *cur, *next;
 
     cur = (*node)->next;
     while (cur != NULL) {
         next = cur->next;
-        
+
+        free(cur->p);
         free(cur);
         cur = next;
     }
@@ -73,44 +81,39 @@ int cleanList (Node_s **node) {
     return 0;
 }
 
-int socket_write (Node_s **node, int fd, int size) {
-    Node_s *cur, *next;
-    Data_s *ptp, ptarr[size];
-    int i;
+int socket_write (int fd, int id, Node_p **node) {
+    Node_p *cur, *next;
+    Pos tmp;
 
-    ptp = ptarr;
-    cur = (*node)->next;
-    while (cur != NULL) {
-        *(ptp++) = cur->point;
-        /*
-        next = cur->next->next;
-        del(node, cur->point);
-        */
+    cur = (*node);
+    while (cur->next != NULL) {
         cur = cur->next;
     }
-    write(fd, &size, sizeof(int));
-    write(fd, ptarr, size*sizeof(Data_s));
+
+    tmp.x = cur->len;
+    tmp.y = id;
+    write(fd, &tmp, sizeof(Pos));
+    write(fd, cur->p, cur->len*sizeof(Pos));
+
     return 0;
 }
 
-int socket_read (Node_s **node, int fd, int size) {
-    Data_s *pts;
+int socket_read (int fd, int id, Node_p **node, int size) {
+    Pos *pts;
     int n;
 
-    pts = (Data_s *)malloc(sizeof(Data_s)*size);
-    if ((n = read(fd, pts, sizeof(Data_s)*size)) > 0) {
-        for (int i = 0; i < size; i++) {
-            if ((pts+i)->x == -1 && (pts+i)->y == 0) {
-                return size;
-            }
-            add(node, *(pts+i));
-        }
+    pts = (Pos *)malloc(sizeof(Pos)*size);
+    if ((n = read(fd, pts, sizeof(Pos)*size)) > 0) {
+        add(node, id, pts, n);
+        free(pts);
+        return n;
     }
+    free(pts);
     return 0;
 }
 /*
-int IDdelete (Node_s **node, int id) {
-    Node_s *cur, *next;
+int IDdelete (Node_p **node, int id) {
+    Node_p *cur, *next;
     int x, y;
 
     cur = *node;

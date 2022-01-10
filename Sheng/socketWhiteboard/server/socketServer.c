@@ -9,8 +9,6 @@
 
 #include "linkedlist.h"
 
-#define MAX_P 10
-
 int serverInit (int port);
 
 int main() {
@@ -73,16 +71,20 @@ int main() {
 
             clientSockfd = clients[i].fd;
             if (clients[i].revents & (POLLRDNORM | POLLERR)) {
-                Data_s tmp;
+                Pos recv;
                 int n, len;
 
-                if ((n = read(clientSockfd, &len, sizeof(tmp))) > 0) {
-                    Data_s tmp[len];
-                    read(clientSockfd, &tmp, sizeof(Data_s)*len);
+                if ((n = read(clientSockfd, &recv, sizeof(recv))) > 0) {
+                    Pos tmp[recv.x];
+                    int n2 = read(clientSockfd, &tmp, sizeof(Pos)*recv.x);
+                    printf("n  %d, n2 %d\n", n, n2);
+                    printf("recv.x %d, sizeof(Pos)*recv.x %lu\n", recv.x, recv.x*sizeof(Pos));
 
+                    recv.y = i;
                     for (int j = 1; j <= maxi; j++) {
                         if (clients[j].fd != clientSockfd && clients[j].fd != -1) {
-                            write(clients[j].fd, &tmp, len*sizeof(Data_s));
+                            write(clients[j].fd, &recv, sizeof(Pos));
+                            write(clients[j].fd, &tmp, recv.x*sizeof(Pos));
                         }
                     }
                 } else {
@@ -90,7 +92,7 @@ int main() {
                         printf("Exit: User[%d]\n", i);
                         close(clientSockfd);
                         clients[i].fd = -1;
-                        refuse && (refuse = 0);
+                        refuse = 0;
                     }
                 } 
             }
