@@ -3,7 +3,7 @@
 > 簡介：建立一個 GUI 介面（以下簡稱白板），讓使用者可以在該介面上隨意塗鴉，並將繪圖者的筆跡表現在其他使用者的白板上，功能上與 Teams 中的白板相似。
 
 
-※  1/10 更新 version2  將 linkedlist 的資料格式以及 linkedlist 的部分 function 實作修改，以及修改 whiteboard/whiteboard.cpp 中取得滑鼠位置後的處理方式。
+※  1/11 更新 versionGUI 新增由 Qt 建立的 GUI 界面，以及新增 HWControl struct in linkedlist.h 以及修改 server broadcast 實作方法。
 
 ### 目前功能 ###
 1.  繪圖板功能

@@ -9,12 +9,14 @@
 
 #include "linkedlist.h"
 
+#define MAX_P 10
+
 int serverInit (int port);
 
 int main() {
     int serverSockfd, clientSockfd, clientlen;
     struct sockaddr_in client;
-    struct pollfd clients[MAX_P+1];
+    struct pollfd clients[MAX_P];
 
     int port = 2244;
     if ((serverSockfd = serverInit(port)) < 0) {
@@ -24,14 +26,12 @@ int main() {
     
     clients[0].fd = serverSockfd;
     clients[0].events = POLLRDNORM;
-    for (int i = 1; i <= MAX_P; i++) {
+    for (int i = 1; i < MAX_P; i++) {
         clients[i].fd = -1;
     }
 
     int nready = 0;
     int maxi = 1;
-    int refuse = 0;
-
     while (1) {
         nready = poll(clients, maxi, -1);
 
@@ -40,20 +40,17 @@ int main() {
             clientSockfd = accept(serverSockfd, (struct sockaddr *) &client, (socklen_t *) &clientlen);
             int i = 0;
             for (i = 1; i < MAX_P; i++) {
-                if (refuse) {
-                    close(clientSockfd);
-                    break;
-                } else if (clients[i].fd < 0) {
+                if (clients[i].fd < 0) {
                     clients[i].fd = clientSockfd;
                     clients[i].events = POLLRDNORM;
-                    printf("added %d\n", i);
+                    printf("Add client at %d\n", i);
                     break;
                 }
             }
 
-            if (i > MAX_P) {
-                printf("There are too many people here, refused...\n");
-                refuse = 1;
+            if (maxi > MAX_P) {
+                printf("There are too many people here, Exiting...\n");
+                exit(1);
             } else if (i == maxi) {
                 maxi++;
                 printf("i = %d, maxi = %d\n", i, maxi);
@@ -71,20 +68,21 @@ int main() {
 
             clientSockfd = clients[i].fd;
             if (clients[i].revents & (POLLRDNORM | POLLERR)) {
-                Pos recv;
+                Data_s recv;
+                HWCtrl user;
                 int n, len;
 
-                if ((n = read(clientSockfd, &recv, sizeof(recv))) > 0) {
-                    Pos tmp[recv.x];
-                    int n2 = read(clientSockfd, &tmp, sizeof(Pos)*recv.x);
-                    printf("n  %d, n2 %d\n", n, n2);
-                    printf("recv.x %d, sizeof(Pos)*recv.x %lu\n", recv.x, recv.x*sizeof(Pos));
-
-                    recv.y = i;
+                if ((n = read(clientSockfd, &user, sizeof(HWCtrl))) > 0) {
+                    Data_s tmp[len];
+                    read(clientSockfd, &tmp, sizeof(Data_s)*len);
+                    //read(clientSockfd, &user, sizeof(HWCtrl)); 
+                    //tmp.id = i;
+                    user.id = i;
                     for (int j = 1; j <= maxi; j++) {
                         if (clients[j].fd != clientSockfd && clients[j].fd != -1) {
-                            write(clients[j].fd, &recv, sizeof(Pos));
-                            write(clients[j].fd, &tmp, recv.x*sizeof(Pos));
+                            //write(clients[j].fd, &len, sizeof(int));
+                            write(clients[j].fd, &user, sizeof(HWCtrl));
+                            write(clients[j].fd, &tmp, sizeof(Data_s)*user.length);
                         }
                     }
                 } else {
@@ -92,7 +90,6 @@ int main() {
                         printf("Exit: User[%d]\n", i);
                         close(clientSockfd);
                         clients[i].fd = -1;
-                        refuse = 0;
                     }
                 } 
             }

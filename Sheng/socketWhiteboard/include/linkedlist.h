@@ -1,25 +1,30 @@
 #ifndef __LINKEDLIST_H__
 #define __LINKEDLIST_H__
 
-#define MAX_P 10
-
-typedef struct position {
+typedef struct data_s {
     int x;
     int y;
-} Pos;
+} Data_s;
 
-typedef struct PosNode {
+typedef struct node_s {
+    Data_s point;
+    struct node_s *next;
+} Node_s;
+
+typedef struct handwrite_Control {
+    int r;
+    int g;
+    int b;
+    int thk;
     int id;
-    int len;
-    Pos *p;
-    struct PosNode *next;
-} Node_p;
+    int length;
+} HWCtrl;
 
-int add (Node_p **node, int id, Pos *pts, size_t length);
-int del (Node_p **node, Pos *pts);
-int showList (Node_p **);
-int cleanList (Node_p **);
-int socket_write (int fd, int id, Node_p **node);
-int socket_read (int fd, int id, Node_p **node, int size);
+int add (Node_s **, Data_s);
+int del (Node_s **, Data_s);
+int showList (Node_s **);
+int cleanList (Node_s **);
+int socket_write (Node_s **, int, int);
+int socket_read (Node_s **, int, int);
 
 #endif
