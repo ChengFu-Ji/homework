@@ -472,7 +472,7 @@ void MouseWork (int event, int x, int y, int flags, void *userdata) {
             HWCtrl c = {(int) color.val[0],
                          (int) color.val[1],
                          (int) color.val[2],
-                         thk, 0, dots++};
+                         thk, 0, ++dots};
             //dots++;
             tmp.x = -1;
             tmp.y = 0;
