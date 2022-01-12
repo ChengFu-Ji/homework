@@ -1,18 +1,18 @@
 #ifndef __LINKEDLIST_H__
 #define __LINKEDLIST_H__
 
-typedef struct data_s {
+typedef struct position {
     int x;
     int y;
-} Data_s;
+} Pos;
 
 typedef struct node_s {
-    Data_s point;
+    Pos point;
     struct node_s *next;
 } Node_s;
 
-int add (Node_s **, Data_s);
-int del (Node_s **, Data_s);
+int add (Node_s **, Pos);
+int del (Node_s **, Pos);
 int showList (Node_s **);
 int cleanList (Node_s **);
 int socket_write (Node_s **, int, int);

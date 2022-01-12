@@ -7,7 +7,7 @@
 /*
  *  新增一筆資料在 Linkedlist 中
  */
-int add (Node_s **node, Data_s pt) {
+int add (Node_s **node, Pos pt) {
     Node_s *new_node, *cur;
 
     cur = *node;
@@ -25,12 +25,12 @@ int add (Node_s **node, Data_s pt) {
 /*
  *  在 Linkedlist 中刪除指定資料
  */
-int del (Node_s **node, Data_s pt) {
+int del (Node_s **node, Pos pt) {
     Node_s *cur, *tmp;
 
     cur = *node;
     while (cur->next != NULL) {
-        if (!memcmp(&(cur->next->point), &pt, sizeof(Data_s))) {
+        if (!memcmp(&(cur->next->point), &pt, sizeof(Pos))) {
             tmp = cur->next->next;
             free(cur->next); 
             cur->next = tmp;
@@ -75,33 +75,35 @@ int cleanList (Node_s **node) {
 
 int socket_write (Node_s **node, int fd, int size) {
     Node_s *cur, *next;
-    Data_s *ptp, ptarr[size];
+    Pos *pts;
     int i;
 
-    ptp = ptarr;
+    pts = (Pos *)malloc(sizeof(Pos)*size);
+    i = 0;
     cur = (*node)->next;
     while (cur != NULL) {
-        *(ptp++) = cur->point;
+        pts[i++] = cur->point;
         /*
         next = cur->next->next;
         del(node, cur->point);
         */
         cur = cur->next;
     }
-    write(fd, &size, sizeof(int));
-    write(fd, ptarr, size*sizeof(Data_s));
+    write(fd, &i, sizeof(int));
+    write(fd, pts, i*sizeof(Pos));
+    free(pts);
     return 0;
 }
 
 int socket_read (Node_s **node, int fd, int size) {
-    Data_s *pts;
+    Pos *pts;
     int n;
 
-    pts = (Data_s *)malloc(sizeof(Data_s)*size);
-    if ((n = read(fd, pts, sizeof(Data_s)*size)) > 0) {
-        for (int i = 0; i < size; i++) {
+    pts = (Pos *)malloc(sizeof(Pos)*size);
+    if ((n = read(fd, pts, sizeof(Pos)*size)) > 0) {
+        for (int i = 0; i < n/sizeof(Pos); i++) {
             if ((pts+i)->x == -1 && (pts+i)->y == 0) {
-                return size;
+                return n/sizeof(Pos);
             }
             add(node, *(pts+i));
         }

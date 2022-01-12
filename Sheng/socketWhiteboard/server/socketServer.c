@@ -73,16 +73,18 @@ int main() {
 
             clientSockfd = clients[i].fd;
             if (clients[i].revents & (POLLRDNORM | POLLERR)) {
-                Data_s tmp;
+                //Pos tmp;
                 int n, len;
 
-                if ((n = read(clientSockfd, &len, sizeof(tmp))) > 0) {
-                    Data_s tmp[len];
-                    read(clientSockfd, &tmp, sizeof(Data_s)*len);
+                if ((n = read(clientSockfd, &len, sizeof(int))) > 0) {
+                    Pos tmp[len];
+                    int n2 = read(clientSockfd, &tmp, sizeof(Pos)*len);
 
+                    printf("n = %lu, n2 = %d, len %d\n", len*sizeof(Pos), n2, len);
                     for (int j = 1; j <= maxi; j++) {
                         if (clients[j].fd != clientSockfd && clients[j].fd != -1) {
-                            write(clients[j].fd, &tmp, len*sizeof(Data_s));
+                            write(clients[j].fd, &len, sizeof(int));
+                            write(clients[j].fd, &tmp, len*sizeof(Pos));
                         }
                     }
                 } else {
@@ -90,7 +92,7 @@ int main() {
                         printf("Exit: User[%d]\n", i);
                         close(clientSockfd);
                         clients[i].fd = -1;
-                        refuse && (refuse = 0);
+                        refuse = 0;
                     }
                 } 
             }
