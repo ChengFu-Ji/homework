@@ -80,7 +80,6 @@ int main () {
     char address[] = "localhost";
 
     sendList = linkedlistInit();
-    recvList = linkedlistInit();
 
     pages = (pageNode **)malloc(sizeof(pageNode *));
     *pages = (pageNode *)malloc(sizeof(pageNode));
@@ -98,23 +97,22 @@ int main () {
     imshow(windowName, image);
 
     setMouseCallback(windowName, MouseWork, (void *) &fd);
-    char test = 'c';
-    setMouseCallback("button", buttonWork, (void *) &test);
+    setMouseCallback("button", buttonWork, NULL);
 
     if ((fd = clientInit(port, address)) < 0) {
         printf("ERROR:Can't not connect to %s:%d....\nTurn on offline mode\n", address, port);
     } else {
         pthread_create(&t, NULL, recvData, (void *) &fd);
+        recvList = linkedlistInit();
     }
 
-    fd = 1;
     int id = 0, key = 0;
     while (1) {
         if (getWindowProperty(windowName, WINDOW_NORMAL) < 0 && getWindowProperty(colorPickerWinn, WINDOW_NORMAL) < 0 || pollKey() == 27) {
             break;
         }
 
-        if (fd > 0 && fd != 1) {
+        if (fd > 0) {
             if (pthread_kill(t, 0) == ESRCH) {
                 pthread_create(&t, NULL, recvData, (void *) &fd);
                 imshow(windowName, image);
@@ -122,7 +120,6 @@ int main () {
         }
     }
 
-    linkedlistFree(recvList);
     linkedlistFree(sendList);
 
     deleteAllPages(pages);
@@ -131,10 +128,11 @@ int main () {
     free(pages);
 
     printf("Exiting...\n");
-    if (fd > 0 && fd != 1) {
+    if (fd > 0) {
         if (pthread_kill(t, 0) != ESRCH) {
             pthread_cancel(t);
         }
+        linkedlistFree(recvList);
         close(fd);
     }
 }
