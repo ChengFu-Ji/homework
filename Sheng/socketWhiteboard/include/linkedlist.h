@@ -13,6 +13,7 @@ typedef struct node_s {
 
 int add (Node_s **, Pos);
 int del (Node_s **, Pos);
+void listcat(Node_s **, Node_s **);
 int showList (Node_s **);
 int cleanList (Node_s **);
 int socket_write (Node_s **, int, int);

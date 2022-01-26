@@ -133,3 +133,13 @@ int IDdelete (Node_s **node, int id) {
     return 0;
 }
 */
+
+void listcat(Node_s **det, Node_s **src) {
+    Node_s *cur;
+
+    cur = (*det);
+    while (cur->next != NULL) {
+        cur = cur->next;
+    }
+    cur->next = (*src)->next;
+}

@@ -72,16 +72,18 @@ void bezierCurve (cv::Point2d *det, int SR, cv::Point2d *p, int length) {
 
 void triangleDist (cv::Point2d *p, double *dists) {
     int i;
-    for (i = 0; i < 2; i++) {
-        if (p[i].x != p[i+1].x || p[i].y != p[i+1].y) {
+    for (i = 0; i < 3; i++) {
+        if (p[i].x != p[(i+2)%3].x || p[i].y != p[(i+2)%3].y) {
             dists[i] = dist(p[i], p[i+1]);
         } else {
             dists[i] = 0.0;
         }
     }
+    /*
     if (p[i].x != p[0].x || p[i].y != p[0].y) {
         dists[i] = dist(p[0], p[i]);
     } else {
         dists[i] = 0.0;
     }
+    */
 }

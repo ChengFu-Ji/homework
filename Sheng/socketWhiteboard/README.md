@@ -4,6 +4,7 @@
 
 
 ※ 1/12 更新 master ， 將貝茲曲線函式獨立成一個檔案，並更動 linkedlist struct 名稱，以及 linkedlist 、 server 及 whiteboard 中相對應的修改。
+※ 1/26 更新 master ， 實作按鈕觸發、新增頁面功能以及翻頁功能。
 
 ### 目前功能 ###
 1.  繪圖板功能
