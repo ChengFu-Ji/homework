@@ -16,8 +16,10 @@ int addPage (pageNode **, int);
 int delCurrentPage (pageNode **, int);
 int deleteAllPages (pageNode **);
 
+pageNode *getLastPage (pageNode **);
 pageNode *getPage (pageNode **, int);
 pageNode *getPrevPage (pageNode **, int);
+pageNode *getPagebyOrder (pageNode **, int);
 
 /* debug use */
 int showPageList(pageNode **);

@@ -19,7 +19,7 @@ int freeStroke (strokeNode **stroke) {
     return 0;
 }
 
-int addStroke (strokeNode **strokes, posNode **pos) {
+int addStroke(strokeNode **strokes, posNode **pos, int thk, int is_eraser) { 
     strokeNode *cur, *newNode;
 
     cur = (*strokes);
@@ -28,6 +28,8 @@ int addStroke (strokeNode **strokes, posNode **pos) {
     }
 
     newNode = (strokeNode *) malloc(sizeof(strokeNode));
+    newNode->is_eraser = is_eraser;
+    newNode->thickness = thk;
     initPos(&newNode->pos);
     catPosList(newNode->pos, pos);
 

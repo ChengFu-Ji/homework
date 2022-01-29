@@ -83,7 +83,6 @@ int showPageList(pageNode **pages) {
     return 0;
 }
 
-
 pageNode *getPage (pageNode **pages, int pid) {
     pageNode *cur;
     
@@ -103,9 +102,41 @@ pageNode *getPrevPage (pageNode **pages, int pid) {
     cur = *pages;
     while (cur->next != NULL) {
         if (cur->next->pid == pid) {
+            if (cur == *pages) {
+                break;
+            }
             return cur;
         }
         cur = cur->next;
     }
+    return NULL;
+}
+
+pageNode *getPagebyOrder (pageNode **pages, int order) {
+    pageNode *cur;
+    int i = 0;
+    
+    cur = *pages;
+    while (cur->next != NULL) {
+        if (++i == order) {
+            return cur->next;
+        }
+        cur = cur->next;
+    }
+    return NULL;
+}
+
+pageNode *getLastPage (pageNode **pages) {
+    pageNode *cur;
+    
+    cur = *pages;
+    while (cur->next != NULL) {
+        cur = cur->next;
+    }
+
+    if (cur != *pages) {
+        return cur;
+    }
+
     return NULL;
 }

@@ -1,53 +1,6 @@
-#include <stdio.h>
-#include <stdlib.h>
-/*memset*/
-#include <string.h>
-//#include <math.h>
-
-/* man tcp */
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-
-/* gethostbyname */
-#include <netdb.h>
-
-/* write read close functions */
-#include <unistd.h>
-
-#include <pthread.h>
-#include <signal.h>
-
-/* opencv */
-#include <opencv2/opencv.hpp>
-#include <opencv2/highgui/highgui_c.h>
-
-/* my include */
-extern "C" {
-#include "bezier.h"
-#include "linkedlist/pos.h"
-#include "linkedlist/stroke.h"
-#include "linkedlist/page.h"
-}
-
-#define TIMES 1000
-#define DOTS 6
+#include "wbwindows.h"
 
 using namespace cv;
-
-struct _sender {
-    pageNode **pageHead;
-    posNode **posHead;
-    int *id;
-};
-
-int connectToServer (char *, int);
-void *recvData (void *);
-void mouseOnWhiteboard (int, int, int, int, void *);
-void plotHandwriting (DPos *p, DPos *plot, int repair);
-void changeToPage (pageNode *, int *);
-void drawPosList (posNode **);
-void drawStrokeList (strokeNode **);
 
 char Winn[] = "whiteboard";
 Mat image;
@@ -58,14 +11,16 @@ int main () {
     pthread_t t;
     posNode **recvList, **sendList;
     pageNode **pages;
-    int id, curid;
+    int curid, is_eraser, thk;
 
     char host[] = "localhost";
     int port = 2244;
 
     initPage(&pages);
-    curid = (id = 0);
-    addPage(pages, id);
+    thk = 3;
+    is_eraser = 0;
+    curid = 0;
+    addPage(pages, curid);
 
     image = Mat(950, 1600, CV_8UC3, Scalar(255, 255, 255));
     topButton = Rect(0, 0, 1600, 50);
@@ -75,8 +30,10 @@ int main () {
     imshow(Winn, image);
 
     initPos(&sendList);
-    struct _sender s = {pages, sendList, &curid};
+    struct _sender s = {pages, sendList, &thk, &is_eraser, &curid};
     setMouseCallback(Winn, mouseOnWhiteboard, (void *) &s);
+
+    setbuttonBar(s);
 
     if ((fd = connectToServer(host, port)) < 0) {
         printf("ERROR:Can't not connect to %s:%d....\nTurn on offline mode\n", host, port);
@@ -91,12 +48,16 @@ int main () {
             //waitKey(0);
             break;
         }
+        /*
         if (tmp != -1) {
             printf("%d %c\n", tmp, tmp);
         }
+        */
         /* ctrl + n / ctrl + x / ctrl + z / ctrl + d/ (Mac)*/
         if (tmp == 14) {
-            addPage(pages, ++id);
+            pageNode *page = getLastPage(pages);
+            addPage(pages, (page->pid)+1);
+            //addPage(pages, ++id);
             printf("added\n");
         } else if (tmp == 24) {
             changeToPage(getPage(pages, curid)->next, &curid);
@@ -105,9 +66,18 @@ int main () {
             changeToPage(getPrevPage(pages, curid), &curid);
             printf("prev page\n");
         } else if (tmp == 4) {
-            int tmpid = curid;
-            changeToPage(getPrevPage(pages, curid), &curid);
-            delCurrentPage(pages, tmpid);
+            pageNode *page = getPrevPage(pages, curid);
+            if (page == NULL) {
+                page = getPage(pages, curid)->next;
+            }
+            if (page != NULL) {
+                delCurrentPage(pages, curid);
+                changeToPage(page, &curid);
+            }
+            printf("delete\n");
+        } else if (tmp == 25) {
+            getValue(&thk, 4);
+            printf("thk now %d\n", thk);
         }
 
         if (fd > 0) {
@@ -168,9 +138,8 @@ void *recvData(void *recv) {
     }
 
     if ((n = socket_read(fd, recvList, length)) > 0) {
-        //drawList (recvList);
+        drawPosList(recvList, 0, 0);
         //IDdelete(recvList, id);
-        //cleanList(recvList);
         deleteAllPos(recvList);
     }
     pthread_exit (0);
@@ -189,6 +158,8 @@ void mouseOnWhiteboard (int event, int x, int y, int flags, void *sender) {
     pageNode **pages = s.pageHead;
     posNode **sendList = s.posHead;
     int *curid = s.id;
+    int *eraser = s.is_eraser;
+    int *thk = s.thk;
 
 
     if (event == EVENT_LBUTTONDOWN) {
@@ -230,7 +201,7 @@ void mouseOnWhiteboard (int event, int x, int y, int flags, void *sender) {
         addPos(sendList, (Pos) {x, y});
 
         bezierCurve(plot, TIMES, p, DOTS);
-        plotHandwriting(p, plot, 0);
+        plotHandwriting(p, plot, 0, *thk, *eraser);
         imshow(Winn, image);
     } else if (event == EVENT_LBUTTONUP) {
 
@@ -254,14 +225,14 @@ void mouseOnWhiteboard (int event, int x, int y, int flags, void *sender) {
         pageNode *page = getPage(pages, *curid);
         if (page != NULL) {
             //printf("page ID %d\n", page->pid);
-            addStroke(page->strokes, sendList);
+            addStroke(page->strokes, sendList, *thk, *eraser);
             (*sendList)->next = NULL;
         } else {
             deleteAllPos(sendList);
         }
 
         if (p[0].x != -1 && p[0].y != -1) {
-            plotHandwriting(p, plot, 1);
+            plotHandwriting(p, plot, 1, *thk, *eraser);
         }
         imshow(Winn, image);
     }
@@ -272,11 +243,18 @@ void mouseOnWhiteboard (int event, int x, int y, int flags, void *sender) {
 }
 
 
-void plotHandwriting (DPos *p, DPos *plot, int repair) {
+void plotHandwriting (DPos *p, DPos *plot, int repair, int thickness, int eraser) {
     int i, j;
     double distance = 0.0;
     Scalar handwritColor = Scalar(170, 190, 110);
-    int thk = 5;
+    if (eraser) {
+        handwritColor = Scalar(255, 255, 255);
+    }
+    int thk = thickness;
+    if (thickness == 0) {
+        thk = 3;
+    }
+    
 
     if (!repair) {
         for (i = 0; i < DOTS-1; i++) {
@@ -333,6 +311,10 @@ void plotHandwriting (DPos *p, DPos *plot, int repair) {
 }
 
 void changeToPage (pageNode *page, int *curid) {
+    if (page == NULL) {
+        return;
+    }
+
     if (page->pid == *curid) {
         printf("same page\n");
         return;
@@ -345,9 +327,7 @@ void changeToPage (pageNode *page, int *curid) {
     
     drawStrokeList(page->strokes);
     imshow(Winn, image);
-    printf("curid %d\n", *curid);
     *curid = page->pid;
-    printf("curid %d\n", *curid);
 }
 
 
@@ -356,13 +336,13 @@ void drawStrokeList (strokeNode **strokes) {
 
     cur = (*strokes);
     while (cur->next != NULL) {
-        drawPosList(cur->next->pos);
+        drawPosList(cur->next->pos, cur->next->thickness, cur->next->is_eraser);
 
         cur = cur->next;
     }
 }
 
-void drawPosList (posNode **pos) {
+void drawPosList (posNode **pos, int thk, int is_eraser) {
     DPos p[DOTS], plot[TIMES];
     posNode *cur;
     int i;
@@ -385,10 +365,10 @@ void drawPosList (posNode **pos) {
             }
             p[DOTS-1] = (DPos) { (double) cur->point.x, (double) cur->point.y};
             bezierCurve(plot, TIMES, p, DOTS);
-            plotHandwriting(p, plot, 0);
+            plotHandwriting(p, plot, 0, thk, is_eraser);
             
         } else {
-            plotHandwriting(p, plot, 1);
+            plotHandwriting(p, plot, 1, thk, is_eraser);
 
             for (i = 0; i < DOTS; i++) {
                 p[i] = (DPos) {-1, -1};
@@ -397,5 +377,4 @@ void drawPosList (posNode **pos) {
         cur = cur->next;
     }
 
-    //plotHandwriting(p, plot, 1);
 }
