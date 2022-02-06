@@ -39,7 +39,9 @@ int main () {
         printf("ERROR:Can't not connect to %s:%d....\nTurn on offline mode\n", host, port);
     } else {
         initPos(&recvList);
-        pthread_create(&t, NULL, recvData, (void *) recvList);
+        
+        struct _sender recv = {pages, recvList, NULL, NULL, &curid};
+        pthread_create(&t, NULL, recvData, (void *) &recv);
     }
 
     char tmp;
@@ -57,6 +59,10 @@ int main () {
         if (tmp == 14) {
             pageNode *page = getLastPage(pages);
             addPage(pages, (page->pid)+1);
+
+            SockCond addpage = {-1, (page->pid)+1, -1, 0, 0, 0};
+            write(fd, &addpage, sizeof(SockCond));
+
             //addPage(pages, ++id);
             printf("added\n");
         } else if (tmp == 24) {
@@ -71,9 +77,14 @@ int main () {
                 page = getPage(pages, curid)->next;
             }
             if (page != NULL) {
-                delCurrentPage(pages, curid);
+                SockCond delpage = {-1, -1, curid, 0, 0, 0};
+                write(fd, &delpage, sizeof(SockCond));
+
+                delPage(pages, curid);
                 changeToPage(page, &curid);
+
             }
+
             printf("delete\n");
         } else if (tmp == 25) {
             getValue(&thk, 4);
@@ -82,7 +93,8 @@ int main () {
 
         if (fd > 0) {
             if (pthread_kill(t, 0) == ESRCH) {
-                pthread_create(&t, NULL, recvData, (void *) &fd);
+                struct _sender recv = {pages, recvList, NULL, NULL, &curid};
+                pthread_create(&t, NULL, recvData, (void *) &recv);
                 imshow(Winn, image);
             }
         }
@@ -128,19 +140,48 @@ int connectToServer(char *address, int port) {
 }
 
 
-void *recvData(void *recv) {
-    posNode **recvList;
-    int length, n;
-    recvList = (posNode **)recv;
-
-    if (read(fd, &length, sizeof(int)) < 0) {
+void *recvData (void *sender) {
+    int n;
+    //recvList = (posNode **)recv;
+    struct _sender s = *(struct _sender *) sender;
+    posNode **recvList = s.posHead;
+    pageNode **pages = s.pageHead;
+    int *curid = s.id;
+    SockCond recv;
+    
+    if (read(fd, &recv, sizeof(SockCond)) < 0) {
         pthread_exit(NULL);
     }
 
-    if ((n = socket_read(fd, recvList, length)) > 0) {
-        drawPosList(recvList, 0, 0);
-        //IDdelete(recvList, id);
-        deleteAllPos(recvList);
+    if (recv.addpid > 0) {
+        addPage(pages, recv.addpid);
+    } 
+    if (recv.poslen > 0) {
+        if ((n = socket_read(fd, recvList, recv.poslen)) > 0) {
+            if (recv.drawpid == *curid) {
+                drawPosList(recvList, recv.thickness, recv.eraser);
+                //IDdelete(recvList, id);
+                //deleteAllPos(recvList);
+            }
+            pageNode *page = getPage(pages, recv.drawpid);
+            if (page != NULL) {
+                addStroke(page->strokes, recvList, recv.thickness, recv.eraser);
+                (*recvList)->next = NULL;
+            }
+        }
+    } 
+
+    if (recv.deletepid >= 0) {
+        pageNode *page = getPrevPage(pages, recv.deletepid);
+        if (page == NULL) {
+            page = getPage(pages, recv.deletepid)->next;
+        }
+        if (page != NULL) {
+            delPage(pages, recv.deletepid);
+            if (*curid == recv.deletepid) {
+                changeToPage(page, curid);
+            }
+        }
     }
     pthread_exit (0);
 }
@@ -216,16 +257,18 @@ void mouseOnWhiteboard (int event, int x, int y, int flags, void *sender) {
         }
 
         addPos(sendList, (Pos) {-1, 0});
-        if (fd > 0) {
-            dots++;
-            socket_write(fd, sendList, dots);
-            dots = 0;
-        }
 
         pageNode *page = getPage(pages, *curid);
         if (page != NULL) {
             //printf("page ID %d\n", page->pid);
             addStroke(page->strokes, sendList, *thk, *eraser);
+            if (fd > 0) {
+                dots++;
+                //socket_write(fd, sendList, dots);
+                SockCond send = { *curid, -1, -1, *eraser, *thk, dots};
+                sendStroke(fd, getLastStroke(page->strokes), send);
+                dots = 0;
+            }
             (*sendList)->next = NULL;
         } else {
             deleteAllPos(sendList);
@@ -263,7 +306,7 @@ void plotHandwriting (DPos *p, DPos *plot, int repair, int thickness, int eraser
 
         if (distance <= 70) {
             for (i = 0; i < DOTS-1; i++) {
-                line(image, Point(p[i].x, p[i].y), Point(p[i+1].x, p[i+1].y), handwritColor, thk);
+                line(image, Point(p[i].x, p[i].y), Point(p[i+1].x, p[i+1].y), handwritColor, thk+9);
             }
             p[0] = p[DOTS-1];
             i = 1;
@@ -356,6 +399,7 @@ void drawPosList (posNode **pos, int thk, int is_eraser) {
             for (i = 0; i < DOTS-1; i++) {
                 if (p[i].x == -1 && p[i].y == -1) {
                     p[i] = (DPos) { (double) cur->point.x, (double) cur->point.y};
+                    //printf("p[%d] %d %d\n", i, cur->point.x, cur->point.y);
                     cur = cur->next;
                     break;
                 }
@@ -365,6 +409,8 @@ void drawPosList (posNode **pos, int thk, int is_eraser) {
             }
             p[DOTS-1] = (DPos) { (double) cur->point.x, (double) cur->point.y};
             bezierCurve(plot, TIMES, p, DOTS);
+            //printf("plot[0] %lf %lf\n", plot[0].x, plot[0].y);
+            //printf("p[0] %lf %lf\n", p[0].x, p[0].y);
             plotHandwriting(p, plot, 0, thk, is_eraser);
             
         } else {

@@ -48,12 +48,12 @@ int connectToServer (char *, int);
 void *recvData (void *);
 void plotHandwriting (DPos *, DPos *, int, int, int);
 
-/* opencv */
-void mouseOnWhiteboard (int, int, int, int, void *);
-
 void changeToPage (pageNode *, int *);
 void drawPosList (posNode **, int, int);
 void drawStrokeList (strokeNode **);
+
+/* opencv */
+void mouseOnWhiteboard (int, int, int, int, void *);
 
 /*input box */
 void getValue (int *, int);

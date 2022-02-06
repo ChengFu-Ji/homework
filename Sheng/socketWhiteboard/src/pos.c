@@ -55,6 +55,7 @@ int delPos (posNode **node, Pos pt) {
 
     return 1;
 }
+
 /*
  *  顯示目前 Linkedlist 所有的資料。
  */
@@ -103,7 +104,7 @@ int socket_write (int fd, posNode **node, int length) {
         */
         cur = cur->next;
     }
-    write(fd, &i, sizeof(int));
+    //write(fd, &i, sizeof(int));
     write(fd, pts, i*sizeof(Pos));
     free(pts);
     return 0;

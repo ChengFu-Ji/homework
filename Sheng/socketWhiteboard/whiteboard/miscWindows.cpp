@@ -52,7 +52,6 @@ void setbuttonBar (struct _sender sender) {
     namedWindow(barName, WINDOW_NORMAL);
     imshow(barName, img);
 
-    waitKey(0);
     setMouseCallback(barName, buttonBarEvent, (void *) &sender);
 }
 
@@ -101,7 +100,7 @@ void buttonBarEvent (int event, int x, int y, int flags, void *sender) {
                     page = getPage(pages, *curid)->next;
                 }
                 if (page != NULL) {
-                    delCurrentPage(pages, *curid);
+                    delPage(pages, *curid);
                     changeToPage(page, curid);
                 }
 

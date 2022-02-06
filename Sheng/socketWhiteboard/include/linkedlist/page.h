@@ -13,7 +13,7 @@ int initPage (pageNode ***);
 int freePage (pageNode **);
 
 int addPage (pageNode **, int);
-int delCurrentPage (pageNode **, int);
+int delPage (pageNode **, int);
 int deleteAllPages (pageNode **);
 
 pageNode *getLastPage (pageNode **);

@@ -36,7 +36,7 @@ int addPage (pageNode **pages, int id) {
     return 0;
 }
 
-int delCurrentPage(pageNode **pages, int id) {
+int delPage (pageNode **pages, int id) {
     pageNode *cur, *next;
 
     cur = (*pages);
