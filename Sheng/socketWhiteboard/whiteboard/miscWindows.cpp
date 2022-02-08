@@ -16,11 +16,14 @@ void getValue (int *value, int maxlength) {
     namedWindow(name, WINDOW_AUTOSIZE);
     imshow(name, mMat);
     while ((tmp = pollKey()) != 13) {
-        if (tmp > 47 && tmp < 58 && i < maxlength) {
-            input[i++] = tmp;
-            input[i] = '\0';
-        } else if (tmp > 47 && tmp < 58 && i == maxlength) {
-            input[i-1] = tmp;
+        if (tmp == 27) {
+            break;
+        } if (tmp > 47 && tmp < 58 ) {
+            if (i < maxlength) {
+                input[i++] = tmp;
+            } else if (i == maxlength) {
+                input[i-1] = tmp;
+            }
             input[i] = '\0';
         } else if (tmp == 127) {
             input[--i] = '\0';
@@ -110,6 +113,56 @@ void buttonBarEvent (int event, int x, int y, int flags, void *sender) {
     }
 }
 
+void drawEraserIcon (Mat image, int x, int y, int powSize) {
+    double powSizeSqrt = sqrt(powSize);
+    /* parallelogram */
+    Pos topPos = {x + (int) (powSizeSqrt/10*7), y + (int) powSizeSqrt/10};
+    Pos leftPos = {x + (int) powSizeSqrt/10, y + (int) (powSizeSqrt/10*7)};
+    Pos rightPos = {x + (int) (powSizeSqrt/10*9), y + (int) (powSizeSqrt/10*3)};
+    Pos bottomPos = {x + (int) (powSizeSqrt/10*3), y + (int) (powSizeSqrt/10*9)};
+    //printf("%d %d\n", topPos.x, topPos.y);
+
+    line(image, Point(topPos.x, topPos.y), Point(leftPos.x, leftPos.y), Scalar(0, 0, 0), 3);
+    line(image, Point(topPos.x, topPos.y), Point(rightPos.x, rightPos.y), Scalar(0, 0, 0), 3);
+    line(image, Point(rightPos.x, rightPos.y), Point(bottomPos.x, bottomPos.y), Scalar(0, 0, 0), 3);
+    line(image, Point(leftPos.x, leftPos.y), Point(bottomPos.x, bottomPos.y), Scalar(0, 0, 0), 3);
+
+    line(image, Point(topPos.x - powSizeSqrt/10, topPos.y + powSizeSqrt/10), Point(rightPos.x - powSizeSqrt/10, rightPos.y + powSizeSqrt/10), Scalar(0, 0, 0), 3);
+}
+
+void drawAddPageIcon (Mat image, int x, int y, int powSize) {
+}
+
+void drawDeletePageIcon (Mat image, int x, int y, int powSize) {
+}
+
+void drawSelectPageIcon (Mat image, int x, int y, int powSize) {
+    double powSizeSqrt = sqrt(powSize);
+    putText(image, "page", Point(x + (int) (powSizeSqrt/10), y + (int) (powSizeSqrt/10)), FONT_HERSHEY_SIMPLEX, 1, Scalar(5, 25, 2), 2, LINE_AA);
+}
+
+void drawNextPageIcon (Mat image, int x, int y, int powSize) {
+    double powSizeSqrt = sqrt(powSize);
+    line(image, Point(x + (int) (powSizeSqrt/10*3), y + (int) (powSizeSqrt/10*2)),
+                Point(x + (int) (powSizeSqrt/10*3), y + (int) (powSizeSqrt/10*8)), Scalar(0, 0, 0), 3);
+    line(image, Point(x + (int) (powSizeSqrt/10*3), y + (int) (powSizeSqrt/10*2)), 
+                Point(x + (int) (powSizeSqrt/10*3 + powSizeSqrt/10*3*sqrt(3)), y + (int) (powSizeSqrt/2)), Scalar(0, 0, 0), 3);
+    line(image, Point(x + (int) (powSizeSqrt/10*3), y + (int) (powSizeSqrt/10*8)),
+                Point(x + (int) (powSizeSqrt/10*3 + powSizeSqrt/10*3*sqrt(3)), y + (int) (powSizeSqrt/2)), Scalar(0, 0, 0), 3);
+}
+
+void drawPrevPageIcon (Mat image, int x, int y, int powSize) {
+    double powSizeSqrt = sqrt(powSize);
+    line(image, Point(x + (int) (powSizeSqrt/10*7), y + (int) (powSizeSqrt/10*2)),
+                Point(x + (int) (powSizeSqrt/10*7), y + (int) (powSizeSqrt/10*8)), Scalar(0, 0, 0), 3);
+    line(image, Point(x + (int) (powSizeSqrt/10*7), y + (int) (powSizeSqrt/10*2)), 
+                Point(x + (int) (powSizeSqrt/10*7 - powSizeSqrt/10*3*sqrt(3)), y + (int) (powSizeSqrt/2)), Scalar(0, 0, 0), 3);
+    line(image, Point(x + (int) (powSizeSqrt/10*7), y + (int) (powSizeSqrt/10*8)),
+                Point(x + (int) (powSizeSqrt/10*7 - powSizeSqrt/10*3*sqrt(3)), y + (int) (powSizeSqrt/2)), Scalar(0, 0, 0), 3);
+}
+/*
+*/
+/*
 #ifdef __COLORFUL_WHITEBOARD__
 void setColorSelector (struct _sender sender) {
     char barName[] = "buttonBar";
@@ -125,6 +178,7 @@ void setColorSelector (struct _sender sender) {
     }
 }
 #endif
+*/
 
 
 #ifdef __MISC_WINDOW_TEST__

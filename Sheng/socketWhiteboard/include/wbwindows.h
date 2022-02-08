@@ -5,7 +5,8 @@
 #include <stdlib.h>
 /*memset*/
 #include <string.h>
-//#include <math.h>
+/* draw Icons */
+#include <math.h>
 
 /* man tcp */
 #include <sys/types.h>
@@ -44,13 +45,20 @@ struct _sender {
     int *id;
 };
 
+/*
+typedef struct _cmd {
+    int num;
+    
+} Cmd;
+*/
+
 int connectToServer (char *, int);
 void *recvData (void *);
-void plotHandwriting (DPos *, DPos *, int, int, int);
+void plotHandwriting (cv::Mat, DPos *, DPos *, int, int, int);
 
 void changeToPage (pageNode *, int *);
-void drawPosList (posNode **, int, int);
-void drawStrokeList (strokeNode **);
+void drawPosList (cv::Mat image, posNode **pos, int thk, int is_eraser);
+void drawStrokeList (cv::Mat image, strokeNode **strokes);
 
 /* opencv */
 void mouseOnWhiteboard (int, int, int, int, void *);
@@ -62,9 +70,26 @@ void getValue (int *, int);
 void setbuttonBar (struct _sender);
 void buttonBarEvent (int, int, int, int, void *);
 
-/* color selector */
+/* action bar */
+void setActionBar ();
+
+
+void storeImage (pageNode *page, char *fileName);
+
+/* draw Icons */
+void drawEraserIcon (cv::Mat image, int x, int y, int powSize);
+void drawSelectPageIcon (cv::Mat image, int x, int y, int powSize);
+void drawAddPageIcon (cv::Mat image, int x, int y, int powSize);
+void drawDeletePageIcon (cv::Mat image, int x, int y, int powSize);
+void drawSelectPageIcon (cv::Mat image, int x, int y, int powSize);
+void drawNextPageIcon (cv::Mat image, int x, int y, int powSize);
+void drawPrevPageIcon (cv::Mat image, int x, int y, int powSize);
+
+/*
+ color selector 
 #ifdef __COLORFUL_WHITEBOARD__
 void setColorSelector (struct _sender);
 #endif
+*/
 
 #endif

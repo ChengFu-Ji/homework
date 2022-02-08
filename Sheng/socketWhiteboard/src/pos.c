@@ -117,10 +117,10 @@ int socket_read (int fd, posNode **node, int length) {
     pts = (Pos *)malloc(sizeof(Pos)*length);
     if ((n = read(fd, pts, sizeof(Pos)*length)) > 0) {
         for (int i = 0; i < n/sizeof(Pos); i++) {
+            addPos(node, *(pts+i));
             if ((pts+i)->x == -1 && (pts+i)->y == 0) {
                 return n/sizeof(Pos);
             }
-            addPos(node, *(pts+i));
         }
     }
     return 0;

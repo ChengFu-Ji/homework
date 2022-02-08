@@ -66,6 +66,11 @@ int main() {
                             write(clients[i].fd, &user[j], sizeof(SockCond));
                             if (user[j].poslen) {
                                 write(clients[i].fd, tmp[j], sizeof(Pos)*user[j].poslen);
+                            }
+                        }
+
+                        for (int j = 0; j < n; j++) {
+                            if (user[j].poslen) {
                                 free(tmp[j]);
                             }
                         }
@@ -95,27 +100,27 @@ int main() {
             clientSockfd = clients[i].fd;
             if (clients[i].revents & (POLLRDNORM | POLLERR)) {
                 int n;
-                SockCond recv;
+                SockCond recvCondition;
 
-                if ((n = read(clientSockfd, &recv, sizeof(SockCond))) > 0) {
-                    Pos tmp[recv.poslen];
-                    if (recv.drawpid != -1 && recv.poslen != 0) {
-                        read(clientSockfd, &tmp, sizeof(Pos)*recv.poslen);
-                        writeHW(recv, tmp);
+                if ((n = read(clientSockfd, &recvCondition, sizeof(SockCond))) > 0) {
+                    Pos recvTmp[recvCondition.poslen];
+                    if (recvCondition.drawpid != -1 && recvCondition.poslen != 0) {
+                        read(clientSockfd, &recvTmp, sizeof(Pos)*recvCondition.poslen);
+                        writeHW(recvCondition, recvTmp);
                     } else {
-                        writeHW(recv, NULL);
+                        writeHW(recvCondition, NULL);
                     }
                     
                     /*
-                    printf("draw %d ", recv.drawpid);
-                    printf("add %d del ", recv.addpid);
-                    printf("%d eraser %d thk %d len %d\n", recv.deletepid, recv.eraser, recv.thickness, recv.poslen);
+                    printf("draw %d ", recvCondition.drawpid);
+                    printf("add %d del ", recvCondition.addpid);
+                    printf("%d eraser %d thk %d len %d\n", recvCondition.deletepid, recvCondition.eraser, recvCondition.thickness, recvCondition.poslen);
                     */
                     for (int j = 1; j <= maxi; j++) {
                         if (clients[j].fd != clientSockfd && clients[j].fd != -1) {
-                            write(clients[j].fd, &recv, sizeof(SockCond));
-                            if (recv.poslen) {
-                                write(clients[j].fd, &tmp, sizeof(Pos)*recv.poslen);
+                            write(clients[j].fd, &recvCondition, sizeof(SockCond));
+                            if (recvCondition.poslen) {
+                                write(clients[j].fd, &recvTmp, sizeof(Pos)*recvCondition.poslen);
                             }
                         }
                     }
@@ -167,8 +172,6 @@ void writeHW(SockCond sender, Pos *pos) {
     }
 
     fp = fopen("serverHW.index", "a");
-    //fwrite(&userlen, sizeof(int), 1, fp);
-    //fwrite(&uc.dotslen, sizeof(int), 1, fp);
     fwrite(&sender, sizeof(SockCond), 1, fp);
     fclose(fp);
 }
@@ -188,6 +191,7 @@ void readHW(SockCond *recv, Pos ***pos) {
             *(*(pos)+i) = (Pos *)malloc(sizeof(Pos)*recv[i].poslen);
             fread(*(*(pos)+i), sizeof(Pos), recv[i].poslen, fp);
         }
+
     /*
         printf("%d %d %d %d %d %d\n", recv[i].drawpid, recv[i].addpid, recv[i].deletepid, recv[i].eraser, recv[i].thickness, recv[i].poslen);
         printf("len %d\n", uc[i].dotslen);
@@ -195,6 +199,7 @@ void readHW(SockCond *recv, Pos ***pos) {
             printf("%d %d\n", pos[i][j].x, pos[i][j].y);
         }
     */
+
     }
     fclose(fp);
 
@@ -206,13 +211,15 @@ int HWlen() {
     if (!(fp = fopen("serverHW.index", "r"))) {
         return 0;
     }
+    
     fseek(fp, 0, SEEK_END);
     int len = ftell(fp);
     fseek(fp, 0, SEEK_SET);
     fclose(fp);
+
     if (!len) {
         return 0;
     }
 
-    return len/(sizeof(int)*6);
+    return len/sizeof(SockCond);
 }

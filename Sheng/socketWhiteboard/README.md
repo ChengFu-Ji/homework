@@ -7,6 +7,7 @@
 ※  1/28 更新 version2 放棄原有的 version2 將內容更改為重新實作的 whiteboard ，新增 新增刪除 page 、 翻頁功能 。
 ※  1/29 更新 version2 新增 button 功能、更改 page 實作、實作 輸入更改筆跡粗細度 。
 ※  2/06 更新 version2 新增連線、同步新增刪除頁面、讀取紀錄功能 。
+※  2/08 更新 version2 新增 button Icon 、 新增存檔功能 。
 
 
 ### 目前功能 ###
