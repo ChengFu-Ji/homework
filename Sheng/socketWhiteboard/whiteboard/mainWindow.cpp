@@ -16,7 +16,7 @@ using namespace cv;
 char Winn[] = "whiteboard";
 Mat image;
 Rect topButton, buttonBar;
-int fd;
+int fd, winnWidth, winnHeight;
 
 int main () {
     pthread_t recvThread;
@@ -27,13 +27,16 @@ int main () {
     char host[] = "localhost";
     int port = 2244;
 
+    winnWidth = 1700;
+    winnHeight = 950;
+
     initPage(&pages);
     thk = 3;
     is_eraser = 0;
     curid = 0;
     addPage(pages, curid);
 
-    image = Mat(950, 1700, CV_8UC3, Scalar(255, 255, 255));
+    image = Mat(winnHeight, winnWidth, CV_8UC3, Scalar(255, 255, 255));
     topButton = Rect(0, 0, image.cols, 50);
     buttonBar = Rect(image.cols-100, topButton.height, 100, image.rows-topButton.height);
 
@@ -57,6 +60,7 @@ int main () {
         pthread_create(&recvThread, NULL, recvData, (void *) &recv);
     }
 
+    setfileExplorer();
     char userKeyIn;
     while (1) {
         if ((userKeyIn = pollKey()) ==  27) {
@@ -78,7 +82,6 @@ int main () {
                 write(fd, &addpage, sizeof(SockCond));
             }
 
-            //addPage(pages, ++id);
             printf("added\n");
         } else if (userKeyIn == 24) {
             changeToPage(getPage(pages, curid)->next, &curid);
@@ -107,7 +110,23 @@ int main () {
             getValue(&thk, 4);
             printf("thk now %d\n", thk);
         } else if (userKeyIn == 23) {
-            storeImage(getPage(pages, curid), "tmp.png");
+            char fileType[3][6] = {".jpg", ".tiff", ".png"};
+            char fileName[32], *fptr;
+
+            getString(fileName, 27);
+            for (int i = 0; i < 3; i++, (i==3)? strcat(fileName, fileType[0]): 0) {
+                if ((fptr = strstr(fileName, fileType[i])) != NULL) {
+                    if (!strcmp(fptr, fileType[i])) {
+                        break;
+                    }
+                }
+            }
+            
+            //findPathFiles();
+            /*strcat(fileName, fileType[0]);*/
+            printf("tmp %s\n", fileName);
+            storeImage(getPage(pages, curid), fileName);
+
         }
 
         if (fd > 0) {
@@ -433,36 +452,12 @@ void setActionBar () {
         line(image, Point(buttonBar.x, buttonBar.y + i), Point(image.cols, buttonBar.y + i), Scalar(0, 0, 0), 2); 
     }
 
-    /* draw icon (testing)*/
-    /*eraser icon */
-    drawEraserIcon(image, 1602, 52, 99*99);
-
-    /* page */
-    drawSelectPageIcon(image, 1600, 200, 100*100);
-    //putText(image, "page", Point(1612, 210), FONT_HERSHEY_SIMPLEX, 1, Scalar(5, 25, 2), 2, LINE_AA);
-    
-    /* prev page */
-    drawPrevPageIcon(image, 1600, 250, 100*100);
-    /*
-    line(image, Point(1670, 270), Point(1670, 330), Scalar(0, 0, 0), 3);
-    line(image, Point(1670, 270), Point(1620, 300), Scalar(0, 0, 0), 3);
-    line(image, Point(1670, 330), Point(1620, 300), Scalar(0, 0, 0), 3);
-    */
-
-    /* next page */
-    drawNextPageIcon(image, 1600, 350, 100*100);
-    /*
-    line(image, Point(1630, 370), Point(1630, 430), Scalar(0, 0, 0), 3);
-    line(image, Point(1630, 370), Point(1680, 400), Scalar(0, 0, 0), 3);
-    line(image, Point(1630, 430), Point(1680, 400), Scalar(0, 0, 0), 3);
-    */
-    
-    /* add page */
-    line(image, Point(1620, 500), Point(1690, 500), Scalar(0, 0, 0), 3);
-    line(image, Point(1655, 470), Point(1655, 530), Scalar(0, 0, 0), 3);
-
-    /* del page */
-    line(image, Point(1620, 600), Point(1690, 600), Scalar(0, 0, 0), 3);
+    drawEraserIcon(image, 1600, 50, 100);
+    drawSelectPageIcon(image, 1600, 200, 100);
+    drawPrevPageIcon(image, 1600, 250, 100);
+    drawNextPageIcon(image, 1600, 350, 100);
+    drawAddPageIcon(image, 1600, 450, 100);
+    drawDeletePageIcon(image, 1600, 550, 100);
 }
 
 void changeToPage (pageNode *page, int *curid) {
@@ -474,7 +469,7 @@ void changeToPage (pageNode *page, int *curid) {
     }
 
     image.release();
-    image = Mat(950, 1700, CV_8UC3, Scalar(255, 255, 255));
+    image = Mat(winnHeight, winnWidth, CV_8UC3, Scalar(255, 255, 255));
 
     drawStrokeList(image, page->strokes);
     image(topButton) = Scalar(200,200,200);
@@ -537,8 +532,10 @@ void drawPosList (Mat image, posNode **pos, int thk, int is_eraser) {
 void storeImage (pageNode *page, char *fileName) {
     Mat StorageTmp;
 
-    StorageTmp = Mat(950, 1700, CV_8UC3, Scalar(255, 255, 255));
+    StorageTmp = Mat(winnHeight, winnWidth, CV_8UC3, Scalar(255, 255, 255));
 
     drawStrokeList(StorageTmp, page->strokes);
     imwrite(fileName, StorageTmp(Rect(0, 50, 1600, 900)));
 }
+
+

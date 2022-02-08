@@ -8,6 +8,9 @@
 /* draw Icons */
 #include <math.h>
 
+/* find files */
+#include <dirent.h>
+
 /* man tcp */
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -32,6 +35,7 @@ extern "C" {
 #include "linkedlist/pos.h"
 #include "linkedlist/stroke.h"
 #include "linkedlist/page.h"
+#include "linkedlist/files.h"
 }
 
 #define TIMES 1000
@@ -44,6 +48,17 @@ struct _sender {
     int *is_eraser;
     int *id;
 };
+
+typedef struct _explorer_sender {
+    fileNode **fileHead;
+    cv::Mat *drawMat;
+    cv::Rect *ListView;
+    cv::Rect *scrollbar;
+    cv::Rect *scrollbar_thumb;
+    int listlen;
+    int *head;
+    int stepDist;
+} Exp_s;
 
 /*
 typedef struct _cmd {
@@ -64,7 +79,8 @@ void drawStrokeList (cv::Mat image, strokeNode **strokes);
 void mouseOnWhiteboard (int, int, int, int, void *);
 
 /*input box */
-void getValue (int *, int);
+void getValue (int *value, int maxlength);
+void getString (char *string, int maxlength);
 
 /* button bar */
 void setbuttonBar (struct _sender);
@@ -77,13 +93,19 @@ void setActionBar ();
 void storeImage (pageNode *page, char *fileName);
 
 /* draw Icons */
-void drawEraserIcon (cv::Mat image, int x, int y, int powSize);
-void drawSelectPageIcon (cv::Mat image, int x, int y, int powSize);
-void drawAddPageIcon (cv::Mat image, int x, int y, int powSize);
-void drawDeletePageIcon (cv::Mat image, int x, int y, int powSize);
-void drawSelectPageIcon (cv::Mat image, int x, int y, int powSize);
-void drawNextPageIcon (cv::Mat image, int x, int y, int powSize);
-void drawPrevPageIcon (cv::Mat image, int x, int y, int powSize);
+void drawEraserIcon (cv::Mat image, int x, int y, double Size);
+void drawSelectPageIcon (cv::Mat image, int x, int y, double Size);
+void drawAddPageIcon (cv::Mat image, int x, int y, double Size);
+void drawDeletePageIcon (cv::Mat image, int x, int y, double Size);
+void drawSelectPageIcon (cv::Mat image, int x, int y, double Size);
+void drawNextPageIcon (cv::Mat image, int x, int y, double Size);
+void drawPrevPageIcon (cv::Mat image, int x, int y, double Size);
+
+/* find files */
+void setfileExplorer ();
+void showPathFiles (cv::Mat image, fileNode **files, int head, cv::Rect *list, int listLen);
+void ExplorerEvent (int event, int x, int y, int flags, void *sender);
+void findPathFiles (fileNode **files, char *path);
 
 /*
  color selector 
