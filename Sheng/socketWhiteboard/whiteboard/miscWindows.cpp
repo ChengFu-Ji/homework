@@ -52,7 +52,11 @@ void getString (char *string, int maxlength) {
     char name[] = "input";
     Mat mMat = Mat(40, ((maxlength+4)*25), CV_8UC3, Scalar(255, 255, 255));
 
-    strcpy(input, "untitled");
+    if (strlen(string) == 0) {
+        strcpy(input, "untitled");
+    } else {
+        strcpy(input, string);
+    }
     i = strlen(input);
     putText(mMat, input, Point(0, 30), FONT_HERSHEY_SIMPLEX, 1.3, Scalar(5, 25, 2), 1, LINE_AA);
 
@@ -60,15 +64,21 @@ void getString (char *string, int maxlength) {
     imshow(name, mMat);
     while ((userKeyIn = pollKey()) != 13) {
         if (userKeyIn == 27) {
-            break;
+            string[0] = 0;
+            destroyWindow(name);
+
+            return;
             /*\?*<":>*/
             //31 34 42 58 60 62 63 92
-        } else if (userKeyIn == 127 && i > 0) {
-            input[--i] = '\0';
+        } else if (userKeyIn == 127) {
+            input[(i == 0)? i : --i] = '\0';
+            if (i == 0) {
+                
+            }
         } else if (userKeyIn > 31 && userKeyIn != 92 && 
               userKeyIn != 63 && userKeyIn != 42 && 
               userKeyIn != 60 && userKeyIn != 34 && 
-              userKeyIn != 58 && userKeyIn != 62 && userKeyIn != 127) {
+              userKeyIn != 58 && userKeyIn != 62) {
             input[(i < maxlength)? i++ : i-1] = userKeyIn;
 
             input[i] = '\0';
@@ -211,64 +221,83 @@ void drawPrevPageIcon (Mat image, int x, int y, double Size) {
                 Point(x + (int) (parts*(7 - 3*sqrt(3))), y + (int) (Size/2)), Scalar(0, 0, 0), 3);
 }
 
-void setfileExplorer () {
+void setfileExplorer (pthread_t *thread, int fd, struct _sender recv) {
     Mat Manager;
     Rect list[10];
     Rect Scrollbar, scrollbar_thumb;
+    Rect button;
     fileNode **files;
     char save_path[256];
+    char windowName[] = "file Explorer";
+;
     int head = 0;
+    
     //char *original_path = getenv("HOME");
     strcpy(save_path, getenv("HOME"));
 
     initFiles(&files);
-    Manager = Mat(700, 915, CV_8UC3, Scalar(250, 250, 250));
+    Manager = Mat(700, 925, CV_8UC3, Scalar(57, 50, 47));
 
     //setListView;
-    for (int i = 0; i < 10; i++) {
-        list[i] = Rect(0, i*40, 900, 40);
+    for (int i = 1; i <= 10; i++) {
+        list[i-1] = Rect(0, i*40, 900, 40);
     }
-    Scrollbar = Rect(900, 0, 15, 700);
+    Scrollbar = Rect(900, 40, 25, 400);
 
     findPathFiles(files, save_path);
     int lenOfFiles = getFilesLen(files);
-    int stepDist = (700.0/(lenOfFiles));
+    //scrollbar_thumb = Rect(902, 44, 22, 392);
+    int stepDist = setScrollbarHeight(files, &scrollbar_thumb, 10);
 
-    if (lenOfFiles > 10) {
-        scrollbar_thumb = Rect(902, 4, 12, stepDist*10);
-    } else {
-        scrollbar_thumb = Rect(902, 4, 12, 692);
-    }
     showPathFiles(Manager, files, head, list, 10);
 
-    Manager(Scrollbar) = Scalar(100, 100, 100);
-    Manager(scrollbar_thumb) = Scalar(50, 50, 50);
-    imshow("file Explorer", Manager);
+    Manager(Scrollbar) = Scalar(140, 119, 110);
+    Manager(scrollbar_thumb) = Scalar(90, 92, 90);
+    
+    updatePath (Manager, save_path);
+
+    button = Rect(700, 600, 80, 30);
+    setButton(Manager, button);
+
+    imshow(windowName, Manager);
 
     
-    Exp_s sender = {files, &Manager, list, &Scrollbar, &scrollbar_thumb, 10, &head, stepDist};
-    setMouseCallback("file Explorer", ExplorerEvent, (void *) &sender);
-    while (pollKey() != 27) {
+    Exp_s sender = {recv.pageHead, files, &Manager, list, &Scrollbar, &scrollbar_thumb, &button, 10, &head, &stepDist, recv.id, save_path, windowName};
+    setMouseCallback(windowName, ExplorerEvent, (void *) &sender);
+    while (pollKey() != 27 && cvGetWindowHandle(windowName) != 0) {
+        if (fd > 0) {
+            if (pthread_kill(*thread, 0) == ESRCH) {
+                //struct _sender recv = {pages, recvList, NULL, NULL, &curid};
+                pthread_create(thread, NULL, recvData, (void *) &recv);
+                //imshow(Winn, image);
+            }
+        }
     }
-    destroyWindow("file Explorer");
+    destroyWindow(windowName);
     //setMouseCallback("test", ExplorerEvent, NULL);
 }
 
 void showPathFiles (Mat image, fileNode **files, int head, Rect *list, int listLen) {
     int j = 0;
     fileNode *cur = *files;
-    while (cur->next != NULL && j < head) {
+    int lenOfFiles = getFilesLen(files);
+
+    while (cur->next != NULL && j < head && (lenOfFiles - j) > 10) {
         cur = cur->next;
         j++;
     }
 
     for (int i = 0; i < listLen && cur->next != NULL; i++) {
         if (i%2 == 0) {
-            image(list[i]) = Scalar(240, 240, 240);
+            image(list[i]) = Scalar(164, 147, 130);
         } else {
-            image(list[i]) = Scalar(200, 200, 200);
+            image(list[i]) = Scalar(170, 156, 140);
         }
-        putText(image, cur->next->fileName, Point(list[i].x + 20, list[i].y + 30), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(5, 25, 2), 1, LINE_AA);
+        if (cur->next->fileType == DT_REG) {
+            putText(image, cur->next->fileName, Point(list[i].x + 20, list[i].y + 30), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(15, 5, 12), 1, LINE_AA);
+        } else {
+            putText(image, cur->next->fileName, Point(list[i].x + 20, list[i].y + 30), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(94, 94, 0), 1, LINE_AA);
+        }
         cur = cur->next;
     }
 }
@@ -277,15 +306,12 @@ void ExplorerEvent (int event, int x, int y, int flags, void *sender) {
     Exp_s s = *(Exp_s *) sender;
     fileNode **files = s.fileHead;
     int listlen = s.listlen;
-    int stepDist = s.stepDist;
+    int *stepDist = s.stepDist;
     int *head = s.head;
-    static Point start;
-
-    /*
-    for (int i = 0; i < listlen; i++) {
-        ListView[i] = s.ListView[i];
-    }
-    */
+    static Point start = Point(s.scrollbar_thumb->x, s.scrollbar_thumb->y);
+    static struct timespec firstClick = {0, 0};
+    static int clickList;
+    static char save_name[256];
 
     /*
     Mat *drawMat;
@@ -293,46 +319,165 @@ void ExplorerEvent (int event, int x, int y, int flags, void *sender) {
     Rect *scrollbar;
     Rect *scrollbar_thumb;
     */
-        for (int i = 0; i < listlen; i++) {
-            if (s.ListView[i].contains(Point(x, y)) && (flags & EVENT_FLAG_LBUTTON)) {
-                if (event == EVENT_LBUTTONDOWN) {
+    if (s.button->contains(Point(x, y))) {
+        if (event == EVENT_LBUTTONDOWN) {
+            (*s.drawMat)(*s.button) = Scalar(50, 70, 30);
+            putText(*s.drawMat, "save", Point(s.button->x + 12, s.button->y + 20), FONT_HERSHEY_SIMPLEX, 0.8, Scalar(255, 255, 250), 1, LINE_AA);
+            imshow(s.winn, *s.drawMat);
+        } else if (event == EVENT_LBUTTONUP) {
+            setButton(*(s.drawMat), *(s.button));
+            imshow(s.winn, *s.drawMat);
 
-                    printf("clicked\n");
-                } else if (event == EVENT_LBUTTONUP) {
-
-                    printf("free\n");
+            getString(save_name, 40);
+            if (strlen(save_name) != 0) {
+                char fileType[3][6] = {".jpg", ".tiff", ".png"};
+                char *fptr;
+                for (int i = 0; i < 3; i++, (i==3)? strcat(save_name, fileType[0]): 0) {
+                    if ((fptr = strstr(save_name, fileType[i])) != NULL) {
+                        if (!strcmp(fptr, fileType[i])) {
+                            break;
+                        }
+                    }
                 }
+                strcat(s.save_path, "/");
+                strcat(s.save_path, save_name);
+                storeImage(getPage(s.pageHead, *s.id), s.save_path);
+                destroyWindow(s.winn);
             }
         }
-    
-        if (s.scrollbar_thumb->contains(Point(x, y))) {
-            if (event == EVENT_LBUTTONDOWN) {
-                start = Point(x, y);
-            } else if (event == EVENT_MOUSEMOVE && (flags & EVENT_FLAG_LBUTTON)) {
-                /* 目前只能向下拉 */
-                double nowDist = dist((DPos) {(double) start.x, (double) start.y}, (DPos) {(double) x, (double) y});
-                //printf("%lf\n", nowDist);
-                if (nowDist > stepDist) {
-                    *head += (nowDist/stepDist);
-                    start = Point(x, y);
-                    (*s.drawMat)(*(s.scrollbar)) = Scalar(100, 100, 100);
-                    *(s.scrollbar_thumb) = Rect(902, (4 + *head*stepDist), 12, stepDist*listlen);
-                    (*s.drawMat)(*(s.scrollbar_thumb)) = Scalar(50, 50, 50);
-
-                    showPathFiles (*s.drawMat, files, *head, s.ListView, listlen);
-                    imshow("file Explorer", *s.drawMat);
-                }
-            }
-        }
-    /*
-
-    if (event == EVENT_LBUTTONDOWN) {
-        
-        printf("clicked_original\n");
-    } else if (event == EVENT_LBUTTONUP) {
-
     }
-    */
+    for (int i = 0; i < listlen; i++) {
+        if (s.ListView[i].contains(Point(x, y))) {
+            if (event == EVENT_LBUTTONDOWN) {
+                fileNode *file = getFilesbyOrder(files, *head + i);
+                if (file != NULL) {
+                    if (file->fileType == DT_REG) {
+                        strcpy(save_name, file->fileName);
+                    }
+                }
+                if (firstClick.tv_sec == 0 && firstClick.tv_nsec == 0) {
+                    clock_gettime(CLOCK_REALTIME, &firstClick); 
+                    clickList = i;
+                } else {
+                    struct timespec secondClick;
+                    clock_gettime(CLOCK_REALTIME, &secondClick); 
+
+                    if (clickList != i) {
+                        clickList = i;
+                        memcpy(&firstClick, &secondClick, sizeof(struct timespec));
+                        break;
+                    }
+
+                    long dclick_maxtime = 3 * pow(10, 8);
+                    long long user_dclickTime;
+                    time_t secDiff = secondClick.tv_sec - firstClick.tv_sec;
+                    long nsecDiff = secondClick.tv_nsec - firstClick.tv_nsec;
+                    user_dclickTime = (secDiff > 0 && nsecDiff < 0)? secDiff * pow(10, 9) + nsecDiff : (secDiff <= 0)? nsecDiff : dclick_maxtime;
+
+                    if (user_dclickTime < dclick_maxtime) {
+                        //file = getFilesbyOrder(files, *head + i);
+                        if (file != NULL) {
+                            printf("file->fileType %d\n", file->fileType);
+                            if (file->fileType == DT_DIR || file->fileType == DT_LNK || !strcmp(file->fileName, "..")) {
+                                //printf("*head %d\n", *head);
+                                s.drawMat->release();
+                                *s.drawMat = Mat(700, 925, CV_8UC3, Scalar(57, 50, 47));
+                                if (strcmp(file->fileName, "..")) {
+                                    if (strcmp(s.save_path, "/")) {
+                                        strcat(s.save_path, "/");
+                                    }
+                                    strcat(s.save_path, file->fileName);
+                                } else {
+                                    for (int i = strlen(s.save_path)-1; i >= 0; i--) {
+                                        if (s.save_path[i] == '/') {
+                                            s.save_path[i] = '\0';
+                                            if (i == 0) {
+                                                strcat(s.save_path, "/");
+                                            }
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                deleteAllFiles(files);
+                                updatePath(*(s.drawMat), s.save_path);
+                                findPathFiles(files, s.save_path);
+                                showPathFiles(*(s.drawMat), files, (*head = 0), s.ListView, listlen);
+                                setButton(*s.drawMat, *s.button);
+                                *stepDist = setScrollbarHeight(files, s.scrollbar_thumb, 10);
+
+                                (*s.drawMat)(*(s.scrollbar)) = Scalar(140, 119, 110);
+                                (*s.drawMat)(*(s.scrollbar_thumb)) = Scalar(90, 92, 90);
+                                imshow(s.winn, *s.drawMat);
+                            }
+                        }
+                    }
+
+                    memcpy(&firstClick, &secondClick, sizeof(struct timespec));
+                }
+            } 
+        }
+    }
+
+    if ((s.scrollbar->contains(Point(x, y)) || s.scrollbar_thumb->contains(Point(x, y))) && getFilesLen(files) > 10) {
+        if (event == EVENT_LBUTTONDOWN) {
+            if (!s.scrollbar_thumb->contains(Point(x, y))) {
+                moveScrollbarThumb(start, x, y, s);
+            }
+            start = Point(x, y);
+        } else if (event == EVENT_MOUSEMOVE && (flags & EVENT_FLAG_LBUTTON)) {
+            moveScrollbarThumb(start, x, y, s);
+            start = Point(x, y);
+        } else if (event == EVENT_LBUTTONUP) {
+            (*s.drawMat)(*(s.scrollbar_thumb)) = Scalar(90, 92, 90);
+        }
+
+        showPathFiles (*s.drawMat, files, *head, s.ListView, listlen);
+        imshow(s.winn, *s.drawMat);
+    }
+    if (!s.scrollbar_thumb->contains(Point(x, y)) && (event == EVENT_MOUSEMOVE && (flags & EVENT_FLAG_LBUTTON))) {
+        (*s.drawMat)(*(s.scrollbar_thumb)) = Scalar(90, 92, 90);
+        imshow(s.winn, *s.drawMat);
+    }
+
+}
+
+void setButton (Mat image, Rect button) {
+    image(button) = Scalar(60, 120, 20);
+    putText(image, "save", Point(button.x + 12, button.y + 20), FONT_HERSHEY_SIMPLEX, 0.8, Scalar(255, 255, 250), 1, LINE_AA);
+}
+void moveScrollbarThumb (Point start, int x, int y, Exp_s s) {
+    int *stepDist = s.stepDist;
+    int *head = s.head;
+    int listlen = s.listlen;
+
+    double nowDist = dist((DPos) {(double) start.x, (double) start.y}, (DPos) {(double) x, (double) y});
+
+    int moveDist = (start.y < y)? (int) (nowDist/(*stepDist)) : -((int) (nowDist/(*stepDist)));
+
+    if (s.scrollbar_thumb->y + s.scrollbar_thumb->height < s.scrollbar->y + s.scrollbar->height &&
+            (s.scrollbar_thumb->y > s.scrollbar->y)) {
+        *head += moveDist; 
+        while (*head < 0) {
+            (*head)++;
+        }
+
+        *(s.scrollbar_thumb) = Rect(902, (44 + *head*(*stepDist)), 22, (*stepDist)*listlen);
+        while (!s.scrollbar_thumb->contains(Point(s.scrollbar_thumb->x, y))) {
+            *head += (s.scrollbar_thumb->y + (s.scrollbar_thumb->height/2) < y)? 1 : -1; 
+            *(s.scrollbar_thumb) = Rect(902, (44 + *head*(*stepDist)), 22, (*stepDist)*listlen);
+        }
+
+        /* out of bar */
+        while (s.scrollbar_thumb->y + s.scrollbar_thumb->height > s.scrollbar->y + s.scrollbar->height || 
+                (s.scrollbar_thumb->y < s.scrollbar->y)) {
+            *head += (s.scrollbar_thumb->y < s.scrollbar->y)? 1 : -1; 
+            *(s.scrollbar_thumb) = Rect(902, (44 + *head*(*stepDist)), 22, (*stepDist)*listlen);
+        }
+
+        (*s.drawMat)(*(s.scrollbar)) = Scalar(140, 119, 110);
+        (*s.drawMat)(*(s.scrollbar_thumb)) = Scalar(50, 52, 50);
+    }
 }
 
 void findPathFiles (fileNode **files, char *path) {
@@ -340,14 +485,38 @@ void findPathFiles (fileNode **files, char *path) {
     struct dirent *ptr;
 
     dir = opendir(path);
-    while((ptr = readdir(dir)) != NULL)
-    {
-        addFile(files, ptr->d_name, ptr->d_type);
-
-        //(ptr->d_type == DT_DIR)? printf("is d\n") : (ptr->d_type == DT_REG)? printf("is f\n") : (ptr->d_type == DT_LNK)? printf("is lnk\n") : printf("not three of these\n");
+    /*
+    DT_DIR
+    DT_REG
+    DT_LINK
+    */
+    while ((ptr = readdir(dir)) != NULL) {        
+        if (strcmp(ptr->d_name, ".")) {
+            addFile(files, ptr->d_name, ptr->d_type);
+        }
     }
     closedir(dir);
 }
+
+void updatePath (Mat image, char *path) {
+    char curPath[272];
+    strcpy(curPath, "current path: ");
+    strcat(curPath, path);
+    putText(image, curPath, Point(20, 30), FONT_HERSHEY_SIMPLEX, 0.8, Scalar(235, 235, 162), 1, LINE_AA);
+}
+
+int setScrollbarHeight (fileNode **files, Rect *scrollbar_thumb, int listlen) {
+    int lenOfFiles = getFilesLen(files);
+    int stepDist = (400.0/(lenOfFiles));
+
+    if (lenOfFiles > listlen) {
+        *scrollbar_thumb = Rect(902, 44, 22, stepDist*listlen);
+    } else {
+        *scrollbar_thumb = Rect(902, 44, 22, 392);
+    }
+    return stepDist;
+}
+
 /*
 #ifdef __COLORFUL_WHITEBOARD__
 void setColorSelector (struct _sender sender) {

@@ -50,14 +50,19 @@ struct _sender {
 };
 
 typedef struct _explorer_sender {
+    pageNode **pageHead;
     fileNode **fileHead;
     cv::Mat *drawMat;
     cv::Rect *ListView;
     cv::Rect *scrollbar;
     cv::Rect *scrollbar_thumb;
+    cv::Rect *button;
     int listlen;
     int *head;
-    int stepDist;
+    int *stepDist;
+    int *id;
+    char *save_path;
+    char *winn;
 } Exp_s;
 
 /*
@@ -89,9 +94,6 @@ void buttonBarEvent (int, int, int, int, void *);
 /* action bar */
 void setActionBar ();
 
-
-void storeImage (pageNode *page, char *fileName);
-
 /* draw Icons */
 void drawEraserIcon (cv::Mat image, int x, int y, double Size);
 void drawSelectPageIcon (cv::Mat image, int x, int y, double Size);
@@ -101,11 +103,16 @@ void drawSelectPageIcon (cv::Mat image, int x, int y, double Size);
 void drawNextPageIcon (cv::Mat image, int x, int y, double Size);
 void drawPrevPageIcon (cv::Mat image, int x, int y, double Size);
 
-/* find files */
-void setfileExplorer ();
+/* save files */
+void setfileExplorer (pthread_t *thread, int fd, struct _sender sender);
 void showPathFiles (cv::Mat image, fileNode **files, int head, cv::Rect *list, int listLen);
 void ExplorerEvent (int event, int x, int y, int flags, void *sender);
 void findPathFiles (fileNode **files, char *path);
+void moveScrollbarThumb (cv::Point start, int x, int y, Exp_s s);
+void storeImage (pageNode *page, char *fileName);
+void updatePath (cv::Mat image, char *path);
+int setScrollbarHeight (fileNode **files, cv::Rect *scrollbar_thumb, int listlen);
+void setButton (cv::Mat image, cv::Rect button);
 
 /*
  color selector 

@@ -23,4 +23,5 @@ int deleteAllFiles (fileNode **files);
 int showFilesList (fileNode **files);
 
 int getFilesLen (fileNode **files);
+fileNode *getFilesbyOrder (fileNode **files, int num);
 #endif

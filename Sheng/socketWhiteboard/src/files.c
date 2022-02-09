@@ -54,7 +54,7 @@ int delFile (fileNode **files, char *filename) {
     return -1;
 }
 
-int deleteAllFiles(fileNode **files) {
+int deleteAllFiles (fileNode **files) {
     fileNode *cur, *next;
 
     cur = (*files);
@@ -68,7 +68,7 @@ int deleteAllFiles(fileNode **files) {
     return 0;
 }
 
-int showFilesList(fileNode **files) {
+int showFilesList (fileNode **files) {
     fileNode *cur;
 
     cur = (*files);
@@ -79,7 +79,7 @@ int showFilesList(fileNode **files) {
     return 0;
 }
 
-int getFilesLen(fileNode **files) {
+int getFilesLen (fileNode **files) {
     fileNode *cur;
     int i = 0;
     cur = (*files);
@@ -88,6 +88,19 @@ int getFilesLen(fileNode **files) {
         i++;
     }
     return i;
+}
+
+fileNode *getFilesbyOrder (fileNode **files, int num) {
+    fileNode *cur;
+    int i = 0;
+
+    cur = *files;
+    while (cur->next != NULL && i < num) {
+        cur = cur->next;
+        i++;
+    }
+    
+    return cur->next;
 }
 /*
 int main () {

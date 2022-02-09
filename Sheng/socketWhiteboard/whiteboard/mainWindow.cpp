@@ -60,7 +60,7 @@ int main () {
         pthread_create(&recvThread, NULL, recvData, (void *) &recv);
     }
 
-    setfileExplorer();
+    //setfileExplorer();
     char userKeyIn;
     while (1) {
         if ((userKeyIn = pollKey()) ==  27) {
@@ -127,13 +127,16 @@ int main () {
             printf("tmp %s\n", fileName);
             storeImage(getPage(pages, curid), fileName);
 
+        } else if (userKeyIn == 22) {
+            struct _sender recv = {pages, recvList, NULL, NULL, &curid};
+            setfileExplorer(&recvThread, fd, recv);
         }
 
         if (fd > 0) {
             if (pthread_kill(recvThread, 0) == ESRCH) {
                 struct _sender recv = {pages, recvList, NULL, NULL, &curid};
                 pthread_create(&recvThread, NULL, recvData, (void *) &recv);
-                imshow(Winn, image);
+                //imshow(Winn, image);
             }
         }
     }
@@ -203,6 +206,8 @@ void *recvData (void *sender) {
         if ((n = socket_read(fd, recvList, recv.poslen)) > 0) {
             if (recv.drawpid == *curid) {
                 drawPosList(image, recvList, recv.thickness, recv.eraser);
+                imshow(Winn, image);
+                //waitKey(1);
                 //IDdelete(recvList, id);
                 //deleteAllPos(recvList);
             }
