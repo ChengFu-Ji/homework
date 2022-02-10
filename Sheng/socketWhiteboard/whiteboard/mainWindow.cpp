@@ -15,7 +15,7 @@ using namespace cv;
 
 char Winn[] = "whiteboard";
 Mat image;
-Rect topButton, buttonBar;
+Rect topButton, buttonBar, statusBar;
 int fd, winnWidth, winnHeight;
 
 int main () {
@@ -28,7 +28,7 @@ int main () {
     int port = 2244;
 
     winnWidth = 1700;
-    winnHeight = 950;
+    winnHeight = 990;
 
     initPage(&pages);
     thk = 3;
@@ -37,13 +37,16 @@ int main () {
     addPage(pages, curid);
 
     image = Mat(winnHeight, winnWidth, CV_8UC3, Scalar(255, 255, 255));
+
     topButton = Rect(0, 0, image.cols, 50);
-    buttonBar = Rect(image.cols-100, topButton.height, 100, image.rows-topButton.height);
+    statusBar = Rect(0, image.rows-40, image.cols, 40);
+    buttonBar = Rect(image.cols-100, topButton.height, 100, image.rows-topButton.height-statusBar.height);
 
     namedWindow(Winn, WINDOW_AUTOSIZE);
 
     image(topButton) = Scalar(200,200,200);
     setActionBar();
+    setStatusBar(pages, curid, thk);
     imshow(Winn, image);
 
     initPos(&sendList);
@@ -74,13 +77,16 @@ int main () {
         */
         /* ctrl + n / ctrl + x / ctrl + z / ctrl + d/ (Mac)*/
         if (userKeyIn == 14) {
-            pageNode *page = getLastPage(pages);
-            addPage(pages, (page->pid)+1);
+            for (int i = 0; i < 1000; i++) {
+                pageNode *page = getLastPage(pages);
+                addPage(pages, (page->pid)+1);
 
-            if (fd > 0) {
-                SockCond addpage = {-1, (page->pid)+1, -1, 0, 0, 0};
-                write(fd, &addpage, sizeof(SockCond));
+                if (fd > 0) {
+                    SockCond addpage = {-1, (page->pid)+1, -1, 0, 0, 0};
+                    write(fd, &addpage, sizeof(SockCond));
+                }
             }
+
 
             printf("added\n");
         } else if (userKeyIn == 24) {
@@ -110,6 +116,11 @@ int main () {
             getValue(&thk, 4);
             printf("thk now %d\n", thk);
         } else if (userKeyIn == 23) {
+
+            struct _sender recv = {pages, recvList, NULL, NULL, &curid};
+            /*load */
+            setfileExplorer(&recvThread, fd, recv, 1);
+            /*
             char fileType[3][6] = {".jpg", ".tiff", ".png"};
             char fileName[32], *fptr;
 
@@ -123,13 +134,17 @@ int main () {
             }
             
             //findPathFiles();
+            */
             /*strcat(fileName, fileType[0]);*/
+            /*
             printf("tmp %s\n", fileName);
             storeImage(getPage(pages, curid), fileName);
+            */
 
         } else if (userKeyIn == 22) {
             struct _sender recv = {pages, recvList, NULL, NULL, &curid};
-            setfileExplorer(&recvThread, fd, recv);
+            /*save*/
+            setfileExplorer(&recvThread, fd, recv, 0);
         }
 
         if (fd > 0) {
@@ -236,7 +251,7 @@ void *recvData (void *sender) {
 
 void mouseOnWhiteboard (int event, int x, int y, int flags, void *sender) {
     static Pos tmp;
-    static DPos p[DOTS];
+    static DPos p[DOTS] = {-1, -1};
     static int dots = 0;
 
     DPos plot[TIMES];
@@ -252,7 +267,6 @@ void mouseOnWhiteboard (int event, int x, int y, int flags, void *sender) {
 
 
     if (event == EVENT_LBUTTONDOWN) {
-
         if (topButton.contains(Point(x, y)) && (flags & EVENT_FLAG_LBUTTON)) {
             image(topButton) = Scalar(100, 100, 100);
             imshow(Winn, image);
@@ -273,7 +287,7 @@ void mouseOnWhiteboard (int event, int x, int y, int flags, void *sender) {
 
             } else if (y < 250) {
                 int pageCount;
-                getValue(&pageCount, 4);
+                getValue(&pageCount, 9);
                 changeToPage(getPagebyOrder(pages, pageCount), curid);
                 printf("change to page %d\n", pageCount);
             } else if (y < 350) {
@@ -335,7 +349,7 @@ void mouseOnWhiteboard (int event, int x, int y, int flags, void *sender) {
 
         bezierCurve(plot, TIMES, p, DOTS);
         plotHandwriting(image, p, plot, 0, *thk, *eraser);
-        imshow(Winn, image);
+        //imshow(Winn, image);
     } else if (event == EVENT_LBUTTONUP) {
 
         for (i = 0; i < DOTS-1; i++) {
@@ -370,12 +384,14 @@ void mouseOnWhiteboard (int event, int x, int y, int flags, void *sender) {
         if (p[0].x != -1 && p[0].y != -1) {
             plotHandwriting(image, p, plot, 1, *thk, *eraser);
         }
-        imshow(Winn, image);
+        //imshow(Winn, image);
     }
 
     if (topButton.contains(Point(x, y)) && (flags & EVENT_FLAG_LBUTTON)) {
         image(topButton) = Scalar(200,200,200);
     }
+    setStatusBar(pages, *curid, *thk);
+    imshow(Winn, image);
 }
 
 
@@ -465,6 +481,15 @@ void setActionBar () {
     drawDeletePageIcon(image, 1600, 550, 100);
 }
 
+void setStatusBar (pageNode **pages, int curid, int thk) {
+    char Msg[200];
+
+    sprintf(Msg, "page: %d/%d  thickness: %d", getPagesOrder(pages, curid), getPagesLen(pages), thk);
+    image(statusBar) = Scalar(177,157,145);
+    
+    putText(image, Msg, Point(statusBar.x + 12, statusBar.y + 30), FONT_HERSHEY_SIMPLEX, 1.2, Scalar(250, 250, 180), 1, LINE_AA);
+}
+
 void changeToPage (pageNode *page, int *curid) {
     if (page == NULL) {
         return;
@@ -475,12 +500,38 @@ void changeToPage (pageNode *page, int *curid) {
 
     image.release();
     image = Mat(winnHeight, winnWidth, CV_8UC3, Scalar(255, 255, 255));
+    if (page->fileName[0] != 0) {
+        Mat loadTmp;
+        resize(imread(page->fileName), loadTmp, Size(1600, 900), 0, 0, INTER_AREA);
+
+        Mat detTmp = image(Rect(0, 50, 1600, 900));
+        loadTmp.copyTo(detTmp);
+        //resize(loadTmp, image, Size(winnHeight, winnWidth), 0, 0, INTER_AREA);
+    }
 
     drawStrokeList(image, page->strokes);
     image(topButton) = Scalar(200,200,200);
     setActionBar();
     imshow(Winn, image);
     *curid = page->pid;
+}
+
+void reloadPage (pageNode *page) {
+    image.release();
+
+    image = Mat(winnHeight, winnWidth, CV_8UC3, Scalar(255, 255, 255));
+    if (page->fileName[0] != 0) {
+        Mat loadTmp;
+        resize(imread(page->fileName), loadTmp, Size(1600, 900), 0, 0, INTER_AREA);
+
+        Mat detTmp = image(Rect(0, 50, 1600, 900));
+        loadTmp.copyTo(detTmp);
+    }
+
+    drawStrokeList(image, page->strokes);
+    image(topButton) = Scalar(200,200,200);
+    setActionBar();
+    imshow(Winn, image);
 }
 
 /* draw all strokes of list*/
@@ -525,9 +576,11 @@ void drawPosList (Mat image, posNode **pos, int thk, int is_eraser) {
         } else {
             plotHandwriting(image, p, plot, 1, thk, is_eraser);
 
+            /*
             for (i = 0; i < DOTS; i++) {
                 p[i] = (DPos) {-1, -1};
             }
+            */
         }
         cur = cur->next;
     }

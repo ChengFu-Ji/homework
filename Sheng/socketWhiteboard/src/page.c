@@ -29,12 +29,19 @@ int addPage (pageNode **pages, int id) {
 
     newNode = (pageNode *)malloc(sizeof(pageNode));
     newNode->pid = id;
+    newNode->fileName[0] = '\0';
     initStroke(&newNode->strokes);
     newNode->next = NULL;
     
     cur->next = newNode;
     return 0;
 }
+
+/*
+int insertImage (pageNode *page, char *fileName) {
+    return 0;
+}
+*/
 
 int delPage (pageNode **pages, int id) {
     pageNode *cur, *next;
@@ -140,3 +147,33 @@ pageNode *getLastPage (pageNode **pages) {
 
     return NULL;
 }
+
+int getPagesLen (pageNode **pages) {
+    pageNode *cur;
+    int i = 0;
+    
+    cur = *pages;
+    while (cur->next != NULL) {
+        cur = cur->next;
+        i++;
+    }
+
+    return i;
+}
+
+int getPagesOrder (pageNode **pages, int id) {
+    pageNode *cur;
+    int i = 0;
+    
+    cur = *pages;
+    while (cur->next != NULL) {
+        i++;
+        if (cur->next->pid == id) {
+            return i;
+        }
+        cur = cur->next;
+    }
+
+    return 0;
+}
+    pageNode *cur;
