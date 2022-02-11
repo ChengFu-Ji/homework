@@ -16,7 +16,7 @@ using namespace cv;
 char Winn[] = "whiteboard";
 Mat image;
 Rect topButton, buttonBar, statusBar;
-int fd, winnWidth, winnHeight;
+int fd, winnWidth, winnHeight, fdTmp = -1;
 
 int main () {
     pthread_t recvThread;
@@ -34,7 +34,6 @@ int main () {
     thk = 3;
     is_eraser = 0;
     curid = 0;
-    addPage(pages, curid);
 
     image = Mat(winnHeight, winnWidth, CV_8UC3, Scalar(255, 255, 255));
 
@@ -50,10 +49,11 @@ int main () {
     imshow(Winn, image);
 
     initPos(&sendList);
-    struct _sender s = {pages, sendList, &thk, &is_eraser, &curid};
+    mainMouseCallback_s s = {pages, recvList, sendList, &recvThread, &thk, &is_eraser, &curid};
     setMouseCallback(Winn, mouseOnWhiteboard, (void *) &s);
     //setbuttonBar(s);
 
+    addPage(pages, curid, PAGE_PERSONAL);
     if ((fd = connectToServer(host, port)) < 0) {
         printf("ERROR:Can't not connect to %s:%d....\nTurn on offline mode\n", host, port);
     } else {
@@ -61,6 +61,7 @@ int main () {
         
         struct _sender recv = {pages, recvList, NULL, NULL, &curid};
         pthread_create(&recvThread, NULL, recvData, (void *) &recv);
+        addPage(pages, curid, PAGE_COMMON);
     }
 
     //setfileExplorer();
@@ -78,30 +79,43 @@ int main () {
         /* ctrl + n / ctrl + x / ctrl + z / ctrl + d/ (Mac)*/
         if (userKeyIn == 14) {
             for (int i = 0; i < 1000; i++) {
-                pageNode *page = getLastPage(pages);
-                addPage(pages, (page->pid)+1);
+                if (fd < 0) {
+                    pageNode *page = getLastPage(pages, PAGE_PERSONAL);
+                    addPage(pages, (page->pid)+1, PAGE_PERSONAL);
+                } else {
+                    pageNode *page = getLastPage(pages, PAGE_COMMON);
+                    addPage(pages, (page->pid)+1, PAGE_COMMON);
 
-                if (fd > 0) {
-                    SockCond addpage = {-1, (page->pid)+1, -1, 0, 0, 0};
-                    write(fd, &addpage, sizeof(SockCond));
+                    if (fdTmp > 0) {
+                        SockCond addpage = {-1, (page->pid)+1, -1, 0, 0, 0};
+                        write(fd, &addpage, sizeof(SockCond));
+                    }
                 }
             }
 
-
             printf("added\n");
         } else if (userKeyIn == 24) {
-            changeToPage(getPage(pages, curid)->next, &curid);
+            if (fd < 0) {
+                changeToPage(getPage(pages, curid, PAGE_PERSONAL)->next, &curid);
+            } else {
+                changeToPage(getPage(pages, curid, PAGE_COMMON)->next, &curid);
+            }
             printf("next page\n");
         } else if (userKeyIn == 26) {
-            changeToPage(getPrevPage(pages, curid), &curid);
+            if (fd < 0) {
+                changeToPage(getPage(pages, curid, PAGE_PERSONAL), &curid);
+            } else {
+                changeToPage(getPage(pages, curid, PAGE_COMMON), &curid);
+            }
             printf("prev page\n");
         } else if (userKeyIn == 4) {
+            /*
             pageNode *page = getPrevPage(pages, curid);
             if (page == NULL) {
                 page = getPage(pages, curid)->next;
             }
             if (page != NULL) {
-                if (fd > 0) {
+                if (fd >= 0) {
                     SockCond delpage = {-1, -1, curid, 0, 0, 0};
                     write(fd, &delpage, sizeof(SockCond));
                 }
@@ -110,50 +124,30 @@ int main () {
                 changeToPage(page, &curid);
 
             }
+            */
 
             printf("delete\n");
         } else if (userKeyIn == 25) {
             getValue(&thk, 4);
             printf("thk now %d\n", thk);
         } else if (userKeyIn == 23) {
-
             struct _sender recv = {pages, recvList, NULL, NULL, &curid};
             /*load */
             setfileExplorer(&recvThread, fd, recv, 1);
-            /*
-            char fileType[3][6] = {".jpg", ".tiff", ".png"};
-            char fileName[32], *fptr;
-
-            getString(fileName, 27);
-            for (int i = 0; i < 3; i++, (i==3)? strcat(fileName, fileType[0]): 0) {
-                if ((fptr = strstr(fileName, fileType[i])) != NULL) {
-                    if (!strcmp(fptr, fileType[i])) {
-                        break;
-                    }
-                }
-            }
-            
-            //findPathFiles();
-            */
-            /*strcat(fileName, fileType[0]);*/
-            /*
-            printf("tmp %s\n", fileName);
-            storeImage(getPage(pages, curid), fileName);
-            */
-
         } else if (userKeyIn == 22) {
             struct _sender recv = {pages, recvList, NULL, NULL, &curid};
             /*save*/
             setfileExplorer(&recvThread, fd, recv, 0);
         }
 
-        if (fd > 0) {
+        if (fdTmp > 0) {
             if (pthread_kill(recvThread, 0) == ESRCH) {
                 struct _sender recv = {pages, recvList, NULL, NULL, &curid};
                 pthread_create(&recvThread, NULL, recvData, (void *) &recv);
                 //imshow(Winn, image);
             }
         }
+
     }
 
     deleteAllPages(pages);
@@ -161,7 +155,7 @@ int main () {
     freePos(sendList);
     freePage(pages);
 
-    if (fd > 0) {
+    if (fdTmp > 0) {
         if (pthread_kill(recvThread, 0) != ESRCH) {
             pthread_cancel(recvThread);
         }
@@ -215,7 +209,7 @@ void *recvData (void *sender) {
     }
 
     if (recv.addpid > 0) {
-        addPage(pages, recv.addpid);
+        addPage(pages, recv.addpid, PAGE_COMMON);
     } 
     if (recv.poslen > 0) {
         if ((n = socket_read(fd, recvList, recv.poslen)) > 0) {
@@ -226,7 +220,7 @@ void *recvData (void *sender) {
                 //IDdelete(recvList, id);
                 //deleteAllPos(recvList);
             }
-            pageNode *page = getPage(pages, recv.drawpid);
+            pageNode *page = getPage(pages, recv.drawpid, PAGE_COMMON);
             if (page != NULL) {
                 addStroke(page->strokes, recvList, recv.thickness, recv.eraser);
                 (*recvList)->next = NULL;
@@ -235,12 +229,12 @@ void *recvData (void *sender) {
     } 
 
     if (recv.deletepid >= 0) {
-        pageNode *page = getPrevPage(pages, recv.deletepid);
+        pageNode *page = getPrevPage(pages, recv.deletepid, PAGE_COMMON);
         if (page == NULL) {
-            page = getPage(pages, recv.deletepid)->next;
+            page = getPage(pages, recv.deletepid, PAGE_COMMON)->next;
         }
         if (page != NULL) {
-            delPage(pages, recv.deletepid);
+            delPage(pages, recv.deletepid, PAGE_COMMON);
             if (*curid == recv.deletepid) {
                 changeToPage(page, curid);
             }
@@ -250,26 +244,55 @@ void *recvData (void *sender) {
 }
 
 void mouseOnWhiteboard (int event, int x, int y, int flags, void *sender) {
-    static Pos tmp;
-    static DPos p[DOTS] = {-1, -1};
+    static DPos p[DOTS] = { [0 ... DOTS-1]{-1.0, -1.0}};
     static int dots = 0;
 
     DPos plot[TIMES];
     int i = 0, j = 0;
     double distance = 0.0;
 
-    struct _sender s = *(struct _sender *) sender;
+    mainMouseCallback_s s = *(mainMouseCallback_s *) sender;
     pageNode **pages = s.pageHead;
-    posNode **sendList = s.posHead;
+    posNode **sendList = s.sendPosHead;
+    posNode **recvList = s.recvPosHead;
     int *curid = s.id;
     int *eraser = s.is_eraser;
     int *thk = s.thk;
 
 
+    image(topButton) = Scalar(200,200,200);
+    if (topButton.contains(Point(x, y)) && (flags & EVENT_FLAG_LBUTTON)) {
+        image(topButton) = Scalar(100, 100, 100);
+    }
+
     if (event == EVENT_LBUTTONDOWN) {
         if (topButton.contains(Point(x, y)) && (flags & EVENT_FLAG_LBUTTON)) {
-            image(topButton) = Scalar(100, 100, 100);
-            imshow(Winn, image);
+            if (fd > 0) {
+                fdTmp = fd;
+                fd = -1;
+
+                pageNode *cur = *pages;
+                while (cur->next != NULL) {
+                    if (cur->next->status == PAGE_PERSONAL) { 
+                        *curid = (cur->next->pid);
+                        reloadPage(cur->next);
+                        break;
+                    }
+                    cur = cur->next;
+                }
+            } else if (fdTmp != -1) {
+                fd = fdTmp;
+
+                pageNode *cur = *pages;
+                while (cur->next != NULL) {
+                    if (cur->next->status == PAGE_COMMON) { 
+                        *curid = (cur->next->pid);
+                        reloadPage(cur->next);
+                        break;
+                    }
+                    cur = cur->next;
+                }
+            }
 
         } else if (buttonBar.contains(Point(x, y)) && (flags & EVENT_FLAG_LBUTTON)) {
             /*input y get action (tmp) */
@@ -288,43 +311,79 @@ void mouseOnWhiteboard (int event, int x, int y, int flags, void *sender) {
             } else if (y < 250) {
                 int pageCount;
                 getValue(&pageCount, 9);
-                changeToPage(getPagebyOrder(pages, pageCount), curid);
+                if (fd < 0) {
+                    changeToPage(getPagebyOrder(pages, pageCount, PAGE_PERSONAL), curid);
+                } else {
+                    changeToPage(getPagebyOrder(pages, pageCount, PAGE_COMMON), curid);
+                }
                 printf("change to page %d\n", pageCount);
             } else if (y < 350) {
-                changeToPage(getPrevPage(pages, *curid), curid);
+                if (fd < 0) {
+                    changeToPage(getPrevPage(pages, *curid, PAGE_PERSONAL), curid);
+                } else {
+                    changeToPage(getPrevPage(pages, *curid, PAGE_COMMON), curid);
+                }
                 printf("prev\n");
             } else if (y < 450) {
-                changeToPage(getPage(pages, *curid)->next, curid);
+                if (fd < 0) {
+                    changeToPage(getNextPage(pages, *curid, PAGE_PERSONAL), curid);
+                } else {
+                    changeToPage(getNextPage(pages, *curid, PAGE_COMMON), curid);
+                }
                 printf("next\n");
             } else if (y < 550) {
-                pageNode *page = getLastPage(pages);
-                addPage(pages, (page->pid)+1);
+                if (fd >0) {
+                    pageNode *page = getLastPage(pages, PAGE_COMMON);
+                    addPage(pages, (page->pid)+1, PAGE_COMMON);
+                    SockCond addpage = {-1, (page->pid)+1, -1, 0, 0, 0};
+                    write(fd, &addpage, sizeof(SockCond));
+                } else {
+                    pageNode *page = getLastPage(pages, PAGE_PERSONAL);
+                    addPage(pages, (page->pid)+1, PAGE_PERSONAL);
+                }
                 printf("added\n");
             } else if (y < 650) {
-                pageNode *page = getPrevPage(pages, *curid);
+                pageNode *page = getPrevPage(pages, *curid, PAGE_COMMON);
                 if (page == NULL) {
-                    page = getPage(pages, *curid)->next;
+                    page = getPage(pages, *curid, PAGE_COMMON)->next;
+                }
+                if (fd < 0) {
+                    pageNode *page = getPrevPage(pages, *curid, PAGE_PERSONAL);
+                    if (page == NULL) {
+                        page = getPage(pages, *curid, PAGE_PERSONAL)->next;
+                    }
                 }
 
                 if (page != NULL) {
-                    delPage(pages, *curid);
-                    changeToPage(page, curid);
+                    if (fd < 0) {
+                        delPage(pages, *curid, PAGE_PERSONAL);
+                        changeToPage(page, curid);
+                    } else {
+                        delPage(pages, *curid, PAGE_COMMON);
+                        changeToPage(page, curid);
+                    }
                     printf("delete\n");
                 }
-
+            } else if (y < 750) {
+                getValue(thk, 4);
+                //printf("thk now %d\n", thk);
+            } else if (y < 850) {
+                struct _sender recv = {pages, recvList, NULL, NULL, curid};
+                /*load */
+                setfileExplorer(s.thread, fd, recv, 1);
+            } else if (y < 950) {
+                struct _sender recv = {pages, recvList, NULL, NULL, curid};
+                /*save*/
+                setfileExplorer(s.thread, fd, recv, 0);
             }
             //setActionBar();
-        } else {
+        } else if(p[0].x == -1 && p[0].y == -1) {
             p[0] = (DPos) {(double) x, (double) y};
 
             if (fd > 0) {
                 dots++;
             }
             addPos(sendList, (Pos) {x, y});
-
-            for (i = 1; i < DOTS; i++) {
-                p[i] = (DPos) {-1, -1};
-            }
         }
     } else if (event == EVENT_MOUSEMOVE && (flags & EVENT_FLAG_LBUTTON) && p[0].x != -1 && p[0].y != -1) {
         for (i = 0; i < DOTS-1; i++) {
@@ -350,7 +409,7 @@ void mouseOnWhiteboard (int event, int x, int y, int flags, void *sender) {
         bezierCurve(plot, TIMES, p, DOTS);
         plotHandwriting(image, p, plot, 0, *thk, *eraser);
         //imshow(Winn, image);
-    } else if (event == EVENT_LBUTTONUP) {
+    } else if (event == EVENT_LBUTTONUP && p[0].x != -1 && p[0].y != -1) {
 
         for (i = 0; i < DOTS-1; i++) {
             if (p[i].x == -1 && p[i].y == -1) {
@@ -365,7 +424,10 @@ void mouseOnWhiteboard (int event, int x, int y, int flags, void *sender) {
 
         addPos(sendList, (Pos) {-1, 0});
 
-        pageNode *page = getPage(pages, *curid);
+        pageNode *page = getPage(pages, *curid, PAGE_COMMON);
+        if (fd < 0) {
+            page = getPage(pages, *curid, PAGE_PERSONAL);
+        }
         if (page != NULL) {
             //printf("page ID %d\n", page->pid);
             addStroke(page->strokes, sendList, *thk, *eraser);
@@ -387,9 +449,6 @@ void mouseOnWhiteboard (int event, int x, int y, int flags, void *sender) {
         //imshow(Winn, image);
     }
 
-    if (topButton.contains(Point(x, y)) && (flags & EVENT_FLAG_LBUTTON)) {
-        image(topButton) = Scalar(200,200,200);
-    }
     setStatusBar(pages, *curid, *thk);
     imshow(Winn, image);
 }
@@ -477,14 +536,23 @@ void setActionBar () {
     drawSelectPageIcon(image, 1600, 200, 100);
     drawPrevPageIcon(image, 1600, 250, 100);
     drawNextPageIcon(image, 1600, 350, 100);
-    drawAddPageIcon(image, 1600, 450, 100);
+    drawAddPageIcon(image, 1600, 450, 100, Scalar(0, 0, 0));
     drawDeletePageIcon(image, 1600, 550, 100);
+
+
+    drawChangeThicknessIcon(image, 1615, 665, 70);
+    drawLoadFileIcon(image, 1615, 765, 70);
+    drawSaveFileIcon(image, 1615, 865, 70);
 }
 
 void setStatusBar (pageNode **pages, int curid, int thk) {
     char Msg[200];
 
-    sprintf(Msg, "page: %d/%d  thickness: %d", getPagesOrder(pages, curid), getPagesLen(pages), thk);
+    if (fd < 0) {
+        sprintf(Msg, "Personal Page page: %d/%d  thickness: %d", getPagesOrder(pages, curid, (fd < 0)? PAGE_PERSONAL : PAGE_COMMON), getPagesLen(pages, (fd < 0)? PAGE_PERSONAL : PAGE_COMMON), thk);
+    } else {
+        sprintf(Msg, "Common Page page: %d/%d  thickness: %d", getPagesOrder(pages, curid, (fd < 0)? PAGE_PERSONAL : PAGE_COMMON), getPagesLen(pages, (fd < 0)? PAGE_PERSONAL : PAGE_COMMON), thk);
+    }
     image(statusBar) = Scalar(177,157,145);
     
     putText(image, Msg, Point(statusBar.x + 12, statusBar.y + 30), FONT_HERSHEY_SIMPLEX, 1.2, Scalar(250, 250, 180), 1, LINE_AA);
@@ -492,9 +560,6 @@ void setStatusBar (pageNode **pages, int curid, int thk) {
 
 void changeToPage (pageNode *page, int *curid) {
     if (page == NULL) {
-        return;
-    } else if (page->pid == *curid) {
-        //printf("same page\n");
         return;
     }
 

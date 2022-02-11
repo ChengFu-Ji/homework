@@ -19,7 +19,7 @@ int freePage (pageNode **page) {
     return 0;
 }
 
-int addPage (pageNode **pages, int id) {
+int addPage (pageNode **pages, int id, char status) {
     pageNode *cur, *newNode;
 
     cur = (*pages);
@@ -29,6 +29,7 @@ int addPage (pageNode **pages, int id) {
 
     newNode = (pageNode *)malloc(sizeof(pageNode));
     newNode->pid = id;
+    newNode->status = status;
     newNode->fileName[0] = '\0';
     initStroke(&newNode->strokes);
     newNode->next = NULL;
@@ -43,12 +44,12 @@ int insertImage (pageNode *page, char *fileName) {
 }
 */
 
-int delPage (pageNode **pages, int id) {
+int delPage (pageNode **pages, int id, char status) {
     pageNode *cur, *next;
 
     cur = (*pages);
     while (cur->next != NULL) {
-        if (cur->next->pid == id) {
+        if (cur->next->pid == id && cur->next->status == status) {
             next = cur->next->next;
 
             deleteAllStrokes(cur->next->strokes);
@@ -90,12 +91,12 @@ int showPageList(pageNode **pages) {
     return 0;
 }
 
-pageNode *getPage (pageNode **pages, int pid) {
+pageNode *getPage (pageNode **pages, int pid, char status) {
     pageNode *cur;
     
     cur = *pages;
     while (cur->next != NULL) {
-        if (cur->next->pid == pid) {
+        if (cur->next->pid == pid && cur->next->status == status) {
             return cur->next;
         }
         cur = cur->next;
@@ -103,29 +104,53 @@ pageNode *getPage (pageNode **pages, int pid) {
     return NULL;
 }
 
-pageNode *getPrevPage (pageNode **pages, int pid) {
+pageNode *getNextPage (pageNode **pages, int pid, char status) {
     pageNode *cur;
+    
+    cur = getPage(pages, pid, status);
+    if (cur == NULL) {
+        return NULL;
+    }
+    while (cur->next != NULL) {
+        if (cur->next->status == status) {
+            return cur->next;
+        }
+        cur = cur->next;
+    }
+
+    return NULL;
+}
+
+pageNode *getPrevPage (pageNode **pages, int pid, char status) {
+    pageNode *cur, *back = NULL;
     
     cur = *pages;
     while (cur->next != NULL) {
-        if (cur->next->pid == pid) {
-            if (cur == *pages) {
-                break;
+        if (cur->next->status == status) {
+            if (cur->next->pid == pid) {
+                if (cur == *pages) {
+                    break;
+                }
+                return back;
+            } else {
+                back = cur->next;
             }
-            return cur;
         }
         cur = cur->next;
     }
     return NULL;
 }
 
-pageNode *getPagebyOrder (pageNode **pages, int order) {
+pageNode *getPagebyOrder (pageNode **pages, int order, char status) {
     pageNode *cur;
     int i = 0;
     
     cur = *pages;
     while (cur->next != NULL) {
-        if (++i == order) {
+        if (cur->next->status == status) {
+            i++;
+        }
+        if (i == order) {
             return cur->next;
         }
         cur = cur->next;
@@ -133,11 +158,14 @@ pageNode *getPagebyOrder (pageNode **pages, int order) {
     return NULL;
 }
 
-pageNode *getLastPage (pageNode **pages) {
-    pageNode *cur;
+pageNode *getLastPage (pageNode **pages, char status) {
+    pageNode *cur, *back;
     
     cur = *pages;
     while (cur->next != NULL) {
+        if (cur->next->status == status) {
+            back = cur->next;
+        }
         cur = cur->next;
     }
 
@@ -148,27 +176,31 @@ pageNode *getLastPage (pageNode **pages) {
     return NULL;
 }
 
-int getPagesLen (pageNode **pages) {
+int getPagesLen (pageNode **pages, char status) {
     pageNode *cur;
     int i = 0;
     
     cur = *pages;
     while (cur->next != NULL) {
+        if (cur->next->status == status) {
+            i++;
+        }
         cur = cur->next;
-        i++;
     }
 
     return i;
 }
 
-int getPagesOrder (pageNode **pages, int id) {
+int getPagesOrder (pageNode **pages, int id, char status) {
     pageNode *cur;
     int i = 0;
     
     cur = *pages;
     while (cur->next != NULL) {
-        i++;
-        if (cur->next->pid == id) {
+        if (cur->next->status == status) {
+            i++;
+        }
+        if (cur->next->pid == id && cur->next->status == status) {
             return i;
         }
         cur = cur->next;
@@ -176,4 +208,3 @@ int getPagesOrder (pageNode **pages, int id) {
 
     return 0;
 }
-    pageNode *cur;

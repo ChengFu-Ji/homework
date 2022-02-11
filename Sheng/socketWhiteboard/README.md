@@ -11,6 +11,7 @@
 ※  2/08 更新 version2 新增 新增輸入檔案名稱存檔功能 。
 ※  2/09 更新 version2 新增 新增選擇目錄存檔功能 。
 ※  2/10 更新 version2 新增 新增選擇目錄讀檔功能、 status bar 。
+※  2/11 更新 version2 新增 新增各個功能之icon 並顯示在 botton bar 以及 更新 status bar 顯示頁面資訊。
 
 
 ### 目前功能 ###

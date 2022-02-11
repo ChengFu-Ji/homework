@@ -49,6 +49,16 @@ struct _sender {
     int *id;
 };
 
+typedef struct _mainMouseCallbak_sender {
+    pageNode **pageHead;
+    posNode **recvPosHead;
+    posNode **sendPosHead;
+    pthread_t *thread;
+    int *thk;
+    int *is_eraser;
+    int *id;
+} mainMouseCallback_s;
+
 typedef struct _explorer_sender {
     pageNode **pageHead;
     fileNode **fileHead;
@@ -66,6 +76,7 @@ typedef struct _explorer_sender {
     char *winn;
 } Exp_s;
 
+//static int fd;
 /*
 typedef struct _cmd {
     int num;
@@ -102,11 +113,14 @@ void setStatusBar (pageNode **pages, int curid, int thk);
 /* draw Icons */
 void drawEraserIcon (cv::Mat image, int x, int y, double Size);
 void drawSelectPageIcon (cv::Mat image, int x, int y, double Size);
-void drawAddPageIcon (cv::Mat image, int x, int y, double Size);
+void drawAddPageIcon (cv::Mat image, int x, int y, double Size, cv::Scalar color);
 void drawDeletePageIcon (cv::Mat image, int x, int y, double Size);
 void drawSelectPageIcon (cv::Mat image, int x, int y, double Size);
 void drawNextPageIcon (cv::Mat image, int x, int y, double Size);
 void drawPrevPageIcon (cv::Mat image, int x, int y, double Size);
+void drawLoadFileIcon (cv::Mat image, int x, int y, double Size);
+void drawSaveFileIcon (cv::Mat image, int x, int y, double Size);
+void drawChangeThicknessIcon (cv::Mat image, int x, int y, double Size);
 
 /* save files */
 void setfileExplorer (pthread_t *thread, int fd, struct _sender sender, int state);

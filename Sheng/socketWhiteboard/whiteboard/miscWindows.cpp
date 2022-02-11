@@ -1,6 +1,7 @@
 #include "wbwindows.h"
 
 using namespace cv;
+extern int fd;
 
 void getValue (int *value, int maxlength) {
     int i = 0;
@@ -118,10 +119,10 @@ void buttonBarEvent (int event, int x, int y, int flags, void *sender) {
     int *curid = s.id;
     int *eraser = s.is_eraser;
 
+    /*
     if (event == EVENT_LBUTTONDOWN) {
         if ((y >= 0 && y < 40)) {
             if ((x >= 0 && x < 40)) {
-                /* eraser */
                 if (*eraser) {
                     *eraser = 0;
                     printf("eraser off!!\n");
@@ -150,7 +151,6 @@ void buttonBarEvent (int event, int x, int y, int flags, void *sender) {
                 addPage(pages, (page->pid)+1);
                 printf("added\n");
             } else if ((x >= 40 && x < 80)){
-                /*delete*/
 
                 pageNode *page = getPrevPage(pages, *curid);
                 if (page == NULL) {
@@ -165,6 +165,7 @@ void buttonBarEvent (int event, int x, int y, int flags, void *sender) {
             }
         }
     }
+    */
 }
 
 void drawEraserIcon (Mat image, int x, int y, double Size) {
@@ -185,10 +186,10 @@ void drawEraserIcon (Mat image, int x, int y, double Size) {
     line(image, Point(topPos.x - parts, topPos.y + parts + 5), Point(rightPos.x - parts - 2, rightPos.y + parts + 2), Scalar(0, 0, 0), 3);
 }
 
-void drawAddPageIcon (Mat image, int x, int y, double Size) {
+void drawAddPageIcon (Mat image, int x, int y, double Size, Scalar color) {
     double parts = Size/10;
-    line(image, Point(x + (int) (parts), y + (int) (Size/2)), Point(x + (int) (parts*9), y + (int) (Size/2)), Scalar(0, 0, 0), 3);
-    line(image, Point(x + (int) (Size/2), y + (int) (parts)), Point(x + (int) (Size/2), y + (int) (parts*9)), Scalar(0, 0, 0), 3);
+    line(image, Point(x + (int) (parts), y + (int) (Size/2)), Point(x + (int) (parts*9), y + (int) (Size/2)), color, 3);
+    line(image, Point(x + (int) (Size/2), y + (int) (parts)), Point(x + (int) (Size/2), y + (int) (parts*9)), color, 3);
 }
 
 void drawDeletePageIcon (Mat image, int x, int y, double Size) {
@@ -219,6 +220,134 @@ void drawPrevPageIcon (Mat image, int x, int y, double Size) {
                 Point(x + (int) (parts*(7 - 3*sqrt(3))), y + (int) (Size/2)), Scalar(0, 0, 0), 3);
     line(image, Point(x + (int) (parts*7), y + (int) (parts*8)),
                 Point(x + (int) (parts*(7 - 3*sqrt(3))), y + (int) (Size/2)), Scalar(0, 0, 0), 3);
+}
+
+void drawLoadFileIcon (Mat image, int x, int y, double Size) {
+    int icon_thk = 3;
+    int bias = 2;
+    double parts = (Size - 2*bias)/10;
+
+    line(image, Point(x + bias + (int) (parts*2), y + bias),
+                Point(x + bias + (int) (parts*6), y + bias), Scalar(0, 0, 0), icon_thk);
+
+    line(image, Point(x + bias + (int) (parts*2), y + bias),
+                Point(x + bias + (int) (parts*2), y + bias + (int) (parts*10)), Scalar(0, 0, 0), icon_thk);
+
+    line(image, Point(x + bias + (int) (parts*6), y + bias),
+                Point(x + bias + (int) (parts*8), y + bias + (int) (parts*2)), Scalar(0, 0, 0), icon_thk);
+
+    line(image, Point(x + bias + (int) (parts*8), y + bias + (int) (parts*2)),
+                Point(x + bias + (int) (parts*8), y + bias + (int) (parts*10)), Scalar(0, 0, 0), icon_thk);
+
+    line(image, Point(x + bias + (int) (parts*8), y + bias + (int) (parts*10)),
+                Point(x + bias + (int) (parts*2), y + bias + (int) (parts*10)), Scalar(0, 0, 0), icon_thk);
+
+    line(image, Point(x + bias + (int) (parts*7), y + bias + (int) (parts*8)),
+                Point(x + bias + (int) (parts*3), y + bias + (int) (parts*8)), Scalar(0, 0, 0), icon_thk);
+
+    line(image, Point(x + bias + (int) (parts*7), y + bias + (int) (parts*6)),
+                Point(x + bias + (int) (parts*3), y + bias + (int) (parts*6)), Scalar(0, 0, 0), icon_thk);
+
+    line(image, Point(x + bias + (int) (parts*7), y + bias + (int) (parts*4)),
+                Point(x + bias + (int) (parts*3), y + bias + (int) (parts*4)), Scalar(0, 0, 0), icon_thk);
+
+    line(image, Point(x + bias + (int) (parts*6), y + bias + (int) (parts*2)),
+                Point(x + bias + (int) (parts*3), y + bias + (int) (parts*2)), Scalar(0, 0, 0), icon_thk);
+
+    circle(image, Point(x + bias + (int) (parts*2), y + bias + (int) (parts)), 15, Scalar(0, 0, 0), -1);
+    drawAddPageIcon(image, x + bias*2 + 1, y - bias, 20, Scalar(100, 100, 100));
+}
+
+void drawSaveFileIcon (Mat image, int x, int y, double Size) {
+    int icon_thk = 3;
+    int bias = 2;
+    double parts = (Size - 2*bias)/10;
+
+    line(image, Point(x + bias, y + bias),
+                Point(x + bias + (int) (parts*8), y + bias), Scalar(0, 0, 0), icon_thk);
+
+    line(image, Point(x + bias, y + bias),
+                Point(x + bias, y + bias + (int) (parts*10)), Scalar(0, 0, 0), icon_thk);
+
+    line(image, Point(x + bias + (int) (parts*8), y + bias),
+                Point(x + bias + (int) (parts*10), y + bias + (int) (parts*2)), Scalar(0, 0, 0), icon_thk);
+
+    line(image, Point(x + bias + (int) (parts*10), y + bias + (int) (parts*2)),
+                Point(x + bias + (int) (parts*10), y + bias + (int) (parts*10)), Scalar(0, 0, 0), icon_thk);
+
+    line(image, Point(x + bias + (int) (parts*10), y + bias + (int) (parts*10)),
+                Point(x + bias , y + bias + (int) (parts*10)), Scalar(0, 0, 0), icon_thk);
+
+
+    line(image, Point(x + bias + (int) (parts*2.5), y + bias), 
+                Point(x + bias + (int) (parts*2.5), y + bias + (int) (parts*3)), Scalar(0, 0, 0), icon_thk);
+
+    line(image, Point(x + bias + (int) (parts*7.2), y + bias), 
+                Point(x + bias + (int) (parts*7.2), y + bias + (int) (parts*3)), Scalar(0, 0, 0), icon_thk);
+
+    line(image, Point(x + bias + (int) (parts*2.5), y + bias + (int) (parts*3)), 
+                Point(x + bias + (int) (parts*7.2), y + bias + (int) (parts*3)), Scalar(0, 0, 0), icon_thk);
+
+
+    line(image, Point(x + bias + (int) (parts*2), y + bias + (int) (parts*10)), 
+                Point(x + bias + (int) (parts*2), y + bias + (int) (parts*5)), Scalar(0, 0, 0), icon_thk);
+
+    line(image, Point(x + bias + (int) (parts*8), y + bias + (int) (parts*10)), 
+                Point(x + bias + (int) (parts*8), y + bias + (int) (parts*5)), Scalar(0, 0, 0), icon_thk);
+
+    line(image, Point(x + bias + (int) (parts*8), y + bias + (int) (parts*5)), 
+                Point(x + bias + (int) (parts*2), y + bias + (int) (parts*5)), Scalar(0, 0, 0), icon_thk);
+
+    line(image, Point(x + bias + (int) (parts*6.5), y + bias + (int) (parts*6)), 
+                Point(x + bias + (int) (parts*3.5), y + bias + (int) (parts*6)), Scalar(0, 0, 0), icon_thk);
+
+    line(image, Point(x + bias + (int) (parts*6.5), y + bias + (int) (parts*7)), 
+                Point(x + bias + (int) (parts*3.5), y + bias + (int) (parts*7)), Scalar(0, 0, 0), icon_thk);
+
+}
+
+void drawChangeThicknessIcon (Mat image, int x, int y, double Size) {
+    int icon_thk = 3;
+    int bias = 2;
+    double parts = (Size - 2*bias)/10;
+
+    line(image, Point(x + bias + (int) (parts*5), y + bias), 
+                Point(x + bias + (int) (parts*4), y + bias + (int) (parts*2)), Scalar(0, 0, 0), icon_thk-1);
+
+    line(image, Point(x + bias + (int) (parts*5), y + bias), 
+                Point(x + bias + (int) (parts*6), y + bias + (int) (parts*2)), Scalar(0, 0, 0), icon_thk-1);
+
+    line(image, Point(x + bias + (int) (parts*6), y + bias + (int) (parts*2)), 
+                Point(x + bias + (int) (parts*4), y + bias + (int) (parts*2)), Scalar(0, 0, 0), icon_thk-1);
+
+    line(image, Point(x + bias + (int) (parts*6), y + bias + (int) (parts*2)), 
+                Point(x + bias + (int) (parts*6), y + bias + (int) (parts*3)), Scalar(0, 0, 0), icon_thk);
+
+    line(image, Point(x + bias + (int) (parts*4), y + bias + (int) (parts*2)), 
+                Point(x + bias + (int) (parts*4), y + bias + (int) (parts*3)), Scalar(0, 0, 0), icon_thk);
+
+    line(image, Point(x + bias + (int) (parts*4), y + bias + (int) (parts*3)), 
+                Point(x + bias + (int) (parts*3.5), y + bias + (int) (parts*5)), Scalar(0, 0, 0), icon_thk);
+
+    line(image, Point(x + bias + (int) (parts*6), y + bias + (int) (parts*3)), 
+                Point(x + bias + (int) (parts*6.5), y + bias + (int) (parts*5)), Scalar(0, 0, 0), icon_thk);
+
+    line(image, Point(x + bias + (int) (parts*3.5), y + bias + (int) (parts*5)), 
+                Point(x + bias + (int) (parts*3.5), y + bias + (int) (parts*10)), Scalar(0, 0, 0), icon_thk);
+
+    line(image, Point(x + bias + (int) (parts*6.5), y + bias + (int) (parts*5)), 
+                Point(x + bias + (int) (parts*6.5), y + bias + (int) (parts*10)), Scalar(0, 0, 0), icon_thk);
+
+    line(image, Point(x + bias + (int) (parts*3.5), y + bias + (int) (parts*10)), 
+                Point(x + bias + (int) (parts*6.5), y + bias + (int) (parts*10)), Scalar(0, 0, 0), icon_thk);
+
+    line(image, Point(x + bias + (int) (parts*3.5), y + bias + (int) (parts*5)), 
+                Point(x + bias + (int) (parts*6.5), y + bias + (int) (parts*5)), Scalar(0, 0, 0), icon_thk);
+
+    rectangle(image, Rect(x + bias + (int) (parts*3.5), y + bias + (int) (parts*5), parts*3, parts*5), Scalar(0, 0, 0), -1);
+
+    line(image, Point(x + bias + (int) (parts*4), y + bias + (int) (parts*5.5)), 
+                Point(x + bias + (int) (parts*4), y + bias + (int) (parts*9.5)), Scalar(70, 70, 70), icon_thk);
 }
 
 void setfileExplorer (pthread_t *thread, int fd, struct _sender recv, int state) {
@@ -344,7 +473,11 @@ void ExplorerEvent (int event, int x, int y, int flags, void *sender) {
                     }
                     strcat(s.path, "/");
                     strcat(s.path, filename);
-                    storeImage(getPage(s.pageHead, *s.id), s.path);
+                    if (fd < 0) {
+                        storeImage(getPage(s.pageHead, *s.id, PAGE_PERSONAL), s.path);
+                    } else {
+                        storeImage(getPage(s.pageHead, *s.id, PAGE_COMMON), s.path);
+                    }
                     destroyWindow(s.winn);
                 }
             } else {
@@ -356,8 +489,14 @@ void ExplorerEvent (int event, int x, int y, int flags, void *sender) {
                         if (!strcmp(fptr, fileType[i])) {
                             strcat(s.path, "/");
                             strcat(s.path, filename);
-                            readImage(getPage(s.pageHead, *s.id), s.path);
-                            reloadPage (getPage(s.pageHead, *s.id));
+
+                            if (fd < 0) {
+                                readImage(getPage(s.pageHead, *s.id, PAGE_PERSONAL), s.path);
+                                reloadPage(getPage(s.pageHead, *s.id, PAGE_PERSONAL));
+                            } else {
+                                readImage(getPage(s.pageHead, *s.id, PAGE_COMMON), s.path);
+                                reloadPage(getPage(s.pageHead, *s.id, PAGE_COMMON));
+                            }
                             destroyWindow(s.winn);
                             break;
                         }
@@ -521,6 +660,7 @@ void findPathFiles (fileNode **files, char *path) {
     }
     closedir(dir);
 }
+
 
 void updatePath (Mat image, char *path) {
     char curPath[272];
